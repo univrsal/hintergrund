@@ -15,13 +15,14 @@
  */
 #pragma once
 #include <ctime>
+#include "rule.hpp"
 
 enum date_type {
     WEEKDAY,
     TIME_SPAN,
     DATE_SPAN,
     MONTH_SPAN
-}
+};
 
 class rule_date : public rule
 {

@@ -27,6 +27,6 @@ class rule_time_span : public rule_date
 public:
     rule_time_span(moment start, moment end);
 
-    bool evaluate() const override;
+    bool evaluate() override;
 };
 

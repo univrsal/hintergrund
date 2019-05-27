@@ -22,7 +22,7 @@ rule_time_span::rule_time_span(moment start, moment end)
     m_end = end;
 }
 
-bool rule_time_span::evaluate() const
+bool rule_time_span::evaluate()
 {
     auto* t = now();
     if (t->tm_min >= m_begin.minute && t->tm_hour >= m_begin.hour &&

@@ -12,7 +12,6 @@ class rule
     std::vector<std::string> m_tags;
 public:
     rule();
-    virtual ~rule();
 
     /* Does this rule currently apply? */
     virtual bool evaluate() = 0;

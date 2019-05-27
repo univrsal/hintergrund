@@ -34,6 +34,6 @@ public:
     rule_weekday(weekday d);
     rule_weekday(weekday start, weekday end);
 
-    bool evaluate() const override;
+    bool evaluate() override;
 };
 

@@ -30,7 +30,7 @@ rule_weekday::rule_weekday(weekday start, weekday end)
     m_end = start > end ? start : end;
 }
 
-bool rule_weekday::evaluate() const
+bool rule_weekday::evaluate()
 {
     auto* n = now();
     if (m_span) {
