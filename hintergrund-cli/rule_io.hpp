@@ -1,4 +1,4 @@
-/* rule_time_span.cpp created on 2019.5.27
+/* rule_io.hpp created on 2019.5.28
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,22 +13,21 @@
  * github.com/univrsal/
  *
  */
-#include "rule_time_span.hpp"
+#pragma once
+#include "rule.hpp"
 
-rule_time_span::rule_time_span(moment_t start, moment_t end)
-    : rule_date(TIME_SPAN)
-{
-    m_begin = start;
-    m_end = end;
-}
+enum io_type {
+    IO_INT, IO_STRING
+};
 
-bool rule_time_span::evaluate()
+class rule_io : public rule
 {
-    auto* t = now();
-    if (t->tm_min >= m_begin.minute && t->tm_hour >= m_begin.hour &&
-            t->tm_min <= m_end.minute && t->tm_hour <= m_end.hour)
-    {
-        return true;
-    }
-    return false;
-}
+    int32_t m_int_target;
+    const char* m_str_target;
+    io_type m_type;
+public:
+    rule_io(const char* str);
+    rule_io(int32_t i);
+    ~rule_io();
+};
+

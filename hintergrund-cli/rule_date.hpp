@@ -24,6 +24,20 @@ enum date_type {
     MONTH_SPAN
 };
 
+enum month_t {
+    JANUARY, FEBRUARY, MARCH, APRIL, MAY, JUNE,
+    JULY, AUGUST, SEPTEMBER, NOVEMBER, DECEMBER
+};
+
+struct moment_t {
+    uint8_t hour, minute;
+};
+
+struct date_t {
+    month_t month;
+    uint8_t day;
+};
+
 class rule_date : public rule
 {
     date_type m_type;

@@ -1,4 +1,4 @@
-/* rule_time_span.cpp created on 2019.5.27
+/* main.cpp created on 2019.5.28
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,22 +13,14 @@
  * github.com/univrsal/
  *
  */
-#include "rule_time_span.hpp"
+#include "mainwindow.hpp"
+#include <QApplication>
 
-rule_time_span::rule_time_span(moment_t start, moment_t end)
-    : rule_date(TIME_SPAN)
+int main(int argc, char *argv[])
 {
-    m_begin = start;
-    m_end = end;
-}
+    QApplication a(argc, argv);
+    MainWindow w;
+    w.show();
 
-bool rule_time_span::evaluate()
-{
-    auto* t = now();
-    if (t->tm_min >= m_begin.minute && t->tm_hour >= m_begin.hour &&
-            t->tm_min <= m_end.minute && t->tm_hour <= m_end.hour)
-    {
-        return true;
-    }
-    return false;
+    return a.exec();
 }

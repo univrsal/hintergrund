@@ -1,4 +1,4 @@
-/* rule_time_span.cpp created on 2019.5.27
+/* rule_date_span.hpp created on 2019.5.28
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,22 +13,17 @@
  * github.com/univrsal/
  *
  */
-#include "rule_time_span.hpp"
+#pragma once
+#include "rule_date.hpp"
 
-rule_time_span::rule_time_span(moment_t start, moment_t end)
-    : rule_date(TIME_SPAN)
+class rule_date_span : public rule_date
 {
-    m_begin = start;
-    m_end = end;
-}
+    date_t m_start, m_end;
+    bool m_is_span;
+public:
+    rule_date_span(date_t start);
+    rule_date_span(date_t start, date_t end);
 
-bool rule_time_span::evaluate()
-{
-    auto* t = now();
-    if (t->tm_min >= m_begin.minute && t->tm_hour >= m_begin.hour &&
-            t->tm_min <= m_end.minute && t->tm_hour <= m_end.hour)
-    {
-        return true;
-    }
-    return false;
-}
+    bool evaluate() override;
+};
+

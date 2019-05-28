@@ -17,15 +17,11 @@
 #include "rule_date.hpp"
 #include <stdint.h>
 
-struct moment {
-    uint8_t hour, minute;
-};
-
 class rule_time_span : public rule_date
 {
-    moment m_begin, m_end;
+    moment_t m_begin, m_end;
 public:
-    rule_time_span(moment start, moment end);
+    rule_time_span(moment_t start, moment_t end);
 
     bool evaluate() override;
 };

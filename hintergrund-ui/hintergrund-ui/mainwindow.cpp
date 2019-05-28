@@ -1,4 +1,4 @@
-/* rule_time_span.cpp created on 2019.5.27
+/* mainwindow.cpp created on 2019.5.28
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,22 +13,17 @@
  * github.com/univrsal/
  *
  */
-#include "rule_time_span.hpp"
+#include "mainwindow.hpp"
+#include "ui_mainwindow.h"
 
-rule_time_span::rule_time_span(moment_t start, moment_t end)
-    : rule_date(TIME_SPAN)
+MainWindow::MainWindow(QWidget *parent) :
+    QMainWindow(parent),
+    ui(new Ui::MainWindow)
 {
-    m_begin = start;
-    m_end = end;
+    ui->setupUi(this);
 }
 
-bool rule_time_span::evaluate()
+MainWindow::~MainWindow()
 {
-    auto* t = now();
-    if (t->tm_min >= m_begin.minute && t->tm_hour >= m_begin.hour &&
-            t->tm_min <= m_end.minute && t->tm_hour <= m_end.hour)
-    {
-        return true;
-    }
-    return false;
+    delete ui;
 }

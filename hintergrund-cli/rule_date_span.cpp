@@ -1,4 +1,4 @@
-/* rule_time_span.cpp created on 2019.5.27
+/* rule_date_span.cpp created on 2019.5.28
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,22 +13,31 @@
  * github.com/univrsal/
  *
  */
-#include "rule_time_span.hpp"
+#include "rule_date_span.hpp"
 
-rule_time_span::rule_time_span(moment_t start, moment_t end)
-    : rule_date(TIME_SPAN)
+rule_date_span::rule_date_span(date_t start)
+    : rule_date(DATE_SPAN)
 {
-    m_begin = start;
-    m_end = end;
+    m_start = start;
+    m_is_span = false;
 }
 
-bool rule_time_span::evaluate()
+rule_date_span::rule_date_span(date_t start, date_t end)
+    : rule_date(DATE_SPAN)
 {
-    auto* t = now();
-    if (t->tm_min >= m_begin.minute && t->tm_hour >= m_begin.hour &&
-            t->tm_min <= m_end.minute && t->tm_hour <= m_end.hour)
-    {
-        return true;
+    m_start = start;
+    m_end = end;
+    m_is_span = true;
+}
+
+bool rule_date_span::evaluate()
+{
+    auto* n = now();
+
+    if (m_is_span) {
+        return n->tm_mon >= m_start.month && n->tm_mon <= m_end.month &&
+               n->tm_mday >= m_start.day && n->tm_mday <= m_end.day;
+    } else {
+        return n->tm_mday == m_start.day && n->tm_mon == m_start.month;
     }
-    return false;
 }

@@ -24,7 +24,7 @@ rule_weekday::rule_weekday(weekday d)
 rule_weekday::rule_weekday(weekday start, weekday end)
     : rule_date(WEEKDAY)
 {
-    m_span = true;
+    m_is_span = true;
     /* Pick lower/higher for start/end incase arguments were passed wrong */
     m_start = start > end ? end : start;
     m_end = start > end ? start : end;
@@ -33,7 +33,7 @@ rule_weekday::rule_weekday(weekday start, weekday end)
 bool rule_weekday::evaluate()
 {
     auto* n = now();
-    if (m_span) {
+    if (m_is_span) {
         return n->tm_wday >= m_start && n->tm_wday <= m_end;
     } else {
         return n->tm_wday == m_start;
