@@ -1,4 +1,4 @@
-/* rule_io.hpp created on 2019.5.28
+/* rule_set.hpp created on 2019.5.29
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,28 +14,10 @@
  *
  */
 #pragma once
-#include "rule.hpp"
 
-enum io_type {
-    IO_INT, IO_STRING
-};
-
-enum compare_type {
-    COMP_LESS_THAN, COMP_GREATER_THAN,
-    COMP_EQUAL, COMP_LESS_EQ_THAN,
-    COMP_GREATER_EQ_THAN
-};
-
-class rule_io : public rule
+class rule_set
 {
-protected:
-    int32_t m_int_target;
-    compare_type m_comp_type;int
-    const char* m_str_target;
-    io_type m_type;
 public:
-    rule_io(const char* str);
-    rule_io(int32_t i);
-    ~rule_io();
+    rule_set();
 };
 
