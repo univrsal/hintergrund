@@ -39,11 +39,37 @@ rule_io_file::~rule_io_file()
 bool rule_io_file::evaluate()
 {
     std::ifstream is(m_file_path);
-
+    bool result = false;
     if (is.good())
     {
-        switch (m_) {
-
+        int i;
+        std::string line;
+        switch (m_type) {
+            case IO_INT:
+                is >> i;
+                switch (m_comp_type) {
+                    case COMP_EQUAL:
+                        result = i == m_int_target;
+                        break;
+                    case COMP_LESS_THAN:
+                        result = i < m_int_target;
+                        break;
+                    case COMP_GREATER_THAN:
+                        result = i > m_int_target;
+                        break;
+                    case COMP_GREATER_EQ_THAN:
+                        result = i >= m_int_target;
+                        break;
+                    case COMP_LESS_EQ_THAN:
+                        result = i <= m_int_target;
+                        break;
+                }
+                break;
+            case IO_STRING:
+                if (std::getline(is, line))
+                    result = line == m_str_target;
+            break;
         }
     }
+    return result;
 }

@@ -32,3 +32,17 @@ bool rule_time_span::evaluate()
     }
     return false;
 }
+
+bool rule_time_span::write_to_config(json_t* config)
+{
+    bool result = true;
+    return result;
+}
+
+bool rule_time_span::read_from_config(json_t* config)
+{
+    bool result = true;
+
+    return result;
+}
+

@@ -24,5 +24,9 @@ public:
     rule_time_span(moment_t start, moment_t end);
 
     bool evaluate() override;
+
+    /* Encode/Decode this rule to the config file */
+    bool write_to_config(json_t* config) override;
+    bool read_from_config(json_t* config) override;
 };
 

@@ -30,7 +30,7 @@ class rule_io : public rule
 {
 protected:
     int32_t m_int_target;
-    compare_type m_comp_type;int
+    compare_type m_comp_type;
     const char* m_str_target;
     io_type m_type;
 public:
