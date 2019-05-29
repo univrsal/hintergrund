@@ -3,6 +3,7 @@ is a wallpaper chooser, which allows for three different ways of choosing a wall
 - Shuffle
 - Sequential
 - Controlle shuffle
+
 Controlled shuffle is the most important one as it will allow you to get wallpapers based on a defined ruleset.
 You can define your own rules which hintergrund will check and choose a wallpaper based on them.
 
