@@ -16,17 +16,19 @@
 #include "rule_io.hpp"
 #include <cstring>
 
-rule_io::rule_io(int32_t i)
+rule_io::rule_io(rule_type type, int32_t i)
+    : rule(type)
 {
     m_int_target = i;
-    m_type = IO_INT;
     m_str_target = nullptr;
+    m_io_type = IO_INT;
 }
 
-rule_io::rule_io(const char* str)
+rule_io::rule_io(rule_type type, const char* str)
+    : rule(type)
 {
     m_str_target = strdup(str);
-    m_type = IO_STRING;
+    m_io_type = IO_STRING;
 }
 
 rule_io::~rule_io()

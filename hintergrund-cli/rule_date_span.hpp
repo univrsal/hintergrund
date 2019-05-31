@@ -16,6 +16,11 @@
 #pragma once
 #include "rule_date.hpp"
 
+#define KEY_RULE_DATE_DAY       "day"
+#define KEY_RULE_DATE_MONTH     "month"
+#define KEY_RULE_DATE_BEGIN     "date_begin"
+#define KEY_RULE_DATE_END       "date end"
+
 class rule_date_span : public rule_date
 {
     date_t m_start, m_end;
@@ -23,6 +28,9 @@ class rule_date_span : public rule_date
 public:
     rule_date_span(date_t start);
     rule_date_span(date_t start, date_t end);
+
+    bool write_to_config(json_t* config, json_error_t* error) override;
+    bool read_from_config(json_t* config, json_error_t* error) override;
 
     bool evaluate() override;
 };

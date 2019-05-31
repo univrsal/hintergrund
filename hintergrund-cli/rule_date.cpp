@@ -15,9 +15,9 @@
  */
 #include "rule_date.hpp"
 
-rule_date::rule_date(date_type type)
+rule_date::rule_date(rule_type type)
+    : rule(type)
 {
-    m_type = type;
 }
 
 struct tm* rule_date::now() const

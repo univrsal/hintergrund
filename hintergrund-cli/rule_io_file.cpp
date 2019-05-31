@@ -18,14 +18,14 @@
 #include <fstream>
 
 rule_io_file::rule_io_file(const char* file_path, int target, compare_type ct)
-    : rule_io(target)
+    : rule_io(RULE_IO_FILE, target)
 {
     m_comp_type = ct;
     m_file_path = strdup(file_path);
 }
 
 rule_io_file::rule_io_file(const char* file_path, const char* target, compare_type ct)
-    : rule_io(target)
+    : rule_io(RULE_IO_FILE, target)
 {
     m_comp_type = ct;
     m_file_path = strdup(file_path);
@@ -44,7 +44,7 @@ bool rule_io_file::evaluate()
     {
         int i;
         std::string line;
-        switch (m_type) {
+        switch (m_io_type) {
             case IO_INT:
                 is >> i;
                 switch (m_comp_type) {

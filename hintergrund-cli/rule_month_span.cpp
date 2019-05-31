@@ -16,14 +16,14 @@
 #include "rule_month_span.hpp"
 
 rule_month_span::rule_month_span(date_t start)
-    : rule_date(MONTH_SPAN)
+    : rule_date(RULE_MONTH)
 {
     m_start = start;
     m_is_span = false;
 }
 
 rule_month_span::rule_month_span(date_t start, date_t end)
-    : rule_date(MONTH_SPAN)
+    : rule_date(RULE_MONTH)
 {
     m_start = start;
     m_end = end;

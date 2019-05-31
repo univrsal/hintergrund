@@ -16,13 +16,13 @@
 #include "rule_weekday.hpp"
 
 rule_weekday::rule_weekday(weekday d)
-    : rule_date(WEEKDAY)
+    : rule_date(RULE_WEEKDAY)
 {
     m_start = d;
 }
 
 rule_weekday::rule_weekday(weekday start, weekday end)
-    : rule_date(WEEKDAY)
+    : rule_date(RULE_WEEKDAY)
 {
     m_is_span = true;
     /* Pick lower/higher for start/end incase arguments were passed wrong */

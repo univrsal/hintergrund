@@ -17,13 +17,6 @@
 #include <ctime>
 #include "rule.hpp"
 
-enum date_type {
-    WEEKDAY,
-    TIME_SPAN,
-    DATE_SPAN,
-    MONTH_SPAN
-};
-
 enum month_t {
     JANUARY, FEBRUARY, MARCH, APRIL, MAY, JUNE,
     JULY, AUGUST, SEPTEMBER, NOVEMBER, DECEMBER
@@ -40,10 +33,8 @@ struct date_t {
 
 class rule_date : public rule
 {
-    date_type m_type;
 public:
-    rule_date(date_type type);
-
+    rule_date(rule_type type);
     struct tm* now() const;
 };
 

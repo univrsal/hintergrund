@@ -32,10 +32,10 @@ protected:
     int32_t m_int_target;
     compare_type m_comp_type;
     const char* m_str_target;
-    io_type m_type;
+    io_type m_io_type;
 public:
-    rule_io(const char* str);
-    rule_io(int32_t i);
+    rule_io(rule_type type, const char* str);
+    rule_io(rule_type type, int32_t i);
     ~rule_io();
 };
 

@@ -17,6 +17,11 @@
 #include "rule_date.hpp"
 #include <stdint.h>
 
+#define KEY_RULE_MOMENT_HOUR    "hour"
+#define KEY_RULE_MOMENT_MINUTE  "minute"
+#define KEY_RULE_TIME_BEGIN     "begin"
+#define KEY_RULE_TIME_END       "end"
+
 class rule_time_span : public rule_date
 {
     moment_t m_begin, m_end;
@@ -26,7 +31,7 @@ public:
     bool evaluate() override;
 
     /* Encode/Decode this rule to the config file */
-    bool write_to_config(json_t* config) override;
-    bool read_from_config(json_t* config) override;
+    bool write_to_config(json_t* config, json_error_t* error) override;
+    bool read_from_config(json_t* config, json_error_t* error) override;
 };
 

@@ -16,7 +16,7 @@
 #include "rule_time_span.hpp"
 
 rule_time_span::rule_time_span(moment_t start, moment_t end)
-    : rule_date(TIME_SPAN)
+    : rule_date(RULE_TIME)
 {
     m_begin = start;
     m_end = end;
@@ -33,15 +33,51 @@ bool rule_time_span::evaluate()
     return false;
 }
 
-bool rule_time_span::write_to_config(json_t* config)
+bool rule_time_span::write_to_config(json_t* config, json_error_t* error)
 {
-    bool result = true;
+    bool result = rule_date::write_to_config(config, error);
+
+    if (result) {
+        auto* start = json_pack_ex(error, 0, "{sisi}", KEY_RULE_MOMENT_HOUR, m_begin.hour,
+                                   KEY_RULE_MOMENT_MINUTE, m_begin.minute);
+        auto* end = json_pack_ex(error, 0, "{sisi}", KEY_RULE_MOMENT_HOUR, m_end.hour,
+                                 KEY_RULE_MOMENT_MINUTE, m_end.minute);
+
+        if (start && end) {
+            json_object_set_new(config, KEY_RULE_TIME_BEGIN, start);
+            json_object_set_new(config, KEY_RULE_TIME_END, end);
+        } else {
+            printf("Error while packing time span data\n");
+            result = false;
+        }
+    }
     return result;
 }
 
-bool rule_time_span::read_from_config(json_t* config)
+bool rule_time_span::read_from_config(json_t* config, json_error_t* error)
 {
-    bool result = true;
+    bool result = rule::read_from_config(config, error);
+
+    if (result) {
+        auto* start = json_object_get(config, KEY_RULE_TIME_BEGIN);
+        auto* end = json_object_get(config, KEY_RULE_TIME_END);
+
+        if (!start || json_unpack_ex(start, error, 0, "{sisi}", KEY_RULE_MOMENT_HOUR,
+                                     &m_begin.hour, KEY_RULE_MOMENT_MINUTE, &m_begin.minute) < 0) {
+            printf("Error while decoding time span\n");
+            result = false;
+        } else {
+            json_decref(start);
+        }
+
+        if (!end || json_unpack_ex(end, error, 0, "{sisi}", KEY_RULE_MOMENT_HOUR,
+                                     &m_end.hour, KEY_RULE_MOMENT_MINUTE, &m_end.minute) < 0) {
+            printf("Error while decoding time span\n");
+            result = false;
+        } else {
+            json_decref(start);
+        }
+    }
 
     return result;
 }
