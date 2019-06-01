@@ -16,12 +16,22 @@
 #include "rule_io.hpp"
 #include <cstring>
 
-rule_io::rule_io(rule_type type, int32_t i)
+rule_io::rule_io(rule_type type)
+    : rule(type)
+{
+    m_io_type = IO_INVALID;
+    m_int_target = 0;
+    m_str_target = nullptr;
+    m_comp_type = COMP_INVALID;
+}
+
+rule_io::rule_io(rule_type type, int32_t i, compare_type ct)
     : rule(type)
 {
     m_int_target = i;
     m_str_target = nullptr;
     m_io_type = IO_INT;
+    m_comp_type = ct;
 }
 
 rule_io::rule_io(rule_type type, const char* str)
@@ -29,6 +39,7 @@ rule_io::rule_io(rule_type type, const char* str)
 {
     m_str_target = strdup(str);
     m_io_type = IO_STRING;
+    m_comp_type = COMP_EQUAL; /* Only compare strings with == */
 }
 
 bool rule_io::write_to_config(json_t *config, json_error_t *error)

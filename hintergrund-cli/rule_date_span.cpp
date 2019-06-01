@@ -15,6 +15,15 @@
  */
 #include "rule_date_span.hpp"
 
+rule_date_span::rule_date_span()
+    : rule_date(RULE_DATE)
+{
+    m_start.day = 0;
+    m_start.month = JANUARY;
+    m_end = m_start;
+    m_is_span = false;
+}
+
 rule_date_span::rule_date_span(date_t start)
     : rule_date(RULE_DATE)
 {

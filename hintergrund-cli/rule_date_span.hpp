@@ -26,6 +26,7 @@ class rule_date_span : public rule_date
     date_t m_start, m_end;
     bool m_is_span;
 public:
+    rule_date_span();
     rule_date_span(date_t start);
     rule_date_span(date_t start, date_t end);
 

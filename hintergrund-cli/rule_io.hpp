@@ -25,11 +25,11 @@
 /* Base class for io controlled rules */
 
 enum io_type {
-    IO_INT, IO_STRING
+    IO_INVALID = -1, IO_INT, IO_STRING
 };
 
 enum compare_type {
-    COMP_LESS_THAN, COMP_GREATER_THAN,
+    COMP_INVALID = -1, COMP_LESS_THAN, COMP_GREATER_THAN,
     COMP_EQUAL, COMP_LESS_EQ_THAN,
     COMP_GREATER_EQ_THAN
 };
@@ -42,8 +42,9 @@ protected:
     const char* m_str_target;
     io_type m_io_type;
 public:
+    rule_io(rule_type type);
     rule_io(rule_type type, const char* str);
-    rule_io(rule_type type, int32_t i);
+    rule_io(rule_type type, int32_t i, compare_type ct);
 
     bool write_to_config(json_t* config, json_error_t* error) override;
     bool read_from_config(json_t* config, json_error_t* error) override;

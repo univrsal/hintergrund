@@ -22,6 +22,7 @@ class rule_io_file : public rule_io
 {
     const char* m_file_path;
 public:
+    rule_io_file();
     rule_io_file(const char* file_path, int target, compare_type ct);
     rule_io_file(const char* file_path, const char* target, compare_type ct);
 

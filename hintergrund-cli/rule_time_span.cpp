@@ -15,6 +15,14 @@
  */
 #include "rule_time_span.hpp"
 
+rule_time_span::rule_time_span()
+    : rule_date(RULE_TIME)
+{
+    m_begin.hour = 0;
+    m_begin.minute = 0;
+    m_end = m_begin;
+}
+
 rule_time_span::rule_time_span(moment_t start, moment_t end)
     : rule_date(RULE_TIME)
 {

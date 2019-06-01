@@ -14,10 +14,20 @@
  *
  */
 #pragma once
+#include <vector>
+#include <memory>
+#include "rule.hpp"
 
+#define KEY_RULE_ARRAY      "rules"
+
+/* List of all active rules */
 class rule_set
 {
+    std::vector<std::unique_ptr<rule>> m_rules;
 public:
     rule_set();
+
+    bool write_rules(json_t* json, json_error_t* error);
+    bool read_rules(json_t* json, json_error_t* error);
 };
 

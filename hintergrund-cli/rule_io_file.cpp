@@ -17,17 +17,21 @@
 #include <cstring>
 #include <fstream>
 
-rule_io_file::rule_io_file(const char* file_path, int target, compare_type ct)
-    : rule_io(RULE_IO_FILE, target)
+rule_io_file::rule_io_file()
+    : rule_io(RULE_IO_FILE)
 {
-    m_comp_type = ct;
+    m_file_path = nullptr;
+}
+
+rule_io_file::rule_io_file(const char* file_path, int target, compare_type ct)
+    : rule_io(RULE_IO_FILE, target, ct)
+{
     m_file_path = strdup(file_path);
 }
 
-rule_io_file::rule_io_file(const char* file_path, const char* target, compare_type ct)
+rule_io_file::rule_io_file(const char* file_path, const char* targe)
     : rule_io(RULE_IO_FILE, target)
 {
-    m_comp_type = ct;
     m_file_path = strdup(file_path);
 }
 

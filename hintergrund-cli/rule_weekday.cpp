@@ -15,9 +15,18 @@
  */
 #include "rule_weekday.hpp"
 
+rule_weekday::rule_weekday()
+    : rule_date(RULE_WEEKDAY)
+{
+    m_start = MONDAY;
+    m_end = m_start;
+    m_is_span = false;
+}
+
 rule_weekday::rule_weekday(weekday d)
     : rule_date(RULE_WEEKDAY)
 {
+    m_is_span = false;
     m_start = d;
 }
 

@@ -28,9 +28,10 @@ enum weekday {
 
 class rule_weekday : public rule_date
 {
-    bool m_is_span = false;
+    bool m_is_span;
     weekday m_start, m_end;
 public:
+    rule_weekday();
     rule_weekday(weekday d);
     rule_weekday(weekday start, weekday end);
 
