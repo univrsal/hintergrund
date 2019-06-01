@@ -16,6 +16,8 @@
 #pragma once
 #include "rule_io.hpp"
 
+#define KEY_RULE_FILE_PATH      "file_path"
+
 class rule_io_file : public rule_io
 {
     const char* m_file_path;
@@ -24,6 +26,9 @@ public:
     rule_io_file(const char* file_path, const char* target, compare_type ct);
 
     ~rule_io_file();
+
+    bool write_to_config(json_t* config, json_error_t* error) override;
+    bool read_from_config(json_t* config, json_error_t* error) override;
 
     bool evaluate() override;
 };

@@ -31,6 +31,69 @@ rule_io::rule_io(rule_type type, const char* str)
     m_io_type = IO_STRING;
 }
 
+bool rule_io::write_to_config(json_t *config, json_error_t *error)
+{
+    bool result = rule::write_to_config(config, error);
+
+    if (result) {
+        if (m_io_type == IO_INT) {
+            auto* base_vals = json_pack_ex(error, 0, "{sisisi}", KEY_RULE_IO_TYPE,
+                                           m_io_type, KEY_RULE_COMP_TYPE, m_comp_type,
+                                           KEY_RULE_INT_TARGET, m_int_target);
+            if (!base_vals || json_object_set_new(config, KEY_RULE_IO_BASE, base_vals) < 0) {
+                printf("Error while packing base values for io_rule\n");
+                result = false;
+            }
+        } else {
+            auto* base_vals = json_pack_ex(error, 0, "{sisiss}", KEY_RULE_IO_TYPE,
+                                           m_io_type, KEY_RULE_COMP_TYPE, m_comp_type,
+                                           KEY_RULE_STRING_TARGET, m_str_target);
+            if (!base_vals || json_object_set_new(config, KEY_RULE_IO_BASE, base_vals) < 0) {
+                printf("Error while packing base values for io_rule\n");
+                result = false;
+            }
+        }
+    }
+
+    return result;
+}
+
+bool rule_io::read_from_config(json_t *config, json_error_t *error)
+{
+    bool result = rule::read_from_config(config, error);
+
+    if (result) {
+        auto* base_vals = json_object_get(config, KEY_RULE_IO_BASE);
+
+        if (base_vals) {
+            auto* io_type = json_object_get(base_vals, KEY_RULE_IO_TYPE);
+            int unpack_result = -1;
+
+            if (io_type) {
+                if (json_integer_value(io_type) == IO_INT) {
+                    unpack_result = json_unpack_ex(base_vals, error, 0, "{sisisi}", KEY_RULE_IO_TYPE,
+                                                   &m_io_type, KEY_RULE_COMP_TYPE, &m_comp_type,
+                                                   KEY_RULE_INT_TARGET, &m_int_target);
+                } else {
+                    unpack_result = json_unpack_ex(base_vals, error, 0, "{sisiss}", KEY_RULE_IO_TYPE,
+                                                   &m_io_type, KEY_RULE_COMP_TYPE, &m_comp_type,
+                                                   KEY_RULE_STRING_TARGET, &m_str_target);
+                }
+            }
+
+            if (unpack_result < 0) {
+                result = false;
+                printf("Error while unpacking rule_io base values\n");
+            }
+        } else {
+            result = false;
+            printf("Error while getting base rule_io data\n");
+        }
+    }
+
+    return result;
+}
+
 rule_io::~rule_io()
 {
     delete m_str_target;

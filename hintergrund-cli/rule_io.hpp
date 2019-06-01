@@ -16,6 +16,14 @@
 #pragma once
 #include "rule.hpp"
 
+#define KEY_RULE_IO_BASE        "io_base"
+#define KEY_RULE_IO_TYPE        "io_type"
+#define KEY_RULE_COMP_TYPE      "compare_type"
+#define KEY_RULE_STRING_TARGET  "string_target"
+#define KEY_RULE_INT_TARGET     "integer_target"
+
+/* Base class for io controlled rules */
+
 enum io_type {
     IO_INT, IO_STRING
 };
@@ -36,6 +44,10 @@ protected:
 public:
     rule_io(rule_type type, const char* str);
     rule_io(rule_type type, int32_t i);
+
+    bool write_to_config(json_t* config, json_error_t* error) override;
+    bool read_from_config(json_t* config, json_error_t* error) override;
+
     ~rule_io();
 };
 

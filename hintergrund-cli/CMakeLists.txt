@@ -1,13 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 
 project(hintergrund-cli)
-
-if (MSVC)
-
-else()
-    include(FindPkgConfig)
-    pkg_search_module(jansson required jansson)
-endif()
+find_path(JANSSON_INCLUDE_DIRS jansson.h)
+find_library(JANSSON_LIBRARIES jansson)
 
 add_executable(${PROJECT_NAME} "main.cpp"
     "rule.cpp"

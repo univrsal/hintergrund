@@ -17,6 +17,8 @@
 #include <ctime>
 #include "rule.hpp"
 
+/* Base class for all time controlled rules */
+
 enum month_t {
     JANUARY, FEBRUARY, MARCH, APRIL, MAY, JUNE,
     JULY, AUGUST, SEPTEMBER, NOVEMBER, DECEMBER
