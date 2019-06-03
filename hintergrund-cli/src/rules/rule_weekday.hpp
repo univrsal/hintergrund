@@ -1,4 +1,4 @@
-/* rule_month_span.hpp created on 2019.5.28
+/* rule_weekday.hpp created on 2019.5.27
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,14 +16,32 @@
 #pragma once
 #include "rule_date.hpp"
 
-class rule_month_span : public rule_date
+#define KEY_RULE_WEEKDAY_IS_SPAN    "is_span"
+#define KEY_RULE_WEEKDAY_START      "start"
+#define KEY_RULE_WEEKDAY_END        "end"
+
+enum weekday {
+    SUNDAY,
+    MONDAY,
+    TUESDAY,
+    WEDNESDAY,
+    THURSDAY,
+    FRIDAY,
+    SATURDAY
+};
+
+class rule_weekday : public rule_date
 {
-    date_t m_start, m_end;
     bool m_is_span;
+    weekday m_start, m_end;
 public:
-    rule_month_span();
-    rule_month_span(date_t start);
-    rule_month_span(date_t start, date_t end);
+    rule_weekday();
+    rule_weekday(weekday d);
+    rule_weekday(weekday start, weekday end);
+
+    bool write_to_config(json_t* config, json_error_t* error) override;
+
+    bool read_from_config(json_t* config, json_error_t* error) override;
 
     bool evaluate() override;
 };

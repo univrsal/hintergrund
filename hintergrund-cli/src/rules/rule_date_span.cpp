@@ -56,17 +56,23 @@ bool rule_date_span::write_to_config(json_t* config, json_error_t* error)
     bool result = rule::write_to_config(config, error);
 
     if (result) {
-        auto start = json_pack_ex(error, 0, "{sisi}", KEY_RULE_DATE_MONTH,
-                                  m_start.month, KEY_RULE_DATE_DAY, m_start.day);
-        auto end = json_pack_ex(error, 0, "{sisi}", KEY_RULE_DATE_MONTH,
-                                  m_end.month, KEY_RULE_DATE_DAY, m_end.day);
+        auto* start = json_pack_ex(error, 0, "{sisi}", KEY_RULE_DATE_MONTH,
+                                   m_start.month, KEY_RULE_DATE_DAY, m_start.day);
+        auto* is_span = json_pack_ex(error, 0, "b", m_is_span);
 
-        if (start && end) {
-            json_object_set_new(config, KEY_RULE_DATE_BEGIN, start);
-            json_object_set_new(config, KEY_RULE_DATE_END, end);
-        } else {
-            printf("Error while creating json values for date span\n");
+        if (!is_span || json_object_set_new(config, KEY_RULE_DATE_IS_SPAN, is_span)) {
+            printf("Error while setting date is_span boolean\n");
             result = false;
+        } else if (!start || json_object_set_new(config, KEY_RULE_DATE_BEGIN, start) < 0) {
+            printf("Error while setting date span start\n");
+            result = false;
+        } else if (m_is_span) {
+            auto end = json_pack_ex(error, 0, "{sisi}", KEY_RULE_DATE_MONTH, m_end.month, KEY_RULE_DATE_DAY, m_end.day);
+
+            if (!end || json_object_set_new(config, KEY_RULE_DATE_BEGIN, end) < 0) {
+                printf("Error while setting date span end\n");
+                result = false;
+            }
         }
     }
     return result;

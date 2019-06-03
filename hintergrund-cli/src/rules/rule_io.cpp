@@ -109,3 +109,21 @@ rule_io::~rule_io()
 {
     delete m_str_target;
 }
+
+bool rule_io::compare_int(const int i)
+{
+    switch (m_comp_type) {
+        case COMP_EQUAL:
+            return i == m_int_target;
+        case COMP_LESS_THAN:
+            return i < m_int_target;
+        case COMP_GREATER_THAN:
+            return i > m_int_target;
+        case COMP_GREATER_EQ_THAN:
+            return i >= m_int_target;
+        case COMP_LESS_EQ_THAN:
+            return i <= m_int_target;
+        default:
+            return false;
+    }
+}

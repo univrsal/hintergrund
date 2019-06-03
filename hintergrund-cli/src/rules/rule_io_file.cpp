@@ -29,7 +29,7 @@ rule_io_file::rule_io_file(const char* file_path, int target, compare_type ct)
     m_file_path = strdup(file_path);
 }
 
-rule_io_file::rule_io_file(const char* file_path, const char* targe)
+rule_io_file::rule_io_file(const char* file_path, const char* target, compare_type ct)
     : rule_io(RULE_IO_FILE, target)
 {
     m_file_path = strdup(file_path);
@@ -46,9 +46,7 @@ bool rule_io_file::write_to_config(json_t *config, json_error_t *error)
 
     if (result) {
         auto* file_path = json_pack_ex(error, 0, "s", m_file_path);
-        if (file_path) {
-            json_object_set_new(config, KEY_RULE_FILE_PATH, file_path);
-        } else {
+        if (!file_path || json_object_set_new(config, KEY_RULE_FILE_PATH, file_path) < 0) {
             printf("Error while packing io_rule file path\n");
             result = false;
         }
@@ -87,28 +85,13 @@ bool rule_io_file::evaluate()
         switch (m_io_type) {
             case IO_INT:
                 is >> i;
-                switch (m_comp_type) {
-                    case COMP_EQUAL:
-                        result = i == m_int_target;
-                        break;
-                    case COMP_LESS_THAN:
-                        result = i < m_int_target;
-                        break;
-                    case COMP_GREATER_THAN:
-                        result = i > m_int_target;
-                        break;
-                    case COMP_GREATER_EQ_THAN:
-                        result = i >= m_int_target;
-                        break;
-                    case COMP_LESS_EQ_THAN:
-                        result = i <= m_int_target;
-                        break;
-                }
+                result = compare_int(i);
                 break;
             case IO_STRING:
                 if (std::getline(is, line))
                     result = line == m_str_target;
             break;
+            default:;
         }
     }
     return result;

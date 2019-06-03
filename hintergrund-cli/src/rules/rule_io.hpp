@@ -41,8 +41,10 @@ protected:
     compare_type m_comp_type;
     const char* m_str_target;
     io_type m_io_type;
+
+    inline bool compare_int(const int i);
 public:
-    rule_io(rule_type type);
+    explicit rule_io(rule_type type);
     rule_io(rule_type type, const char* str);
     rule_io(rule_type type, int32_t i, compare_type ct);
 

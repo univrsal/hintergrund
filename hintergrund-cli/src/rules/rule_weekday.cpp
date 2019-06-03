@@ -48,3 +48,26 @@ bool rule_weekday::evaluate()
         return n->tm_wday == m_start;
     }
 }
+
+bool rule_weekday::write_to_config(json_t* config, json_error_t* error)
+{
+    bool result = rule::write_to_config(config, error);
+
+    if (result) {
+        auto* start = json_pack_ex(error, 0, "i", m_start);
+        if (!start || json_object_set_new(config, KEY_RULE_WEEKDAY_START, start) < 0) {
+            printf("Error while setting weekday start\n");
+            result = false;
+        }
+
+        if (m_is_span) {
+            auto* end = json_pack_ex(error, 0, "i", m_end);
+            if (!end || json_object_set_new(config, KEY_RULE_WEEKDAY_END, end) < 0) {
+                printf("Error while setting weekday end\n");
+                result = false;
+            }
+        }
+    }
+
+    return result;
+}
