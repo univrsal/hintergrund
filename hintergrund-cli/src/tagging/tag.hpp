@@ -1,4 +1,4 @@
-/* rule_set.hpp created on 2019.5.29
+/* rule_date.cpp created on 2019.6.4
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,23 +13,20 @@
  * github.com/univrsal/
  *
  */
-#pragma once
-#include <vector>
-#include <memory>
-#include "rule.hpp"
+#include <jansson.h>
 
-#define KEY_RULE_ARRAY      "rules"
+#define KEY_TAG_NAME    "name"
+#define KEY_TAG_WEIGHT  "weight"
 
-/* List of all active rules */
-class rule_set
+class tag
 {
-    std::vector<std::unique_ptr<rule>> m_rules;
+    const char* m_tag_name;
+    float m_weight;
 public:
-    rule_set();
+    tag();
+    tag(const char* name, float weight);
+    ~tag();
 
-    void get_active_tags(std::vector<tag*>& tagv);
-
-    bool write_rules(json_t* json, json_error_t* error);
-    bool read_rules(json_t* json, json_error_t* error);
+    bool write_to_config(json_t* config, json_error_t* error);
+    bool read_from_config(json_t* config, json_error_t* error);
 };
-

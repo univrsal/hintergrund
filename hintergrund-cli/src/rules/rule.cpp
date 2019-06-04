@@ -1,4 +1,20 @@
+/* rule_date.cpp created on 2019.5.27
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * github.com/univrsal/
+ *
+ */
 #include "rule.hpp"
+#include "../tagging/tag.hpp"
 #include <sstream>
 #include <cstdio>
 
@@ -7,7 +23,7 @@ rule::rule(rule_type type)
     m_type = type;
 }
 
-void rule::get_tags(std::vector<std::string>& tags)
+void rule::get_tags(std::vector<tag*>& tags)
 {
     for (auto tag : m_tags)
         tags.emplace_back(tag);
@@ -37,8 +53,7 @@ bool rule::write_to_config(json_t* json, json_error_t* error)
         result = false;
     } else if (result) {
         for (const auto& tag : m_tags) {
-            auto* new_tag = json_pack_ex(error, 0, "s", tag.c_str());
-            if (json_array_append_new(tag_array, new_tag) < 0) {
+            if (!tag->write_to_config(tag_array, error)) {
                 printf("Error while writing rule to file\n");
                 result = false;
                 break;
@@ -76,15 +91,10 @@ bool rule::read_from_config(json_t* config, json_error_t* error)
         json_t* value = nullptr;
         json_array_foreach(tag_array, index, value) {
             if (value) {
-                auto* tag_val = json_string_value(value);
-                if (tag_val) {
-                    m_tags.emplace_back(tag_val);
-                    json_decref(value);
-                } else {
-                    printf("Error getting tag string from json\n");
-                    result = false;
+                auto* new_tag = new tag();
+                result = new_tag->read_from_config(value, error);
+                if (!result)
                     break;
-                }
             }
         }
         json_decref(tag_array);

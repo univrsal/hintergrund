@@ -10,6 +10,8 @@
 #define KEY_RULE_BASE        "base"
 #define KEY_RULE_TAGS        "tags"
 
+class tag;
+
 enum rule_type {
     RULE_DATE,
     RULE_TIME,
@@ -25,7 +27,7 @@ enum rule_type {
 class rule
 {
     uint8_t m_priority = 0;
-    std::vector<std::string> m_tags;
+    std::vector<tag*> m_tags;
     rule_type m_type;
 public:
     rule(rule_type t);
@@ -38,8 +40,14 @@ public:
     virtual bool read_from_config(json_t* config, json_error_t* error);
 
     /* Get all tags that are allowed, if this rule applies */
-    void get_tags(std::vector<std::string>& tags);
+    void get_tags(std::vector<tag*>& tags);
 
     /* Higher priority rules overtake lower ranked ones */
     int priority();
+
+    /* For sorting by priority */
+    bool operator<(const rule& other)
+    {
+        return m_priority < other.m_priority;
+    }
 };

@@ -13,10 +13,7 @@
  * github.com/univrsal/
  *
  */
-#ifndef HINTERGRUND_CLI_RULE_IO_STDIN_HPP
-#define HINTERGRUND_CLI_RULE_IO_STDIN_HPP
-
-
+#pragma once
 #include "rule_io.hpp"
 
 class rule_io_stdin : public rule_io
@@ -31,6 +28,3 @@ public:
 
     bool evaluate() override;
 };
-
-
-#endif //HINTERGRUND_CLI_RULE_IO_STDIN_HPP

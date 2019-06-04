@@ -19,10 +19,29 @@
 #include "rule_weekday.hpp"
 #include "rule_io_file.hpp"
 #include "rule_time_span.hpp"
+#include "rule_io_stdin.hpp"
+#include <algorithm>
 
 rule_set::rule_set()
 {
 
+}
+
+void rule_set::get_active_tags(std::vector<tag*>& tagv)
+{
+    /* sort by priority first (highest to lowest) */
+    std::sort(m_rules.rbegin(), m_rules.rend());
+    int highest_priority = -1; /* priority of highest active rule */
+    for (const auto& rule : m_rules) {
+        /* If a priority was evaluated and the current rule is ranked lower,
+           the loop can exit since all following rules are also ranked lower */
+        if (rule->priority() < highest_priority)
+            break;
+        if (rule->evaluate()) {
+            highest_priority = rule->priority();
+            rule->get_tags(tagv);
+        }
+    }
 }
 
 bool rule_set::write_rules(json_t *json, json_error_t *error)
@@ -91,7 +110,8 @@ bool rule_set::read_rules(json_t *json, json_error_t *error)
                             case RULE_IO_FILE:
                                 new_rule = new rule_io_file();
                                 break;
-                            case RULE_IO_STDIN: /* TODO */
+                            case RULE_IO_STDIN:
+                                new_rule = new rule_io_stdin();
                                 break;
                         }
                         json_decref(type_id);

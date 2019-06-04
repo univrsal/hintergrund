@@ -20,7 +20,7 @@
 #define KEY_RULE_DATE_DAY       "day"
 #define KEY_RULE_DATE_MONTH     "month"
 #define KEY_RULE_DATE_BEGIN     "date_begin"
-#define KEY_RULE_DATE_END       "date end"
+#define KEY_RULE_DATE_END       "date_end"
 
 class rule_date_span : public rule_date
 {

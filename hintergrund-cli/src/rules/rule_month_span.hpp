@@ -16,11 +16,11 @@
 #pragma once
 #include "rule_date.hpp"
 
-#define KEY_RULE_DATE_IS_SPAN   "is_span"
-#define KEY_RULE_DATE_START     "start"
-#define KEY_RULE_DATE_END       "end"
-#define KEY_RULE_DATE_MONTH     "month"
-#define KEY_RULE_DATE_DAY       "day"
+#define KEY_RULE_MONTH_SPAN_IS_SPAN   "is_span"
+#define KEY_RULE_MONTH_SPAN_START     "start"
+#define KEY_RULE_MONTH_SPAN_END       "end"
+#define KEY_RULE_MONTH_SPAN_MONTH     "month"
+#define KEY_RULE_MONTH_SPAN_DAY       "day"
 
 class rule_month_span : public rule_date
 {

@@ -51,21 +51,31 @@ bool rule_weekday::evaluate()
 
 bool rule_weekday::write_to_config(json_t* config, json_error_t* error)
 {
-    bool result = rule::write_to_config(config, error);
+    bool result = rule_date::write_to_config(config, error);
 
     if (result) {
-        auto* start = json_pack_ex(error, 0, "i", m_start);
-        if (!start || json_object_set_new(config, KEY_RULE_WEEKDAY_START, start) < 0) {
-            printf("Error while setting weekday start\n");
+        auto* body = json_pack_ex(error, 0, "{sbsisi}", KEY_RULE_WEEKDAY_IS_SPAN,
+                                  m_is_span, KEY_RULE_WEEKDAY_START, m_start,
+                                  KEY_RULE_WEEKDAY_END, m_end);
+        if (!body || json_object_set_new(config, KEY_RULE_WEEKDAY_BASE, body) < 0) {
             result = false;
+            printf("Error while setting weekday base\n");
         }
+    }
 
-        if (m_is_span) {
-            auto* end = json_pack_ex(error, 0, "i", m_end);
-            if (!end || json_object_set_new(config, KEY_RULE_WEEKDAY_END, end) < 0) {
-                printf("Error while setting weekday end\n");
-                result = false;
-            }
+    return result;
+}
+
+bool rule_weekday::read_from_config(json_t *config, json_error_t *error)
+{
+    bool result = rule_date::read_from_config(config, error);
+
+    if (result) {
+        if (json_unpack_ex(config, error, 0, "{sbsisi}", KEY_RULE_WEEKDAY_IS_SPAN,
+                           &m_is_span, KEY_RULE_WEEKDAY_START, &m_start,
+                           KEY_RULE_WEEKDAY_END, &m_end) < 0) {
+            result = false;
+            printf("Error while unpacking weekday base\n");
         }
     }
 

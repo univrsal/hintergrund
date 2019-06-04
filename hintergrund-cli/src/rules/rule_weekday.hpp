@@ -16,6 +16,7 @@
 #pragma once
 #include "rule_date.hpp"
 
+#define KEY_RULE_WEEKDAY_BASE       "weekday_base"
 #define KEY_RULE_WEEKDAY_IS_SPAN    "is_span"
 #define KEY_RULE_WEEKDAY_START      "start"
 #define KEY_RULE_WEEKDAY_END        "end"
@@ -40,7 +41,6 @@ public:
     rule_weekday(weekday start, weekday end);
 
     bool write_to_config(json_t* config, json_error_t* error) override;
-
     bool read_from_config(json_t* config, json_error_t* error) override;
 
     bool evaluate() override;

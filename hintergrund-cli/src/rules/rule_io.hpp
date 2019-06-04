@@ -42,7 +42,23 @@ protected:
     const char* m_str_target;
     io_type m_io_type;
 
-    inline bool compare_int(const int i);
+    inline bool compare_int(const int i)
+    {
+        switch (m_comp_type) {
+            case COMP_EQUAL:
+                return i == m_int_target;
+            case COMP_LESS_THAN:
+                return i < m_int_target;
+            case COMP_GREATER_THAN:
+                return i > m_int_target;
+            case COMP_GREATER_EQ_THAN:
+                return i >= m_int_target;
+            case COMP_LESS_EQ_THAN:
+                return i <= m_int_target;
+            default:
+                return false;
+        }
+    }
 public:
     explicit rule_io(rule_type type);
     rule_io(rule_type type, const char* str);
