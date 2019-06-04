@@ -17,7 +17,8 @@ add_executable(${PROJECT_NAME} "main.cpp"
         src/tagging/tag.cpp
         src/rules/rule_set.cpp
         src/rules/rule_io_stdin.cpp
-        src/rules/rule_io_stdin.hpp)
+        src/rules/rule_io_stdin.hpp
+        src/tagging/tagger.cpp)
 
 include_directories(${JANSSON_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} ${JANSSON_LIBRARIES})
