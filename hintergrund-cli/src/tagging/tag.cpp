@@ -20,9 +20,11 @@ tag::tag()
 {
     m_tag_name = nullptr;
     m_weight = 1.f;
+    m_tag_id = 0;
 }
-tag::tag(const char* name, float weight)
+tag::tag(const char* name, float weight, uint32_t tag_id)
 {
+    m_tag_id = tag_id;
     m_tag_name = strdup(name);
     m_weight = weight;
 }
@@ -33,11 +35,11 @@ tag::~tag()
     m_tag_name = nullptr;
 }
 
-bool tag::write_to_config(json_t *config, json_error_t *error)
+bool tag::write_to_config(json_t *config, json_error_t *error) const
 {
     bool result = true;
 
-    auto* rule = json_pack_ex(error, 0, "{sssf}", KEY_TAG_NAME,
+    auto* rule = json_pack_ex(error, 0, "{sisssf}", KEY_TAG_ID, m_tag_id, KEY_TAG_NAME,
                               m_tag_name, KEY_TAG_WEIGHT, m_tag_name);
     if (!rule || json_array_append_new(config, rule) < 0) {
         result = false;
@@ -50,7 +52,7 @@ bool tag::read_from_config(json_t *config, json_error_t *error)
 {
     bool result = true;
     const char* temp = nullptr;
-    if (json_unpack_ex(config, error, 0, "{sssf}", KEY_TAG_NAME, &temp,
+    if (json_unpack_ex(config, error, 0, "{sisssf}", KEY_TAG_ID, &m_tag_id, KEY_TAG_NAME, &temp,
                        KEY_TAG_WEIGHT, &m_weight) < 0) {
         result = false;
         printf("Error while unpacking tag body\n");

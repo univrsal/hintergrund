@@ -14,11 +14,17 @@
  *
  */
 #pragma once
-
+#include <vector>
+#include "tag.hpp"
 
 class tagger
 {
+    std::vector<tag> m_tags;
 public:
     tagger();
+
+    bool write_to_config(json_t* config, json_error_t* error);
+    bool read_from_config(json_t* config, json_error_t* error);
+
 };
 

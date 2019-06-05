@@ -19,3 +19,20 @@ tagger::tagger()
 {
 
 }
+
+bool tagger::write_to_config(json_t *config, json_error_t *error)
+{
+    bool result = true;
+
+    json_t* array = json_array();
+
+    for (const auto& tag : m_tags)
+    {
+        if (!tag.write_to_config(array, error)) {
+            result = false;
+            break;
+        }
+    }
+
+    return result;
+}
