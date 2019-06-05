@@ -13,6 +13,7 @@
  * github.com/univrsal/
  *
  */
+#pragma once
 #include <jansson.h>
 #include <stdint.h>
 
@@ -32,4 +33,7 @@ public:
 
     bool write_to_config(json_t* config, json_error_t* error) const;
     bool read_from_config(json_t* config, json_error_t* error);
+
+    const char* name() const;
+    float weight() const;
 };
