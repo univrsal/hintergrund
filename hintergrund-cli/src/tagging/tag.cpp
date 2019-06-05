@@ -73,3 +73,8 @@ float tag::weight() const
 {
     return m_weight;
 }
+
+uint32_t tag::id() const
+{
+    return m_tag_id;
+}

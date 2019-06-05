@@ -1,4 +1,4 @@
-/* rule_date.cpp created on 2019.6.4
+/* image_library.hpp created on 2019.5.29
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,27 +14,13 @@
  *
  */
 #pragma once
-#include <jansson.h>
-#include <stdint.h>
+#include <vector>
+#include <memory>
 
-#define KEY_TAG_NAME    "name"
-#define KEY_TAG_WEIGHT  "weight"
-#define KEY_TAG_ID      "tag_id"
-
-class tag
+class image_library
 {
-    const char* m_tag_name;
-    float m_weight;
-    uint32_t m_tag_id;
+    std::vector<std::unique_ptr<image>> m_images;
 public:
-    tag();
-    tag(const char* name, float weight, uint32_t tag_id);
-    ~tag();
-
-    bool write_to_config(json_t* config, json_error_t* error) const;
-    bool read_from_config(json_t* config, json_error_t* error);
-
-    const char* name() const;
-    float weight() const;
-    uint32_t id() const;
+    image_library();
 };
+

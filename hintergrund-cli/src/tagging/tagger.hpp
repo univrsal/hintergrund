@@ -26,7 +26,7 @@
 class tagger
 {
     std::vector<std::unique_ptr<tag>> m_tags;
-    int m_max_depth;
+    uint32_t m_tag_counter;
     /* Iterates over contents of folder DIR* d and
      * adds all folder names to the m_tags vector
      * if use_filenames is true the file names will also
@@ -37,9 +37,9 @@ class tagger
      *   city/rain/night/
      * would fill the stack with the tags city, rain and night
      * once the folder night is left, "night" is removed from the stack so
-     * all files in the folder rain are only tagged with "city" and "rain"s
+     * all files in the folder rain are only tagged with "city" and "rain"
      */
-    void iterate_folder(DIR* d, bool use_filenames, int depth, std::stack<const char*>& current_tags);
+    void iterate_folder(DIR* d, int depth, std::stack<const char*>& current_tags);
     void tag_string(const char* str);
 public:
     tagger();
@@ -49,6 +49,6 @@ public:
 
     void add_new_tag(const char* name, float weight);
 
-    void auto_tag(const char* root_folder, bool use_filenames);
+    void auto_tag(const char* root_folder);
 };
 

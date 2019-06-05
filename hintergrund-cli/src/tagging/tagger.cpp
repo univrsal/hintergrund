@@ -14,12 +14,13 @@
  *
  */
 #include "tagger.hpp"
+#include "../util/config.hpp"
 #include <cstring>
 #include <unistd.h>
 
 tagger::tagger()
 {
-    m_max_depth = 50;
+    m_tag_counter = 0;
 }
 
 bool tagger::write_to_config(json_t *config, json_error_t *error)
@@ -65,9 +66,12 @@ bool tagger::read_from_config(json_t *config, json_error_t *error)
                 delete new_tag;
                 break;
             } else {
+                if (new_tag->id() > m_tag_counter)
+                    m_tag_counter = new_tag->id();
                 m_tags.emplace_back(new_tag);
             }
         }
+        m_tag_counter++; /* contains the highest id loaded, so now it contains the next available one */
     }
     return result;
 }
@@ -86,7 +90,7 @@ void tagger::add_new_tag(const char *name, float weight)
 
     if (unique) {
         printf("Added new tag %s\n", name);
-        m_tags.emplace_back(new tag(name, weight));
+        m_tags.emplace_back(new tag(name, weight, m_tag_counter++));
     }
 }
 
@@ -112,12 +116,12 @@ void tagger::tag_string(const char *str)
     }
 }
 
-void tagger::iterate_folder(DIR *d, bool use_filenames, int depth)
+void tagger::iterate_folder(DIR *d, int depth, std::stack<const char*>& current_tags)
 {
     if (!d)
         return;
-    if (depth >= m_max_depth) {
-        printf("Folder depth exceeded maximum of %i\n", m_max_depth);
+    if (depth >= config::values.max_folder_depth) {
+        printf("Folder depth exceeded maximum of %i\n", config::values.max_folder_depth);
         return;
     }
     struct dirent *entry;
@@ -125,31 +129,43 @@ void tagger::iterate_folder(DIR *d, bool use_filenames, int depth)
     while ((entry = readdir(d))) {
         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
             continue;
+
         if (entry->d_type == DT_DIR) {
-            tag_string(entry->d_name);
+
             DIR* temp = opendir(entry->d_name);
             if (temp) {
+                tag_string(entry->d_name);
+                /* Gets the last added tag and adds it to the temporary stack */
+                current_tags.push(m_tags.back()->name());
                 chdir(entry->d_name); /* Go into folder */
-                iterate_folder(temp, use_filenames, ++depth);
+
+                iterate_folder(temp, ++depth, current_tags);
+
                 closedir(temp);
                 chdir(".."); /* Go back out of folder */
+                current_tags.pop(); /* Take previously added tag off of stack since the folder was left */
             } else {
                 printf("Error opening \"%s\"\n", entry->d_name);
             }
-        } else if (use_filenames) {
-            /* Separate file name by commas and put results into tags */
-            tag_string(entry->d_name);
+        } else {
+            if (config::values.tag_image_names) {
+                /* Separate file name by commas and put results into tags */
+                tag_string(entry->d_name);
+            }
+
+
         }
     }
 }
 
-void tagger::auto_tag(const char *root_folder, bool use_filenames)
+void tagger::auto_tag(const char *root_folder)
 {
     char cwd[2049]; /* current working directory */
     if (!getcwd(cwd, 2049)) {
         printf("Error getting current working directory\n");
         return;
     }
+    std::stack<const char*> temp_tags;
     chdir(root_folder); /* Start in root folder and then work through folder tree */
 
     DIR *dp = opendir(root_folder);
@@ -158,24 +174,7 @@ void tagger::auto_tag(const char *root_folder, bool use_filenames)
         return;
     }
 
-    iterate_folder(dp, use_filenames, 0);
+    iterate_folder(dp, 0, temp_tags);
 
     chdir(cwd); /* Revert to original working directory */
-}
-
-bool tagger::write_to_config(json_t *config, json_error_t *error)
-{
-    bool result = true;
-
-    json_t* array = json_array();
-
-    for (const auto& tag : m_tags)
-    {
-        if (!tag.write_to_config(array, error)) {
-            result = false;
-            break;
-        }
-    }
-
-    return result;
 }

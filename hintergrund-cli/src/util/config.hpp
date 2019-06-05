@@ -1,4 +1,4 @@
-/* rule_date.cpp created on 2019.6.4
+/* config.hpp created on 2019.6.5
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,27 +14,26 @@
  *
  */
 #pragma once
-#include <jansson.h>
 #include <stdint.h>
+#include <jansson.h>
 
-#define KEY_TAG_NAME    "name"
-#define KEY_TAG_WEIGHT  "weight"
-#define KEY_TAG_ID      "tag_id"
+class rule_set;
+class tagger;
 
-class tag
-{
-    const char* m_tag_name;
-    float m_weight;
-    uint32_t m_tag_id;
-public:
-    tag();
-    tag(const char* name, float weight, uint32_t tag_id);
-    ~tag();
+namespace config {
+    struct values_t {
+        tagger* tag_manager;
+        rule_set* rules_manager;
+        uint16_t max_folder_depth;
+        bool tag_image_names;
+        const char* rule_path;
+        const char* libary_path;
+    };
 
-    bool write_to_config(json_t* config, json_error_t* error) const;
-    bool read_from_config(json_t* config, json_error_t* error);
+    void init_config();
 
-    const char* name() const;
-    float weight() const;
-    uint32_t id() const;
-};
+    bool read_config(json_t* config, json_error_t* error);
+    bool write_config(json_t* config, json_error_t* error);
+
+    extern values_t values;
+}
