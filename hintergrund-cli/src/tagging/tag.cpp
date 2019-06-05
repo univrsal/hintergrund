@@ -61,3 +61,13 @@ bool tag::read_from_config(json_t *config, json_error_t *error)
 
     return result;
 }
+
+const char* tag::name() const
+{
+    return m_tag_name;
+}
+
+float tag::weight() const
+{
+    return m_weight;
+}

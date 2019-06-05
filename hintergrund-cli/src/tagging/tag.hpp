@@ -13,6 +13,7 @@
  * github.com/univrsal/
  *
  */
+#pragma once
 #include <jansson.h>
 
 #define KEY_TAG_NAME    "name"
@@ -29,4 +30,7 @@ public:
 
     bool write_to_config(json_t* config, json_error_t* error);
     bool read_from_config(json_t* config, json_error_t* error);
+
+    const char* name() const;
+    float weight() const;
 };

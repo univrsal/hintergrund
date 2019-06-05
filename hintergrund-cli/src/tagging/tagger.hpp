@@ -14,11 +14,41 @@
  *
  */
 #pragma once
+#include "tag.hpp"
+#include <vector>
+#include <memory>
+#include <dirent.h>
+#include <stack>
 
+#define KEY_TAGGER_TAG_ARRAY    "tags"
+#define KEY_TAGGER_MAX_DEPTH    "max_folder_depth"
 
 class tagger
 {
+    std::vector<std::unique_ptr<tag>> m_tags;
+    int m_max_depth;
+    /* Iterates over contents of folder DIR* d and
+     * adds all folder names to the m_tags vector
+     * if use_filenames is true the file names will also
+     * be searched for tags
+     * depth keeps track of how many folders deep the recursion currently is
+     * current_tags contains the tags of the current folder recursion e.g.
+     * the structure
+     *   city/rain/night/
+     * would fill the stack with the tags city, rain and night
+     * once the folder night is left, "night" is removed from the stack so
+     * all files in the folder rain are only tagged with "city" and "rain"s
+     */
+    void iterate_folder(DIR* d, bool use_filenames, int depth, std::stack<const char*>& current_tags);
+    void tag_string(const char* str);
 public:
     tagger();
+
+    bool write_to_config(json_t* config, json_error_t* error);
+    bool read_from_config(json_t* config, json_error_t* error);
+
+    void add_new_tag(const char* name, float weight);
+
+    void auto_tag(const char* root_folder, bool use_filenames);
 };
 
