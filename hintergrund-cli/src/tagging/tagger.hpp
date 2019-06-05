@@ -25,19 +25,6 @@
 
 class tagger
 {
-    std::vector<tag> m_tags;
-=======
-#include "tag.hpp"
-#include <vector>
-#include <memory>
-#include <dirent.h>
-#include <stack>
-
-#define KEY_TAGGER_TAG_ARRAY    "tags"
-#define KEY_TAGGER_MAX_DEPTH    "max_folder_depth"
-
-class tagger
-{
     std::vector<std::unique_ptr<tag>> m_tags;
     int m_max_depth;
     /* Iterates over contents of folder DIR* d and
@@ -54,18 +41,14 @@ class tagger
      */
     void iterate_folder(DIR* d, bool use_filenames, int depth, std::stack<const char*>& current_tags);
     void tag_string(const char* str);
->>>>>>> bcfbcb7121e74ccb4cc10b74aafe1ece0a2d939a
 public:
     tagger();
 
     bool write_to_config(json_t* config, json_error_t* error);
     bool read_from_config(json_t* config, json_error_t* error);
 
-<<<<<<< HEAD
-=======
     void add_new_tag(const char* name, float weight);
 
     void auto_tag(const char* root_folder, bool use_filenames);
->>>>>>> bcfbcb7121e74ccb4cc10b74aafe1ece0a2d939a
 };
 
