@@ -1,4 +1,4 @@
-/* image_library.cpp created on 2019.5.29
+/* hintergrund_cli.hpp created on 2019.6.6
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,9 +13,11 @@
  * github.com/univrsal/
  *
  */
-#include "image_library.hpp"
+#pragma once
 
-image_library::image_library()
+class hintergrund_cli
 {
+public:
+    hintergrund_cli();
+};
 
-}

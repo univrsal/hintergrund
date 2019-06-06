@@ -1,4 +1,4 @@
-/* image.cpp created on 2019.6.6
+/* argument_parser.cpp created on 2019.6.6
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -13,4 +13,18 @@
  * github.com/univrsal/
  *
  */
-#include "image.hpp"
+#pragma once
+
+namespace arguments {
+    struct argument_t {
+        const char* id_unix;        /* -h*/
+        const char* id_gnu;         /* --help */
+        const char* description;    /* Shows this help screen */
+        void(*handler)(void);       /* Handler function*/
+    };
+
+    extern argument_t args[];   /* All accepted arguments */
+
+    void print_help();
+    void print_version();
+}

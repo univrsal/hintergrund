@@ -23,6 +23,8 @@ add_executable(${PROJECT_NAME}
         src/tagging/tagger.cpp
         src/util/util.cpp
         src/util/config.cpp
+        src/hintergrund_cli.cpp
+        src/util/argument_parser.cpp
         )
 
 include_directories(${JANSSON_INCLUDE_DIRS})
