@@ -42,7 +42,8 @@ bool tagger::write_to_config(json_t *config, json_error_t *error)
         }
     }
 
-    if (result && json_object_set_new(config, KEY_TAGGER_MAX_DEPTH, json_integer(m_max_depth)) < 0) {
+    if (result && json_object_set_new(config, KEY_TAGGER_MAX_DEPTH,
+                                      json_integer(config::values.max_folder_depth)) < 0) {
         printf("Error saving tagger max folder depth\n");
         result = false;
     }

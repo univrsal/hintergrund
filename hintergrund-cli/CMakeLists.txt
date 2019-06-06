@@ -4,6 +4,9 @@ project(hintergrund-cli)
 find_path(JANSSON_INCLUDE_DIRS jansson.h)
 find_library(JANSSON_LIBRARIES jansson)
 
+string(TIMESTAMP TODAY "%Y.%m.%d %H:%M")
+add_definitions(-DTIMESTAMP="${TODAY}")
+
 add_executable(${PROJECT_NAME}
         main.cpp
         src/rules/rule.cpp

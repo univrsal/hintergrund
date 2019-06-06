@@ -19,7 +19,7 @@
 
 class image_library
 {
-    std::vector<std::unique_ptr<image>> m_images;
+
 public:
     image_library();
 };

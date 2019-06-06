@@ -15,7 +15,6 @@
  */
 #include "hintergrund_cli.hpp"
 
-hintergrund_cli::hintergrund_cli()
-{
+namespace hintergrund_cli {
 
 }

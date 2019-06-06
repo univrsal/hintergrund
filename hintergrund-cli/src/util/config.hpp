@@ -30,10 +30,14 @@ namespace config {
         const char* libary_path;
     };
 
+    enum config_error_t {
+        SUCCESS = 0
+    };
+
     void init_config();
 
-    bool read_config(json_t* config, json_error_t* error);
-    bool write_config(json_t* config, json_error_t* error);
+    bool read_config(int* return_value);
+    bool write_config(int* return_value);
 
     extern values_t values;
 }

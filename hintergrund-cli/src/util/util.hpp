@@ -16,6 +16,7 @@
 #pragma once
 
 #define VERSION "1.0"
+#define UNUSED_PARAM(a)    ((void) a)
 
 namespace util {
 

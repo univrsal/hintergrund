@@ -30,16 +30,17 @@ namespace config {
         values.libary_path = "";
     }
 
-    bool read_config(json_t* config, json_error_t* error)
+    bool read_config(int* return_value)
     {
-        bool result = true;
+        *return_value = SUCCESS;
 
-        return result;
+        return false;
     }
 
-    bool write_config(json_t* config, json_error_t* error)
+    bool write_config(int* return_value)
     {
         bool result = true;
+        *return_value = SUCCESS;
 
         return result;
     }

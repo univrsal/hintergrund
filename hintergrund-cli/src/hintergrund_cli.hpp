@@ -15,9 +15,6 @@
  */
 #pragma once
 
-class hintergrund_cli
-{
-public:
-    hintergrund_cli();
-};
+namespace hintergrund_cli {
 
+}

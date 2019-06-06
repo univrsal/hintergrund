@@ -20,11 +20,13 @@ namespace arguments {
         const char* id_unix;        /* -h*/
         const char* id_gnu;         /* --help */
         const char* description;    /* Shows this help screen */
-        void(*handler)(void);       /* Handler function*/
+        bool (*handler)(int*);      /* Handler function return true if handling this argument exits */
     };
 
     extern argument_t args[];   /* All accepted arguments */
 
-    void print_help();
-    void print_version();
+    bool print_help(int* return_val);
+    bool print_version(int* return_val);
+
+    int parse(int argc, char* argv[]);
 }
