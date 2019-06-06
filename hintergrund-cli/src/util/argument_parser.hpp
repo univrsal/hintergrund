@@ -17,16 +17,21 @@
 
 namespace arguments {
     struct argument_t {
-        const char* id_unix;        /* -h*/
-        const char* id_gnu;         /* --help */
-        const char* description;    /* Shows this help screen */
-        bool (*handler)(int*);      /* Handler function return true if handling this argument exits */
+        const char* id_unix;                        /* -h*/
+        const char* id_gnu;                         /* --help */
+        const char* description;                    /* Shows this help screen */
+        /* Handler function return true if handling this argument exits
+         * Arguments are return value pointer, current argument index, argument count
+         * and argument array
+         */
+        bool (*handler)(int*, int, int, const char**);
+        const char* path_destination; /* Target variable if this parameter takes a path*/
     };
 
     extern argument_t args[];   /* All accepted arguments */
 
-    bool print_help(int* return_val);
-    bool print_version(int* return_val);
+    bool print_help(int* return_val, int arg_i, int argc, const char** argv);
+    bool print_version(int* return_val, int arg_i, int argc, const char** argv);
 
-    int parse(int argc, char* argv[]);
+    int parse(int argc, const char* argv[]);
 }

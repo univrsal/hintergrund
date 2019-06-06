@@ -14,7 +14,63 @@
  *
  */
 #include "util.hpp"
-
+#include <jansson.h>
+#ifdef LINUX
+#include <sys/stat.h>
+#endif
 namespace util {
+    const char* json_err_to_str(int i)
+    {
+        switch (i) {
+            default:
+            case json_error_unknown:
+                return "unkown";
+            case json_error_out_of_memory:
+                return "Out of memory";
+            case json_error_stack_overflow:
+                return "Stackoverflow";
+            case json_error_cannot_open_file:
+                return "Can't open file";
+            case json_error_invalid_argument:
+                return "Invalid argument";
+            case json_error_invalid_utf8:
+                return "Invalid UTF-8";
+            case json_error_premature_end_of_input:
+                return "Premature end of input";
+            case json_error_end_of_input_expected:
+                return "End of input expected";
+            case json_error_invalid_syntax:
+                return "Invalid syntax";
+            case json_error_invalid_format:
+                return "Invalid format";
+            case json_error_wrong_type:
+                return "Wrong type";
+            case json_error_null_character:
+                return "Null character";
+            case json_error_null_value:
+                return "Null value";
+            case json_error_null_byte_in_key:
+                return "Null byte in key";
+            case json_error_duplicate_key:
+                return "Duplicate key";
+            case json_error_numeric_overflow:
+                return "Numeric overflow";
+            case json_error_item_not_found:
+                return "Item not found";
+            case json_error_index_out_of_range:
+                return "Index out of range";
+        }
+    }
 
+    bool file_exists(const char* path)
+    {
+        bool result = true;
+#ifdef LINUX
+        struct stat buffer;
+        result = (stat(path, &buffer) == 0);
+#elif WIN32
+
+#endif
+        return result;
+    }
 }

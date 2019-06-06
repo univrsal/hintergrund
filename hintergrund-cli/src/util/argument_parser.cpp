@@ -21,21 +21,29 @@
 
 namespace arguments {
     argument_t args[] = {
-        { "-h", "--help",           "Shows this help screen",                               print_help },
-        { "-v", "--version",        "Prints the current version",                           print_version },
+        { "-h", "--help",           "Shows this help screen",
+                                    print_help, nullptr},
+        { "-v", "--version",        "Prints the current version",
+                                    print_version, nullptr },
         { "-c", "--config [path]",  "Load or create config from path. If a new config\n"
-                                    "\t\t\tis created also provide -t and -l",              config::read_config },
-        { "-l", "--library [path]", "Load or create image library from path",               nullptr },
-        { "-t", "--tags [path]",    "Load or crate tag file from path",                     nullptr },
+                                    "\t\t\tis created also provide -r and -l",
+                                    config::read_config, config::values.config_path },
+        { "-r", "--rules [path]",  "Load or create a rule file\n",
+                                    config::read_config, config::values.rule_path },
+        { "-l", "--library [path]", "Load or create image library from path",
+                                    nullptr, config::values.library_path },
         { "-a", "--auto [path]",    "Auto tag sub folders and index images in path\n"
-                                    "\t\t\tRequires -l and -t or an exisiting config file", nullptr }
+                                    "\t\t\tRequires -l or an exisiting config file", nullptr }
     };
 
-    bool print_help(int* return_val)
+    bool print_help(int* return_val, int arg_i, int argc, const char** argv)
     {
         UNUSED_PARAM(return_val);
-        print_version(nullptr);
-        printf("License GPLv2+: GNU GPL version 3 or later <http://www.gnu.org/licenses/>.\n"
+        UNUSED_PARAM(arg_i);
+        UNUSED_PARAM(argc);
+        UNUSED_PARAM(argv);
+        print_version(nullptr, 0, 0, nullptr);
+        printf("License GPLv2+: GNU GPL version 2 or later <http://www.gnu.org/licenses/>.\n"
         "This is free software: you are free to change and redistribute it.\n"
         "There is NO WARRANTY, to the extent permitted by law.\n\n");
 
@@ -45,17 +53,32 @@ namespace arguments {
         return true;
     }
 
-    bool print_version(int* return_val)
+    bool print_version(int* return_val, int arg_i, int argc, const char** argv)
     {
         UNUSED_PARAM(return_val);
+        UNUSED_PARAM(arg_i);
+        UNUSED_PARAM(argc);
+        UNUSED_PARAM(argv);
         printf("hintergrund-cli v%s build on %s\n  github.com/univrsal\n", VERSION, TIMESTAMP);
         return true;
     }
 
-    int parse(int argc, char* argv[])
+    int parse(int argc, const char* argv[])
     {
         int result = 0;
         if (argc > 1) {
+            /* First iteration extracts paths*/
+            for (int i = 0; i < argc; i++) {
+                for (auto& arg : args) {
+                    if (strcmp(arg.id_gnu, argv[i]) == 0
+                            || strcmp(arg.id_unix, argv[i]) == 0) {
+
+                        if (arg.path_destination && i + 1 < argc)
+                            arg.path_destination = strdup(argv[i + 1]);
+                    }
+                }
+            }
+
             /* Iterates over all provided arguments
              * and executes the matching methods if
              * an argument is present
@@ -64,13 +87,13 @@ namespace arguments {
                 for (const auto& arg : args) {
                     if (strcmp(arg.id_gnu, argv[i]) == 0
                             || strcmp(arg.id_unix, argv[i]) == 0) {
-                        if (arg.handler(&result))
+                        if (arg.handler(&result, i, argc, argv))
                             goto end;
                     }
                 }
             }
         } else {
-            print_help(nullptr);
+            print_help(nullptr, 0, 0, nullptr);
         }
 
         /* To exit the outer for loop from within the inner loop */

@@ -19,5 +19,6 @@
 #define UNUSED_PARAM(a)    ((void) a)
 
 namespace util {
-
+    const char* json_err_to_str(int i);
+    bool file_exists(const char* path);
 }
