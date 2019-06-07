@@ -77,7 +77,7 @@ bool tagger::read_from_config(json_t *config, json_error_t *error)
     return result;
 }
 
-void tagger::add_new_tag(const char *name, float weight)
+bool tagger::add_new_tag(const char *name, float weight)
 {
     bool unique = true;
     for (const auto& tag : m_tags)
@@ -93,13 +93,15 @@ void tagger::add_new_tag(const char *name, float weight)
         printf("Added new tag %s\n", name);
         m_tags.emplace_back(new tag(name, weight, m_tag_counter++));
     }
+    return unique;
 }
 
-void tagger::tag_string(const char *str)
+int tagger::tag_string(const char *str, std::stack<const char*>& current_tags)
 {
     if (!str || strlen(str) <= 0)
-        return;
+        return 0;
     size_t it = 0, old_it = 0, len = strlen(str);
+    int new_tags = 0;
 
     char temp_tag[256]; /* file/directory names can't be longer than that */
 
@@ -113,8 +115,12 @@ void tagger::tag_string(const char *str)
 
         memcpy(temp_tag, str + old_it, it - old_it);
         temp_tag[it - old_it] = '\0';
-        add_new_tag(temp_tag, 1.f);
+        if (add_new_tag(temp_tag, 1.f)) {
+            new_tags++;
+            current_tags.push(strdup(temp_tag));
+        }
     }
+    return new_tags;
 }
 
 void tagger::iterate_folder(DIR *d, int depth, std::stack<const char*>& current_tags)
@@ -135,26 +141,33 @@ void tagger::iterate_folder(DIR *d, int depth, std::stack<const char*>& current_
 
             DIR* temp = opendir(entry->d_name);
             if (temp) {
-                tag_string(entry->d_name);
-                /* Gets the last added tag and adds it to the temporary stack */
-                current_tags.push(m_tags.back()->name());
+                /* Extract tags from folder name and adds it to the stack */
+                int new_tags = tag_string(entry->d_name, current_tags);
+
                 chdir(entry->d_name); /* Go into folder */
-
                 iterate_folder(temp, ++depth, current_tags);
-
                 closedir(temp);
                 chdir(".."); /* Go back out of folder */
-                current_tags.pop(); /* Take previously added tag off of stack since the folder was left */
+
+                for (int i = 0; i < new_tags; i++) { /* Free memory of temporary tags */
+                    free((void*)(current_tags.top()));
+                    current_tags.pop();
+                }
             } else {
                 printf("Error opening \"%s\"\n", entry->d_name);
             }
         } else {
             if (config::values.tag_image_names) {
                 /* Separate file name by commas and put results into tags */
-                tag_string(entry->d_name);
+                int new_tags = tag_string(entry->d_name, current_tags);
+
+                /* TODO: image library: check file extension first, add and tag it*/
+
+                for (int i = 0; i < new_tags; i++) { /* Free memory of temporary tags */
+                    free((void*)(current_tags.top()));
+                    current_tags.pop();
+                }
             }
-
-
         }
     }
 }
@@ -178,4 +191,17 @@ void tagger::auto_tag(const char *root_folder)
     iterate_folder(dp, 0, temp_tags);
 
     chdir(cwd); /* Revert to original working directory */
+}
+
+tag* tagger::get_tag_for_str(const char *string)
+{
+    if (!string)
+        return nullptr;
+
+    for (const auto& tag : m_tags) {
+        if (strcmp(tag->name(), string) == 0) {
+           return tag.get();
+        }
+    }
+    return nullptr;
 }

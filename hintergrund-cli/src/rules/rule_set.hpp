@@ -30,6 +30,6 @@ public:
     void get_active_tags(std::vector<tag*>& tagv);
 
     bool write_rules(json_t* json, json_error_t* error);
-    bool read_rules(json_t* json, json_error_t* error);
+    bool read_rules(const char* path);
 };
 

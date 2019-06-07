@@ -16,5 +16,4 @@
 #include "hintergrund_cli.hpp"
 
 namespace hintergrund_cli {
-
 }

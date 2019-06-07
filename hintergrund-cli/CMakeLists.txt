@@ -7,6 +7,13 @@ find_library(JANSSON_LIBRARIES jansson)
 string(TIMESTAMP TODAY "%Y.%m.%d %H:%M")
 add_definitions(-DTIMESTAMP="${TODAY}")
 
+if ("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
+    add_definitions(-DLINUX=1)
+    add_definitions(-DUNIX=1)
+endif ()
+
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
+
 add_executable(${PROJECT_NAME}
         main.cpp
         src/rules/rule.cpp
@@ -19,7 +26,6 @@ add_executable(${PROJECT_NAME}
         src/rules/rule_io_file.cpp
         src/rules/rule_set.cpp
         src/rules/rule_io_stdin.cpp
-        src/rules/rule_io_stdin.hpp
         src/images/image_library.cpp
         src/images/image.cpp
         src/tagging/tag.cpp

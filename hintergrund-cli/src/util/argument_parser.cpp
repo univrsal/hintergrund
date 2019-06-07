@@ -26,23 +26,20 @@ namespace arguments {
         { "-v", "--version",        "Prints the current version",
                                     print_version, nullptr },
         { "-c", "--config [path]",  "Load or create config from path. If a new config\n"
-                                    "\t\t\tis created also provide -r and -l",
-                                    config::read_config, config::values.config_path },
+                                    "\t\t\t\tis created also provide -r and -l",
+                                    config::read_config, &config::values.config_path },
         { "-r", "--rules [path]",  "Load or create a rule file\n",
-                                    config::read_config, config::values.rule_path },
+                                    config::read_config, &config::values.rule_path },
         { "-l", "--library [path]", "Load or create image library from path",
-                                    nullptr, config::values.library_path },
+                                    nullptr, &config::values.library_path },
         { "-a", "--auto [path]",    "Auto tag sub folders and index images in path\n"
-                                    "\t\t\tRequires -l or an exisiting config file", nullptr }
+                                    "\t\t\t\tRequires -l or an exisiting config file", nullptr }
     };
 
-    bool print_help(int* return_val, int arg_i, int argc, const char** argv)
+    bool print_help(int* return_val)
     {
         UNUSED_PARAM(return_val);
-        UNUSED_PARAM(arg_i);
-        UNUSED_PARAM(argc);
-        UNUSED_PARAM(argv);
-        print_version(nullptr, 0, 0, nullptr);
+        print_version(nullptr);
         printf("License GPLv2+: GNU GPL version 2 or later <http://www.gnu.org/licenses/>.\n"
         "This is free software: you are free to change and redistribute it.\n"
         "There is NO WARRANTY, to the extent permitted by law.\n\n");
@@ -53,13 +50,14 @@ namespace arguments {
         return true;
     }
 
-    bool print_version(int* return_val, int arg_i, int argc, const char** argv)
+    bool print_version(int* return_val)
     {
         UNUSED_PARAM(return_val);
-        UNUSED_PARAM(arg_i);
-        UNUSED_PARAM(argc);
-        UNUSED_PARAM(argv);
-        printf("hintergrund-cli v%s build on %s\n  github.com/univrsal\n", VERSION, TIMESTAMP);
+        printf("hintergrund-cli v%s "
+#ifdef DEBUG
+               "debug-"
+#endif
+               "build on %s\n  github.com/univrsal\n", VERSION, TIMESTAMP);
         return true;
     }
 
@@ -68,13 +66,15 @@ namespace arguments {
         int result = 0;
         if (argc > 1) {
             /* First iteration extracts paths*/
-            for (int i = 0; i < argc; i++) {
+            for (int i = 1; i < argc; i++) { /* argument 0 is the program path */
                 for (auto& arg : args) {
-                    if (strcmp(arg.id_gnu, argv[i]) == 0
-                            || strcmp(arg.id_unix, argv[i]) == 0) {
-
-                        if (arg.path_destination && i + 1 < argc)
-                            arg.path_destination = strdup(argv[i + 1]);
+                    if (arg.path_destination && (strcmp(arg.id_gnu, argv[i]) == 0
+                            || strcmp(arg.id_unix, argv[i]) == 0)) {
+                        if (i + 1 < argc) {
+                            *arg.path_destination = strdup(argv[i + 1]);
+                            i++; /* Skip next argument since it's the path for the current one */
+                        }
+                        break;
                     }
                 }
             }
@@ -85,19 +85,22 @@ namespace arguments {
              */
             for (int i = 0; i < argc; i++) {
                 for (const auto& arg : args) {
-                    if (strcmp(arg.id_gnu, argv[i]) == 0
-                            || strcmp(arg.id_unix, argv[i]) == 0) {
-                        if (arg.handler(&result, i, argc, argv))
+                    if (strcmp(arg.id_gnu, argv[i]) == 0 || strcmp(arg.id_unix, argv[i]) == 0) {
+                        if (arg.handler(&result))
                             goto end;
                     }
                 }
             }
         } else {
-            print_help(nullptr, 0, 0, nullptr);
+            print_help(nullptr);
         }
 
         /* To exit the outer for loop from within the inner loop */
         end:
+        for (auto& arg : args) {
+            if (arg.path_destination)
+                free(arg.path_destination);
+        }
 
         return result;
     }

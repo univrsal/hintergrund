@@ -17,6 +17,9 @@
 #include <vector>
 #include <jansson.h>
 
+#define KEY_IMAGE_PATH  "path"
+#define KEY_IMAGE_TAGS  "tags"
+
 class tag;
 
 class image
@@ -25,6 +28,7 @@ class image
     std::vector<tag*> m_tags;
 public:
     image();
+    ~image();
 
     bool write_to_config(json_t* config, json_error_t* error);
     bool read_from_config(json_t* config, json_error_t* error);

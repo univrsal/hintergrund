@@ -20,6 +20,7 @@
 #include "rule_io_file.hpp"
 #include "rule_time_span.hpp"
 #include "rule_io_stdin.hpp"
+#include "../util/util.hpp"
 #include <algorithm>
 
 rule_set::rule_set()
@@ -76,11 +77,12 @@ bool rule_set::write_rules(json_t *json, json_error_t *error)
     return result;
 }
 
-bool rule_set::read_rules(json_t *json, json_error_t *error)
+bool rule_set::read_rules(const char* path)
 {
     bool result = true;
 
-    auto* rule_array = json_object_get(json, KEY_RULE_ARRAY);
+    json_error_t error;
+    json_t* rule_array = json_load_file(path, 0, &error);
     rule* new_rule = nullptr;
 
     if (rule_array) {
@@ -115,8 +117,9 @@ bool rule_set::read_rules(json_t *json, json_error_t *error)
                                 break;
                         }
                         json_decref(type_id);
-                        if (new_rule && !new_rule->read_from_config(value, error)) {
+                        if (new_rule && !new_rule->read_from_config(value, &error)) {
                             result = false;
+                            util::print_json_error(&error);
                             break;
                         }
                     } else {
@@ -125,13 +128,16 @@ bool rule_set::read_rules(json_t *json, json_error_t *error)
                         break;
                     }
                 } else {
-                    printf("Error while loading rules array\n");
+                    printf("Error while loading rule base info\n");
                     result = false;
                     break;
                 }
             }
         }
         json_decref(rule_array);
+    } else {
+        printf("Error loading rule array\n");
+        util::print_json_error(&error);
     }
     return result;
 }

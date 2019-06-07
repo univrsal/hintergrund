@@ -17,6 +17,11 @@
 #include <stdint.h>
 #include <jansson.h>
 
+#define KEY_CONFIG_RULES_PATH       "rules_path"
+#define KEY_CONFIG_LIBRARY_PATH     "library_path"
+#define KEY_CONFIG_FOLDER_DEPTH     "folder_depth"
+#define KEY_CONFIG_TAG_IMAGE_NAMES  "tag_image_names"
+
 class rule_set;
 class tagger;
 
@@ -31,18 +36,21 @@ namespace config {
         const char* config_path;
     };
 
-    enum config_error_t {
+    enum error_codes_t {
         SUCCESS = 0,
         MISSING_ARG,
         INVALID_ARG,
-        JSON_PARSING_FAILED
+        JSON_PARSING_FAILED,
+        JSON_WRITING_FAILED,
+        READ_RULES_FAILED
     };
 
     void init_config();
-    void create_config(const char* path);
 
-    bool read_config(int* return_value, int arg_i, int argc, const char** argv);
-    bool write_config(int* return_value, int arg_i, int argc, const char** argv);
+    bool read_config(int* return_value);
+    bool read_rules(int* return_value);
+
+    bool create_config(const char* path, json_error_t* error);
 
     extern values_t values;
 }

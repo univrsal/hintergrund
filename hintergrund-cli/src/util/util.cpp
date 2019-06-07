@@ -15,6 +15,7 @@
  */
 #include "util.hpp"
 #include <jansson.h>
+#include <fstream>
 #ifdef LINUX
 #include <sys/stat.h>
 #endif
@@ -72,5 +73,28 @@ namespace util {
 
 #endif
         return result;
+    }
+
+    bool try_create_file(const char* path)
+    {
+        bool result = false;
+        std::ofstream of(path);
+        if (of.good()) {
+            of << "";
+            result = true;
+            of.close();
+        }
+        return result;
+    }
+
+    void print_json_error(json_error_t* error)
+    {
+        auto error_code = json_error_code(error);
+        printf("[error] jansson couldn't parse json file:\n"
+               " Error code %s\n"
+               " Line %i, column %i, source: %s\n"
+               " Message: %s\n", json_err_to_str(error_code),
+               error->line, error->column,
+               error->source, error->text);
     }
 }
