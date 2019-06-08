@@ -14,13 +14,22 @@
  *
  */
 #pragma once
+#include "image.hpp"
 #include <vector>
 #include <memory>
+#include <jansson.h>
 
 class image_library
 {
-
+    std::vector<std::unique_ptr<image>> m_images;
 public:
-    image_library();
+    image_library() = default;
+
+    bool write_to_config(json_t* config, json_error_t* error);
+    bool read_from_config(json_t *config, json_error_t *error);
 };
 
+/* HEEEEEY, this is library */
+namespace library {
+    bool read_library(int* return_value);
+}

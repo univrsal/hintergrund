@@ -60,7 +60,7 @@ bool image::read_from_config(json_t *config, json_error_t *error)
     return result;
 }
 
-bool image::write_to_config(json_t *config, json_error_t *error)
+bool image::write_to_config(json_t *config, json_error_t *error) const
 {
     bool result = true;
     json_t* tag_array = json_array();

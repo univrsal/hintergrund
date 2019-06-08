@@ -21,7 +21,9 @@
 #include "rule_time_span.hpp"
 #include "rule_io_stdin.hpp"
 #include "../util/util.hpp"
+#include "../util/config.hpp"
 #include <algorithm>
+#include <cstring>
 
 rule_set::rule_set()
 {
@@ -140,4 +142,26 @@ bool rule_set::read_rules(const char* path)
         util::print_json_error(&error);
     }
     return result;
+}
+
+namespace rules {
+     bool read_rules(int* return_value)
+     {
+         *return_value = config::SUCCESS;
+         if (strlen(config::values.rule_path) > 0) {
+             if (!util::file_exists(config::values.rule_path)) {
+                 /* Create empty placeholder file */
+                 if (!util::try_create_file(config::values.rule_path))
+                     printf("Failed to create placeholder rule file."
+                            "Make sure the permissions are set correctly\n");
+             } else if (!config::values.rules_manager->read_rules(
+                            config::values.rule_path)) {
+                 *return_value = config::READ_RULES_FAILED;
+             }
+         } else {
+             *return_value = config::MISSING_ARG;
+             printf("Missing rulesp path\n");
+         }
+         return false;
+     }
 }

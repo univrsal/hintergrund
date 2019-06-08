@@ -17,6 +17,7 @@
 #include "../util/util.hpp"
 #include "../tagging/tagger.hpp"
 #include "../rules/rule_set.hpp"
+#include "../images/image_library.hpp"
 #include <cstring>
 
 
@@ -27,28 +28,12 @@ namespace config {
     {
         values.tag_manager = new tagger();
         values.rules_manager = new rule_set();
+        values.library = new image_library();
         values.max_folder_depth = 50;
         values.tag_image_names = false;
         values.rule_path = "";
         values.library_path = "";
-    }
-
-    bool read_rules(int* return_value)
-    {
-        *return_value = SUCCESS;
-        if (strlen(values.rule_path) > 0) {
-            if (!util::file_exists(values.rule_path)) {
-                /* Create empty placeholder file */
-                if (!util::try_create_file(values.rule_path))
-                    printf("Failed to create placeholder rule file."
-                           "Make sure the permissions are set correctly\n");
-            } else if (!values.rules_manager->read_rules(values.rule_path)) {
-                *return_value = READ_RULES_FAILED;
-            }
-        } else {
-            *return_value = MISSING_ARG;
-        }
-        return false;
+        values.auto_tag_path = "";
     }
 
     bool read_config(int* return_value)
@@ -68,17 +53,23 @@ namespace config {
                     /* Start loading */
                     json_error_t error;
                     auto* json = json_load_file(values.config_path, 0, &error);
-
+                    const char* tmp_rule, *tmp_lib;
                     if (json) {
                         if (json_unpack_ex(json, &error, 0, "{sssssisi}",
-                                       KEY_CONFIG_RULES_PATH, &values.rule_path,
-                                       KEY_CONFIG_LIBRARY_PATH, &values.library_path,
+                                       KEY_CONFIG_RULES_PATH, &tmp_rule,
+                                       KEY_CONFIG_LIBRARY_PATH, &tmp_lib,
                                        KEY_CONFIG_FOLDER_DEPTH, &values.max_folder_depth,
                                        KEY_CONFIG_TAG_IMAGE_NAMES, &values.tag_image_names) < 0)
                         {
                             printf("Json unpacking failed\n");
                             util::print_json_error(&error);
+                        } else {
+                            values.rule_path = strdup(tmp_rule);
+                            values.library_path = strdup(tmp_lib);
+                            printf("Successfully loaded config...\n Library path: %s\n Rule path: %s\n",
+                                   values.library_path, values.rule_path);
                         }
+                        json_decref(json);
                     } else {
                         printf("Json parsing failed\n");
                         util::print_json_error(&error);

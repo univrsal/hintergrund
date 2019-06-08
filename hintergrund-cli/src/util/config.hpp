@@ -24,16 +24,19 @@
 
 class rule_set;
 class tagger;
+class image_library;
 
 namespace config {
     struct values_t {
         tagger* tag_manager;
         rule_set* rules_manager;
+        image_library* library;
         uint16_t max_folder_depth;
         bool tag_image_names;
         const char* rule_path;
         const char* library_path;
         const char* config_path;
+        const char* auto_tag_path;
     };
 
     enum error_codes_t {
@@ -42,14 +45,13 @@ namespace config {
         INVALID_ARG,
         JSON_PARSING_FAILED,
         JSON_WRITING_FAILED,
-        READ_RULES_FAILED
+        READ_RULES_FAILED,
+        READ_LIBRARY_FAILED,
+        AUTO_TAG_FAILED
     };
 
     void init_config();
-
     bool read_config(int* return_value);
-    bool read_rules(int* return_value);
-
     bool create_config(const char* path, json_error_t* error);
 
     extern values_t values;

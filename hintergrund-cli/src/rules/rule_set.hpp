@@ -33,3 +33,6 @@ public:
     bool read_rules(const char* path);
 };
 
+namespace rules {
+     bool read_rules(int* return_value);
+}

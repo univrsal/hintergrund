@@ -30,6 +30,6 @@ public:
     image();
     ~image();
 
-    bool write_to_config(json_t* config, json_error_t* error);
+    bool write_to_config(json_t* config, json_error_t* error) const;
     bool read_from_config(json_t* config, json_error_t* error);
 };

@@ -17,6 +17,9 @@
 #include <cstring>
 #include "util.hpp"
 #include "config.hpp"
+#include "../tagging/tagger.hpp"
+#include "../rules/rule_set.hpp"
+#include "../images/image_library.hpp"
 #include "argument_parser.hpp"
 
 namespace arguments {
@@ -28,12 +31,13 @@ namespace arguments {
         { "-c", "--config [path]",  "Load or create config from path. If a new config\n"
                                     "\t\t\t\tis created also provide -r and -l",
                                     config::read_config, &config::values.config_path },
-        { "-r", "--rules [path]",  "Load or create a rule file\n",
-                                    config::read_config, &config::values.rule_path },
+        { "-r", "--rules [path]",   "Load or create a rule file\n",
+                                    rules::read_rules, &config::values.rule_path },
         { "-l", "--library [path]", "Load or create image library from path",
-                                    nullptr, &config::values.library_path },
+                                    library::read_library, &config::values.library_path },
         { "-a", "--auto [path]",    "Auto tag sub folders and index images in path\n"
-                                    "\t\t\t\tRequires -l or an exisiting config file", nullptr }
+                                    "\t\t\t\tRequires -l or an exisiting config file",
+                                    tagging::tag_path, &config::values.auto_tag_path }
     };
 
     bool print_help(int* return_val)
@@ -53,11 +57,11 @@ namespace arguments {
     bool print_version(int* return_val)
     {
         UNUSED_PARAM(return_val);
-        printf("hintergrund-cli v%s "
+        printf("hintergrund-cli v%s"
 #ifdef DEBUG
-               "debug-"
+                "-debug"
 #endif
-               "build on %s\n  github.com/univrsal\n", VERSION, TIMESTAMP);
+                " build on %s\n  github.com/univrsal\n", VERSION, TIMESTAMP);
         return true;
     }
 
@@ -83,7 +87,7 @@ namespace arguments {
              * and executes the matching methods if
              * an argument is present
              */
-            for (int i = 0; i < argc; i++) {
+            for (int i = 1; i < argc; i++) {
                 for (const auto& arg : args) {
                     if (strcmp(arg.id_gnu, argv[i]) == 0 || strcmp(arg.id_unix, argv[i]) == 0) {
                         if (arg.handler(&result))
@@ -98,8 +102,8 @@ namespace arguments {
         /* To exit the outer for loop from within the inner loop */
         end:
         for (auto& arg : args) {
-            if (arg.path_destination)
-                free(arg.path_destination);
+            if (arg.path_destination && *arg.path_destination && strlen(*arg.path_destination) > 0)
+                free((void*)*arg.path_destination);
         }
 
         return result;

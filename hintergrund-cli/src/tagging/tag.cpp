@@ -31,7 +31,7 @@ tag::tag(const char* name, float weight, uint32_t tag_id)
 
 tag::~tag()
 {
-    delete m_tag_name;
+    free((void*)m_tag_name);
     m_tag_name = nullptr;
 }
 

@@ -15,6 +15,7 @@
  */
 #include "tagger.hpp"
 #include "../util/config.hpp"
+#include "../images/image_library.hpp"
 #include <cstring>
 #include <unistd.h>
 
@@ -77,26 +78,31 @@ bool tagger::read_from_config(json_t *config, json_error_t *error)
     return result;
 }
 
-bool tagger::add_new_tag(const char *name, float weight)
+const tag* tagger::add_new_tag(const char *name, float weight)
 {
     bool unique = true;
+    tag* result = nullptr;
     for (const auto& tag : m_tags)
     {
         if (strcmp(tag->name(), name) == 0) {
-            printf("Duplicate tag name\n");
+            printf("Duplicate tag name %s...\n", name);
             unique = false;
+            /* It's not a new tag, but files under this folder should still get this tag */
+            result = tag.get();
             break;
         }
     }
 
     if (unique) {
         printf("Added new tag %s\n", name);
-        m_tags.emplace_back(new tag(name, weight, m_tag_counter++));
+        result = new tag(name, weight, m_tag_counter++);
+        m_tags.emplace_back(result);
     }
-    return unique;
+
+    return result;
 }
 
-int tagger::tag_string(const char *str, std::stack<const char*>& current_tags)
+int tagger::tag_string(const char *str, std::stack<const tag*>& current_tags)
 {
     if (!str || strlen(str) <= 0)
         return 0;
@@ -115,15 +121,16 @@ int tagger::tag_string(const char *str, std::stack<const char*>& current_tags)
 
         memcpy(temp_tag, str + old_it, it - old_it);
         temp_tag[it - old_it] = '\0';
-        if (add_new_tag(temp_tag, 1.f)) {
+        auto* new_tag = add_new_tag(temp_tag, 1.f);
+        if (new_tag) {
+            current_tags.push(new_tag);
             new_tags++;
-            current_tags.push(strdup(temp_tag));
         }
     }
     return new_tags;
 }
 
-void tagger::iterate_folder(DIR *d, int depth, std::stack<const char*>& current_tags)
+void tagger::iterate_folder(DIR *d, int depth, std::stack<const tag*>& current_tags)
 {
     if (!d)
         return;
@@ -149,10 +156,8 @@ void tagger::iterate_folder(DIR *d, int depth, std::stack<const char*>& current_
                 closedir(temp);
                 chdir(".."); /* Go back out of folder */
 
-                for (int i = 0; i < new_tags; i++) { /* Free memory of temporary tags */
-                    free((void*)(current_tags.top()));
+                for (int i = 0; i < new_tags; i++) /* Remove previously added tags */
                     current_tags.pop();
-                }
             } else {
                 printf("Error opening \"%s\"\n", entry->d_name);
             }
@@ -163,34 +168,42 @@ void tagger::iterate_folder(DIR *d, int depth, std::stack<const char*>& current_
 
                 /* TODO: image library: check file extension first, add and tag it*/
 
-                for (int i = 0; i < new_tags; i++) { /* Free memory of temporary tags */
-                    free((void*)(current_tags.top()));
+                for (int i = 0; i < new_tags; i++) /* Remove previouslytags */
                     current_tags.pop();
-                }
             }
         }
     }
 }
 
-void tagger::auto_tag(const char *root_folder)
+bool tagger::auto_tag(const char *root_folder)
 {
+    bool result = true;
     char cwd[2049]; /* current working directory */
     if (!getcwd(cwd, 2049)) {
         printf("Error getting current working directory\n");
-        return;
+        return false;
     }
-    std::stack<const char*> temp_tags;
+    std::stack<const tag*> temp_tags;
     chdir(root_folder); /* Start in root folder and then work through folder tree */
 
     DIR *dp = opendir(root_folder);
     if (!dp) {
         printf("Couldn't open root folder\n");
-        return;
+        return false;
     }
 
     iterate_folder(dp, 0, temp_tags);
 
     chdir(cwd); /* Revert to original working directory */
+
+    /* Now write newly indexed library */
+    json_error_t error;
+    json_t* library_array = json_array();
+
+    result = config::values.library->write_to_config(library_array, &error);
+
+    json_decref(library_array);
+    return result;
 }
 
 tag* tagger::get_tag_for_str(const char *string)
@@ -204,4 +217,27 @@ tag* tagger::get_tag_for_str(const char *string)
         }
     }
     return nullptr;
+}
+
+namespace tagging {
+    bool tag_path(int* return_value) {
+        *return_value = config::SUCCESS;
+
+        if (strlen(config::values.library_path) < 1) {
+            printf("Error: No image library path provided\n");
+            *return_value = config::MISSING_ARG;
+        }
+
+        if (strlen(config::values.auto_tag_path) < 1) {
+            printf("Error: No auto tag path provided\n");
+            *return_value = config::MISSING_ARG;
+        }
+
+        if (*return_value == config::SUCCESS &&
+                !config::values.tag_manager->auto_tag(config::values.auto_tag_path)) {
+            *return_value = config::AUTO_TAG_FAILED;
+        }
+
+        return true; /* True means exit after this operation */
+    }
 }

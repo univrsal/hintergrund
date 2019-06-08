@@ -39,23 +39,26 @@ class tagger
      * once the folder night is left, "night" is removed from the stack so
      * all files in the folder rain are only tagged with "city" and "rain"
      */
-    void iterate_folder(DIR* d, int depth, std::stack<const char*>& current_tags);
+    void iterate_folder(DIR* d, int depth, std::stack<const tag*>& current_tags);
 
     /* Splits str into tags at spaces and adds them as new tags
      * also pushes each new tag to the stack and returns the
      * amount of newly added tags
      */
-    int tag_string(const char* str, std::stack<const char*>& current_tags);
+    int tag_string(const char* str, std::stack<const tag*>& current_tags);
 public:
     tagger();
 
     bool write_to_config(json_t* config, json_error_t* error);
     bool read_from_config(json_t* config, json_error_t* error);
 
-    bool add_new_tag(const char* name, float weight);
+    const tag* add_new_tag(const char* name, float weight);
 
-    void auto_tag(const char* root_folder);
+    bool auto_tag(const char* root_folder);
 
     tag* get_tag_for_str(const char* string);
 };
 
+namespace tagging {
+     bool tag_path(int* return_value);
+}
