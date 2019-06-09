@@ -4,6 +4,7 @@ project(hintergrund-cli)
 find_path(JANSSON_INCLUDE_DIRS jansson.h)
 find_library(JANSSON_LIBRARIES jansson)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 string(TIMESTAMP TODAY "%Y.%m.%d %H:%M")
 add_definitions(-DTIMESTAMP="${TODAY}")
 

@@ -14,6 +14,48 @@
  *
  */
 #include "hintergrund_cli.hpp"
+#include "util/config.hpp"
+#include "images/image_library.hpp"
+#include "images/image.hpp"
+#include  <random>
+#include  <iterator>
 
 namespace hintergrund_cli {
+    bool shuffle(int* return_value)
+    {
+        *return_value = config::SUCCESS;
+        auto* images = config::values.library->images();
+        if (images->size() > 0) {
+            const image* img = select_randomly(images->begin(), images->end())->get();
+            printf("%s", img->path());
+        } else {
+            printf("No images to shuffle\n");
+            *return_value = config::SHUFFLE_FAILED;
+        }
+        return true;
+    }
+
+    bool sequential(int* return_value)
+    {
+        *return_value = config::SUCCESS;
+        return true;
+    }
+
+    bool controlled_shuffle(int* return_value)
+    {
+        *return_value = config::SUCCESS;
+        return true;
+    }
+
+    /* https://stackoverflow.com/a/16421677 */
+    template<typename iter>
+    iter select_randomly(iter start, iter end)
+    {
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+
+        std::uniform_int_distribution<> dis(0, std::distance(start, end) - 1);
+        std::advance(start, dis(gen));
+        return start;
+    }
 }

@@ -16,27 +16,31 @@
 #pragma once
 #include <stdint.h>
 #include <jansson.h>
-
+#include <vector>
 #define KEY_CONFIG_RULES_PATH       "rules_path"
 #define KEY_CONFIG_LIBRARY_PATH     "library_path"
 #define KEY_CONFIG_FOLDER_DEPTH     "folder_depth"
 #define KEY_CONFIG_TAG_IMAGE_NAMES  "tag_image_names"
+#define KEY_CONFIG_FILE_TYPE_ARRAY  "file_types"
 
 class rule_set;
 class tagger;
 class image_library;
 
 namespace config {
+
     struct values_t {
         tagger* tag_manager;
         rule_set* rules_manager;
         image_library* library;
         uint16_t max_folder_depth;
         bool tag_image_names;
+        bool check_duplicates;
         const char* rule_path;
         const char* library_path;
         const char* config_path;
         const char* auto_tag_path;
+        std::vector<const char*> file_types;
     };
 
     enum error_codes_t {
@@ -47,12 +51,20 @@ namespace config {
         JSON_WRITING_FAILED,
         READ_RULES_FAILED,
         READ_LIBRARY_FAILED,
-        AUTO_TAG_FAILED
+        WRITE_EMPTY_LIBRARY_FAILED,
+        AUTO_TAG_FAILED,
+        SHUFFLE_FAILED,
+        SEQUENTIAL_FAILED,
+        CONTROLLED_SHUFFLE_FAILED
     };
 
     void init_config();
-    bool read_config(int* return_value);
+    void close_config();
     bool create_config(const char* path, json_error_t* error);
+
+    /* Argument handlers */
+    bool read_config(int* return_value);
+    bool check_duplicates(int* return_value);
 
     extern values_t values;
 }

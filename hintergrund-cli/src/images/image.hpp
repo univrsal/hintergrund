@@ -16,7 +16,7 @@
 #pragma once
 #include <vector>
 #include <jansson.h>
-
+#include <deque>
 #define KEY_IMAGE_PATH  "path"
 #define KEY_IMAGE_TAGS  "tags"
 
@@ -25,11 +25,14 @@ class tag;
 class image
 {
     const char* m_path; /* Full file path on hdd */
-    std::vector<tag*> m_tags;
+    std::vector<const tag*> m_tags;
 public:
     image();
+    image(const char* path, std::deque<const tag*>& tags);
     ~image();
 
     bool write_to_config(json_t* config, json_error_t* error) const;
     bool read_from_config(json_t* config, json_error_t* error);
+
+    const char* path() const;
 };

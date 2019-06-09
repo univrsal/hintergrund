@@ -18,15 +18,28 @@
 #include <vector>
 #include <memory>
 #include <jansson.h>
+#include <deque>
+
+#define KEY_LIBRARY_SEQUENTIAL_INDEX    "index"
+#define KEY_LIBRARY_IMAGE_ARRAY         "images"
+
+typedef std::vector<std::unique_ptr<image>> image_vector;
 
 class image_library
 {
-    std::vector<std::unique_ptr<image>> m_images;
+    image_vector m_images;
+    uint32_t m_sequential_current = 0;
 public:
     image_library() = default;
 
     bool write_to_config(json_t* config, json_error_t* error);
     bool read_from_config(json_t *config, json_error_t *error);
+
+    bool valid_file_type(const char* file_name);
+    bool add_image(const char* file_name, const char* path, std::deque<const tag*>& tags);
+    bool add_image(const char* file_name, std::deque<const tag*>& tags);
+
+    const image_vector* images();
 };
 
 /* HEEEEEY, this is library */

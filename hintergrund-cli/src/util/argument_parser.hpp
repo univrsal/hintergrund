@@ -20,8 +20,8 @@ namespace arguments {
         const char* id_unix;                        /* -h*/
         const char* id_gnu;                         /* --help */
         const char* description;                    /* Shows this help screen */
-        /* Handler function return true if handling this argument exits
-         * Arguments are return value pointer, current argument index, argument count
+        /* Handler function return true if handling this argument exits the program
+         * Argument is return value pointer
          * and argument array
          */
         bool (*handler)(int*);

@@ -26,4 +26,7 @@ namespace util {
     bool try_create_file(const char* path);
 
     void print_json_error(json_error_t* error);
+
+    char* concatenate(const char* a, const char* b);
+    char* append(char* a, const char* b);
 }

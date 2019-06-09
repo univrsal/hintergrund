@@ -151,16 +151,18 @@ namespace rules {
          if (strlen(config::values.rule_path) > 0) {
              if (!util::file_exists(config::values.rule_path)) {
                  /* Create empty placeholder file */
-                 if (!util::try_create_file(config::values.rule_path))
+                 json_t* arr = json_array();
+                 if (json_dump_file(arr, config::values.rule_path, 0) < 0)
                      printf("Failed to create placeholder rule file."
                             "Make sure the permissions are set correctly\n");
+                 json_decref(arr);
              } else if (!config::values.rules_manager->read_rules(
                             config::values.rule_path)) {
                  *return_value = config::READ_RULES_FAILED;
              }
          } else {
              *return_value = config::MISSING_ARG;
-             printf("Missing rulesp path\n");
+             printf("Missing rules path\n");
          }
          return false;
      }

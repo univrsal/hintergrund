@@ -16,6 +16,7 @@
 #include "util.hpp"
 #include <jansson.h>
 #include <fstream>
+#include <cstring>
 #ifdef LINUX
 #include <sys/stat.h>
 #endif
@@ -96,5 +97,28 @@ namespace util {
                " Message: %s\n", json_err_to_str(error_code),
                error->line, error->column,
                error->source, error->text);
+    }
+
+    char* concatenate(const char* a, const char* b)
+    {
+        if (!a || !b)
+            return nullptr;
+        char* result = (char*) malloc(sizeof(char) * (strlen(a) + strlen(b) + 1));
+
+        if (!result)
+            return nullptr;
+        memcpy((void*)result, a, strlen(a) + 1); /* copy over terminator */
+        return strcat(result, b);
+    }
+
+    char* append(char* a, const char* b)
+    {
+        if (!a || !b)
+            return nullptr;
+        a = (char*) realloc(a, strlen(a) + strlen(b) + 1);
+
+        if (!a)
+            return nullptr;
+        return strcat(a, b);
     }
 }

@@ -16,5 +16,10 @@
 #pragma once
 
 namespace hintergrund_cli {
+    bool shuffle(int* return_value);
+    bool sequential(int* return_value);
+    bool controlled_shuffle(int* return_value);
 
+    template<typename iter>
+    iter select_randomly(iter start, iter end);
 }

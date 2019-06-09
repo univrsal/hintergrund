@@ -24,6 +24,13 @@ image::image()
     m_path = nullptr;
 }
 
+image::image(const char* path, std::deque<const tag*>& tags)
+{
+    m_path = strdup(path);
+    for (const auto& tag : tags)
+        m_tags.emplace_back(tag);
+}
+
 image::~image()
 {
     free((void*)m_path);
@@ -44,7 +51,7 @@ bool image::read_from_config(json_t *config, json_error_t *error)
         m_path = strdup(tmp_path);
         size_t index;
         json_t* value;
-        tag* tmp_tag;
+        const tag* tmp_tag;
         json_array_foreach(tag_array, index, value) {
             tmp_tag = nullptr;
             if (value) {
@@ -67,7 +74,7 @@ bool image::write_to_config(json_t *config, json_error_t *error) const
 
     if (tag_array) {
         for (const auto& tag : m_tags) {
-            if (tag->write_to_config(tag_array, error)) {
+            if (json_array_append_new(tag_array, json_string(tag->name()))) {
                 printf("Error writing tag \"%s\" to json\n", tag->name());
                 result = false;
                 break;
@@ -81,11 +88,15 @@ bool image::write_to_config(json_t *config, json_error_t *error) const
         } else {
             printf("Error while packing image json\n");
         }
-        json_decref(tag_array);
     } else {
         printf("Error creating image tag array\n");
         result = false;
     }
 
     return result;
+}
+
+const char* image::path() const
+{
+    return m_path;
 }

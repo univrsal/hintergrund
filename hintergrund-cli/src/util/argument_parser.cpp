@@ -20,6 +20,7 @@
 #include "../tagging/tagger.hpp"
 #include "../rules/rule_set.hpp"
 #include "../images/image_library.hpp"
+#include "../hintergrund_cli.hpp"
 #include "argument_parser.hpp"
 
 namespace arguments {
@@ -28,8 +29,17 @@ namespace arguments {
                                     print_help, nullptr},
         { "-v", "--version",        "Prints the current version",
                                     print_version, nullptr },
-        { "-c", "--config [path]",  "Load or create config from path. If a new config\n"
-                                    "\t\t\t\tis created also provide -r and -l",
+        { "-d", "--duplicates",     "Check for duplicate image files when auto tagging",
+                                    config::check_duplicates, nullptr },
+        { "-r", "--random",         "Randomly pick an image from the library",
+                                    hintergrund_cli::shuffle, nullptr },
+        { "-s", "--sequential",     "Pick the next image in the library",
+                                    hintergrund_cli::sequential, nullptr },
+        { "-c", "--controlled",     "Pick a random image with currently applicable tags",
+                                    hintergrund_cli::controlled_shuffle, nullptr },
+        { "-p", "--config [path]",  "Load or create config from path. If a new config\n"
+                                    "\t\t\t\tis created also provide -r and -l\n"
+                                    "\t\t\t\tThis can be ommited if an existing config is in ~/.config/hintergrund.json",
                                     config::read_config, &config::values.config_path },
         { "-r", "--rules [path]",   "Load or create a rule file\n",
                                     rules::read_rules, &config::values.rule_path },
@@ -106,6 +116,7 @@ namespace arguments {
                 free((void*)*arg.path_destination);
         }
 
+        config::close_config();
         return result;
     }
 }

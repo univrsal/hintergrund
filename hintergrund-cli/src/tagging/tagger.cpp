@@ -24,60 +24,6 @@ tagger::tagger()
     m_tag_counter = 0;
 }
 
-bool tagger::write_to_config(json_t *config, json_error_t *error)
-{
-    bool result = true;
-    auto* tag_array = json_array();
-    if (tag_array) {
-        for (auto& tag : m_tags) {
-            if (!tag->write_to_config(config, error)) {
-                printf("Error while writing tag\n");
-                result = false;
-                break;
-            }
-        }
-
-        if (result && json_object_set_new(config, KEY_TAGGER_TAG_ARRAY, tag_array) < 0) {
-            printf("Error while setting tag array\n");
-            result = false;
-        }
-    }
-
-    if (result && json_object_set_new(config, KEY_TAGGER_MAX_DEPTH,
-                                      json_integer(config::values.max_folder_depth)) < 0) {
-        printf("Error saving tagger max folder depth\n");
-        result = false;
-    }
-    return result;
-}
-
-bool tagger::read_from_config(json_t *config, json_error_t *error)
-{
-    bool result = true;
-    auto* tag_array = json_object_get(config, KEY_TAGGER_TAG_ARRAY);
-
-    if (tag_array) {
-        size_t index;
-        json_t* value;
-
-        json_array_foreach(tag_array, index, value) {
-            tag* new_tag = new tag();
-            if (!new_tag->read_from_config(value, error)) {
-                result = false;
-                printf("Error while reading tag from tag array\n");
-                delete new_tag;
-                break;
-            } else {
-                if (new_tag->id() > m_tag_counter)
-                    m_tag_counter = new_tag->id();
-                m_tags.emplace_back(new_tag);
-            }
-        }
-        m_tag_counter++; /* contains the highest id loaded, so now it contains the next available one */
-    }
-    return result;
-}
-
 const tag* tagger::add_new_tag(const char *name, float weight)
 {
     bool unique = true;
@@ -85,7 +31,7 @@ const tag* tagger::add_new_tag(const char *name, float weight)
     for (const auto& tag : m_tags)
     {
         if (strcmp(tag->name(), name) == 0) {
-            printf("Duplicate tag name %s...\n", name);
+            printf("Duplicate tag name \"%s\". Ignoring...\n", name);
             unique = false;
             /* It's not a new tag, but files under this folder should still get this tag */
             result = tag.get();
@@ -102,7 +48,7 @@ const tag* tagger::add_new_tag(const char *name, float weight)
     return result;
 }
 
-int tagger::tag_string(const char *str, std::stack<const tag*>& current_tags)
+int tagger::tag_string(const char *str, std::deque<const tag*>& current_tags)
 {
     if (!str || strlen(str) <= 0)
         return 0;
@@ -122,15 +68,26 @@ int tagger::tag_string(const char *str, std::stack<const tag*>& current_tags)
         memcpy(temp_tag, str + old_it, it - old_it);
         temp_tag[it - old_it] = '\0';
         auto* new_tag = add_new_tag(temp_tag, 1.f);
+
         if (new_tag) {
-            current_tags.push(new_tag);
-            new_tags++;
+            bool can_add = true;
+            for (const auto& tag : current_tags) {
+                if (strcmp(tag->name(), new_tag->name()) == 0) {
+                    printf("Error duplicate tags within folder hierarchie!\n");
+                    can_add = false;
+                }
+            }
+
+            if (can_add) {
+                current_tags.push_front(new_tag);
+                new_tags++;
+            }
         }
     }
     return new_tags;
 }
 
-void tagger::iterate_folder(DIR *d, int depth, std::stack<const tag*>& current_tags)
+void tagger::iterate_folder(DIR *d, int depth, std::deque<const tag*>& current_tags)
 {
     if (!d)
         return;
@@ -157,19 +114,22 @@ void tagger::iterate_folder(DIR *d, int depth, std::stack<const tag*>& current_t
                 chdir(".."); /* Go back out of folder */
 
                 for (int i = 0; i < new_tags; i++) /* Remove previously added tags */
-                    current_tags.pop();
+                    current_tags.pop_front();
             } else {
                 printf("Error opening \"%s\"\n", entry->d_name);
             }
         } else {
-            if (config::values.tag_image_names) {
-                /* Separate file name by commas and put results into tags */
-                int new_tags = tag_string(entry->d_name, current_tags);
+            if (config::values.library->valid_file_type(entry->d_name)) {
+                int new_tags = 0;
+                if (config::values.tag_image_names) {
+                    /* Separate file name by commas and put results into tags */
+                    new_tags = tag_string(entry->d_name, current_tags);
+                }
 
-                /* TODO: image library: check file extension first, add and tag it*/
+                config::values.library->add_image(entry->d_name, current_tags);
 
                 for (int i = 0; i < new_tags; i++) /* Remove previouslytags */
-                    current_tags.pop();
+                    current_tags.pop_front();
             }
         }
     }
@@ -183,7 +143,7 @@ bool tagger::auto_tag(const char *root_folder)
         printf("Error getting current working directory\n");
         return false;
     }
-    std::stack<const tag*> temp_tags;
+    std::deque<const tag*> temp_tags;
     chdir(root_folder); /* Start in root folder and then work through folder tree */
 
     DIR *dp = opendir(root_folder);
@@ -193,20 +153,24 @@ bool tagger::auto_tag(const char *root_folder)
     }
 
     iterate_folder(dp, 0, temp_tags);
-
+    closedir(dp);
     chdir(cwd); /* Revert to original working directory */
 
     /* Now write newly indexed library */
     json_error_t error;
-    json_t* library_array = json_array();
+    json_t* library_object = json_object();
 
-    result = config::values.library->write_to_config(library_array, &error);
+    result = config::values.library->write_to_config(library_object, &error);
+    if (result && json_dump_file(library_object, config::values.library_path, 0) < 0) {
+        printf("Error while writing library to json\n");
+        result = false;
+    }
 
-    json_decref(library_array);
+    json_decref(library_object);
     return result;
 }
 
-tag* tagger::get_tag_for_str(const char *string)
+const tag* tagger::get_tag_for_str(const char *string)
 {
     if (!string)
         return nullptr;
