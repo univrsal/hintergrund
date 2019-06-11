@@ -20,14 +20,11 @@
 #include <dirent.h>
 #include <deque>
 
-#define KEY_TAGGER_TAG_ARRAY    "tags"
-#define KEY_TAGGER_MAX_DEPTH    "max_folder_depth"
-
-
 class tagger
 {
     std::vector<std::unique_ptr<tag>> m_tags;
     uint32_t m_tag_counter;
+    bool m_loaded;
     /* Iterates over contents of folder DIR* d and
      * adds all folder names to the m_tags vector
      * if use_filenames is true the file names will also
@@ -50,13 +47,21 @@ class tagger
 public:
     tagger();
 
+    bool write_to_config(json_t *config, json_error_t *error);
+    bool read_from_config(json_t *config, json_error_t *error);
+
     const tag* add_new_tag(const char* name, float weight);
 
     bool auto_tag(const char* root_folder);
 
     const tag* get_tag_for_str(const char* string);
+
+    int tag_count() const;
+    bool loaded() const;
 };
 
 namespace tagging {
-     bool tag_path(int* return_value);
+
+    bool read_tags(int* return_value);
+    bool tag_path(int* return_value);
 }

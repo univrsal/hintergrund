@@ -14,6 +14,7 @@
  *
  */
 #include "tag.hpp"
+#include "../util/util.hpp"
 #include <cstring>
 
 tag::tag()
@@ -40,10 +41,11 @@ bool tag::write_to_config(json_t *config, json_error_t *error) const
     bool result = true;
 
     auto* rule = json_pack_ex(error, 0, "{sisssf}", KEY_TAG_ID, m_tag_id, KEY_TAG_NAME,
-                              m_tag_name, KEY_TAG_WEIGHT, m_tag_name);
+                              m_tag_name, KEY_TAG_WEIGHT, m_weight);
     if (!rule || json_array_append_new(config, rule) < 0) {
         result = false;
-        printf("Error saving tag data to array\n");
+        util::log("Error saving tag data to array\n");
+        util::print_json_error(error);
     }
     return result;
 }
@@ -55,7 +57,7 @@ bool tag::read_from_config(json_t *config, json_error_t *error)
     if (json_unpack_ex(config, error, 0, "{sisssf}", KEY_TAG_ID, &m_tag_id, KEY_TAG_NAME, &temp,
                        KEY_TAG_WEIGHT, &m_weight) < 0) {
         result = false;
-        printf("Error while unpacking tag body\n");
+        util::log("Error while unpacking tag body\n");
     } else {
         /* jansson only returns a direct pointer to the tag name so we make a copy */
         m_tag_name = strdup(temp);

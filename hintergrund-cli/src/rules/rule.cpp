@@ -16,14 +16,14 @@
 #include "rule.hpp"
 #include "../tagging/tag.hpp"
 #include <sstream>
-#include <cstdio>
+#include "../util/util.hpp"
 
 rule::rule(rule_type type)
 {
     m_type = type;
 }
 
-void rule::get_tags(std::vector<tag*>& tags)
+void rule::get_tags(std::vector<const tag*>& tags)
 {
     for (auto tag : m_tags)
         tags.emplace_back(tag);
@@ -43,25 +43,25 @@ bool rule::write_to_config(json_t* json, json_error_t* error)
                              m_priority);
     if (!j_base || json_object_set_new(json, KEY_RULE_BASE, j_base) < 0) {
         result = false;
-        printf("Error while writing rule to file\n");
+        util::log("Error while writing rule to file\n");
     }
 
     auto* tag_array = json_array();
 
     if (!tag_array) {
-        printf("Error while creating tag array\n");
+        util::log("Error while creating tag array\n");
         result = false;
     } else if (result) {
         for (const auto& tag : m_tags) {
             if (!tag->write_to_config(tag_array, error)) {
-                printf("Error while writing rule to file\n");
+                util::log("Error while writing rule to file\n");
                 result = false;
                 break;
             }
         }
 
         if (result && json_object_set_new(json, KEY_RULE_TAGS, tag_array) < 0) {
-            printf("Error while settings tag array\n");
+            util::log("Error while settings tag array\n");
             result = false;
         }
     }
@@ -78,11 +78,10 @@ bool rule::read_from_config(json_t* config, json_error_t* error)
         if (json_unpack_ex(base, error, 0, "{sisi}", KEY_RULE_TYPE,
                            &m_type, KEY_RULE_PRIORITY, &m_priority) < 0) {
             result = false;
-            printf("Error while unpacking base info about rule\n");
+            util::log("Error while unpacking base info about rule\n");
         }
-        json_decref(base);
     } else {
-        printf("Error getting base values for rule\n");
+        util::log("Error getting base values for rule\n");
     }
 
     auto* tag_array = json_object_get(config, KEY_RULE_TAGS);
@@ -97,7 +96,6 @@ bool rule::read_from_config(json_t* config, json_error_t* error)
                     break;
             }
         }
-        json_decref(tag_array);
     }
     return result;
 }

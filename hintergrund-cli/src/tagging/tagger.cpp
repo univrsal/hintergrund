@@ -15,6 +15,7 @@
  */
 #include "tagger.hpp"
 #include "../util/config.hpp"
+#include "../util/util.hpp"
 #include "../images/image_library.hpp"
 #include <cstring>
 #include <unistd.h>
@@ -22,6 +23,7 @@
 tagger::tagger()
 {
     m_tag_counter = 0;
+    m_loaded = false;
 }
 
 const tag* tagger::add_new_tag(const char *name, float weight)
@@ -31,7 +33,7 @@ const tag* tagger::add_new_tag(const char *name, float weight)
     for (const auto& tag : m_tags)
     {
         if (strcmp(tag->name(), name) == 0) {
-            printf("Duplicate tag name \"%s\". Ignoring...\n", name);
+            util::log("Duplicate tag name \"%s\". Ignoring...\n", name);
             unique = false;
             /* It's not a new tag, but files under this folder should still get this tag */
             result = tag.get();
@@ -40,7 +42,7 @@ const tag* tagger::add_new_tag(const char *name, float weight)
     }
 
     if (unique) {
-        printf("Added new tag %s\n", name);
+        util::log("Added new tag %s\n", name);
         result = new tag(name, weight, m_tag_counter++);
         m_tags.emplace_back(result);
     }
@@ -73,7 +75,7 @@ int tagger::tag_string(const char *str, std::deque<const tag*>& current_tags)
             bool can_add = true;
             for (const auto& tag : current_tags) {
                 if (strcmp(tag->name(), new_tag->name()) == 0) {
-                    printf("Error duplicate tags within folder hierarchie!\n");
+                    util::log("Error duplicate tags within folder hierarchie!\n");
                     can_add = false;
                 }
             }
@@ -116,7 +118,7 @@ void tagger::iterate_folder(DIR *d, int depth, std::deque<const tag*>& current_t
                 for (int i = 0; i < new_tags; i++) /* Remove previously added tags */
                     current_tags.pop_front();
             } else {
-                printf("Error opening \"%s\"\n", entry->d_name);
+                util::log("Error opening \"%s\"\n", entry->d_name);
             }
         } else {
             if (config::values.library->valid_file_type(entry->d_name)) {
@@ -161,12 +163,21 @@ bool tagger::auto_tag(const char *root_folder)
     json_t* library_object = json_object();
 
     result = config::values.library->write_to_config(library_object, &error);
-    if (result && json_dump_file(library_object, config::values.library_path, 0) < 0) {
-        printf("Error while writing library to json\n");
-        result = false;
+    if (!result || json_dump_file(library_object, config::values.library_path, 0) < 0) {
+        util::log("Error while writing library to json\n");
+    } else {
+        /* And now write the tags */
+        json_t* tag_array = json_array();
+        result = config::values.tag_manager->write_to_config(tag_array, &error);
+        if (!result || json_dump_file(tag_array, config::values.tag_path, 0) < 0) {
+            util::log("Error while writing tag array to json\n");
+        }
+        json_decref(tag_array);
     }
 
     json_decref(library_object);
+
+
     return result;
 }
 
@@ -183,17 +194,109 @@ const tag* tagger::get_tag_for_str(const char *string)
     return nullptr;
 }
 
+bool tagger::write_to_config(json_t *config, json_error_t *error)
+{
+    bool result = true;
+    for (auto& tag : m_tags) {
+        if (!tag->write_to_config(config, error)) {
+            util::log("Error while writing tag\n");
+            result = false;
+            break;
+        }
+    }
+
+    return result;
+}
+
+bool tagger::read_from_config(json_t *config, json_error_t *error)
+{
+    bool result = true;
+    m_tags.clear();
+    m_tag_counter = 0;
+    size_t index;
+    json_t* value;
+
+    json_array_foreach(config, index, value) {
+        tag* new_tag = new tag();
+        if (!new_tag->read_from_config(value, error)) {
+            result = false;
+            util::log("Error while reading tag from tag array\n");
+            delete new_tag;
+            break;
+        } else {
+            if (new_tag->id() > m_tag_counter)
+                m_tag_counter = new_tag->id();
+            m_tags.emplace_back(new_tag);
+        }
+    }
+    m_tag_counter++; /* contains the highest id loaded, so now it contains the next available one */
+
+    m_loaded = result;
+    return result;
+}
+
+int tagger::tag_count() const
+{
+    return m_tags.size();
+}
+
+bool tagger::loaded() const
+{
+    return m_loaded;
+}
+
 namespace tagging {
+    bool read_tags(int* return_value)
+    {
+        *return_value = config::SUCCESS;
+        if (config::values.tag_manager->loaded())
+            return false;
+
+        if (strlen(config::values.tag_path) < 1)
+        {
+            *return_value = config::READ_TAGS_FAILED;
+            util::log("No tag file path provided\n");
+        } else {
+            if (util::file_exists(config::values.tag_path)) {
+                json_error_t error;
+                json_t* tag_array = json_load_file(config::values.tag_path, 0, &error);
+
+                if (!tag_array || !config::values.tag_manager->read_from_config(tag_array, &error)) {
+                    util::log("Loading tag array failed\n");
+                    util::print_json_error(&error);
+                    *return_value = config::READ_TAGS_FAILED;
+                } else {
+                    util::log("Successfully loaded %i tags\n",
+                              config::values.tag_manager->tag_count());
+                }
+            } else {
+                /* Create empty placeholder */
+                json_t* tag_array = json_array();
+
+                if (!tag_array || json_dump_file(tag_array, config::values.tag_path, 0) < 0) {
+                    util::log("Writing creating placeholder tags file\n");
+                    *return_value = config::READ_TAGS_FAILED;
+                } else {
+                    util::log("Successfully created default tags file\n");
+                }
+
+
+                json_decref(tag_array);
+            }
+        }
+        return false;
+    }
+
     bool tag_path(int* return_value) {
         *return_value = config::SUCCESS;
 
         if (strlen(config::values.library_path) < 1) {
-            printf("Error: No image library path provided\n");
+            util::log("Error: No image library path provided\n");
             *return_value = config::MISSING_ARG;
         }
 
         if (strlen(config::values.auto_tag_path) < 1) {
-            printf("Error: No auto tag path provided\n");
+            util::log("Error: No auto tag path provided\n");
             *return_value = config::MISSING_ARG;
         }
 

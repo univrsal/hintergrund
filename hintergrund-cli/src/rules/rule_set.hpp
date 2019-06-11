@@ -24,13 +24,17 @@
 class rule_set
 {
     std::vector<std::unique_ptr<rule>> m_rules;
+    bool m_loaded;
 public:
     rule_set();
 
-    void get_active_tags(std::vector<tag*>& tagv);
+    void get_active_tags(std::vector<const tag*>& tagv);
 
     bool write_rules(json_t* json, json_error_t* error);
     bool read_rules(const char* path);
+
+    int rule_count() const;
+    bool loaded() const;
 };
 
 namespace rules {

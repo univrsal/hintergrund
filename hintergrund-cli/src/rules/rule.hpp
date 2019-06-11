@@ -27,7 +27,7 @@ enum rule_type {
 class rule
 {
     uint8_t m_priority = 0;
-    std::vector<tag*> m_tags;
+    std::vector<const tag*> m_tags;
     rule_type m_type;
 public:
     rule(rule_type t);
@@ -40,7 +40,7 @@ public:
     virtual bool read_from_config(json_t* config, json_error_t* error);
 
     /* Get all tags that are allowed, if this rule applies */
-    void get_tags(std::vector<tag*>& tags);
+    void get_tags(std::vector<const tag*>& tags);
 
     /* Higher priority rules overtake lower ranked ones */
     int priority();

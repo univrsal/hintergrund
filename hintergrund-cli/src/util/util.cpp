@@ -14,6 +14,7 @@
  *
  */
 #include "util.hpp"
+#include "config.hpp"
 #include <jansson.h>
 #include <fstream>
 #include <cstring>
@@ -120,5 +121,15 @@ namespace util {
         if (!a)
             return nullptr;
         return strcat(a, b);
+    }
+
+    void log(const char* fmt, ...)
+    {
+        if (config::values.silent)
+            return;
+        va_list arguments;
+        va_start(arguments, fmt);
+        vprintf(fmt, arguments);
+        va_end(arguments);
     }
 }

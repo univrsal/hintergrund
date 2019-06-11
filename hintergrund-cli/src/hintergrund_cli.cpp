@@ -17,8 +17,8 @@
 #include "util/config.hpp"
 #include "images/image_library.hpp"
 #include "images/image.hpp"
-#include  <random>
-#include  <iterator>
+#include <random>
+#include <iterator>
 
 namespace hintergrund_cli {
     bool shuffle(int* return_value)
@@ -27,7 +27,7 @@ namespace hintergrund_cli {
         auto* images = config::values.library->images();
         if (images->size() > 0) {
             const image* img = select_randomly(images->begin(), images->end())->get();
-            printf("%s", img->path());
+            printf("%s", img->path()); /* Don't use util::log since these should be printed in silent mode */
         } else {
             printf("No images to shuffle\n");
             *return_value = config::SHUFFLE_FAILED;

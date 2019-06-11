@@ -27,10 +27,10 @@
 
 rule_set::rule_set()
 {
-
+    m_loaded = false;
 }
 
-void rule_set::get_active_tags(std::vector<tag*>& tagv)
+void rule_set::get_active_tags(std::vector<const tag*>& tagv)
 {
     /* sort by priority first (highest to lowest) */
     std::sort(m_rules.rbegin(), m_rules.rend());
@@ -53,7 +53,7 @@ bool rule_set::write_rules(json_t *json, json_error_t *error)
     bool result = true;
 
     if (!rule_array) {
-        printf("Error creating rule array\n");
+        util::log("Error creating rule array\n");
         return false;
     }
 
@@ -64,7 +64,7 @@ bool rule_set::write_rules(json_t *json, json_error_t *error)
             break;
         } else {
             if (json_array_append_new(rule_array, rule_entry) < 0) {
-                printf("Error while appending to rule aray\n");
+                util::log("Error while appending to rule aray\n");
                 result = false;
                 break;
             }
@@ -73,7 +73,7 @@ bool rule_set::write_rules(json_t *json, json_error_t *error)
 
     if (result && json_object_set_new(json, KEY_RULE_ARRAY, rule_array) < 0) {
         result = false;
-        printf("Error while setting rule array\n");
+        util::log("Error while setting rule array\n");
     }
 
     return result;
@@ -95,7 +95,6 @@ bool rule_set::read_rules(const char* path)
                 auto* base_info = json_object_get(value, KEY_RULE_BASE);
                 if (base_info) {
                     auto* type_id = json_object_get(base_info, KEY_RULE_TYPE);
-                    json_decref(base_info);
 
                     if (type_id) {
                         switch (json_integer_value(type_id)) {
@@ -118,19 +117,18 @@ bool rule_set::read_rules(const char* path)
                                 new_rule = new rule_io_stdin();
                                 break;
                         }
-                        json_decref(type_id);
                         if (new_rule && !new_rule->read_from_config(value, &error)) {
                             result = false;
                             util::print_json_error(&error);
                             break;
                         }
                     } else {
-                        printf("Error while loading rule type\n");
+                        util::log("Error while loading rule type\n");
                         result = false;
                         break;
                     }
                 } else {
-                    printf("Error while loading rule base info\n");
+                    util::log("Error while loading rule base info\n");
                     result = false;
                     break;
                 }
@@ -138,32 +136,56 @@ bool rule_set::read_rules(const char* path)
         }
         json_decref(rule_array);
     } else {
-        printf("Error loading rule array\n");
+        util::log("Error loading rule array\n");
         util::print_json_error(&error);
     }
+    m_loaded = result;
     return result;
 }
 
+int rule_set::rule_count() const
+{
+    return m_rules.size();
+}
+
+bool rule_set::loaded() const
+{
+    return m_loaded;
+}
+
 namespace rules {
-     bool read_rules(int* return_value)
-     {
-         *return_value = config::SUCCESS;
-         if (strlen(config::values.rule_path) > 0) {
-             if (!util::file_exists(config::values.rule_path)) {
-                 /* Create empty placeholder file */
-                 json_t* arr = json_array();
-                 if (json_dump_file(arr, config::values.rule_path, 0) < 0)
-                     printf("Failed to create placeholder rule file."
-                            "Make sure the permissions are set correctly\n");
-                 json_decref(arr);
-             } else if (!config::values.rules_manager->read_rules(
-                            config::values.rule_path)) {
-                 *return_value = config::READ_RULES_FAILED;
-             }
+    bool read_rules(int* return_value)
+    {
+        *return_value = config::SUCCESS;
+        if (config::values.rules_manager->loaded())
+            return false;
+
+        if (strlen(config::values.rule_path) < 1) {
+            *return_value = config::MISSING_ARG;
+            util::log("Missing rules path\n");
+            return false;
+        }
+
+        if (util::file_exists(config::values.rule_path)) {
+            if (config::values.rules_manager->read_rules(
+                        config::values.rule_path)) {
+                util::log("Successfully loaded %i rules\n",
+                          config::values.rules_manager->rule_count());
+            } else {
+                *return_value = config::READ_RULES_FAILED;
+            }
          } else {
-             *return_value = config::MISSING_ARG;
-             printf("Missing rules path\n");
+            /* Create empty placeholder file */
+            json_t* arr = json_array();
+            if (json_dump_file(arr, config::values.rule_path, 0) < 0) {
+                util::log("Failed to create placeholder rule file."
+                       "Make sure the permissions are set correctly\n");
+            } else {
+                util::log("Successfully created default rules file\n");
+            }
+            json_decref(arr);
          }
+
          return false;
      }
 }

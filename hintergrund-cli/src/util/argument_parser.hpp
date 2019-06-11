@@ -20,6 +20,8 @@ namespace arguments {
         const char* id_unix;                        /* -h*/
         const char* id_gnu;                         /* --help */
         const char* description;                    /* Shows this help screen */
+        bool force_silent;                          /* When true this option will surpress all
+                                                       printfs and only output the selected wallpaper */
         /* Handler function return true if handling this argument exits the program
          * Argument is return value pointer
          * and argument array

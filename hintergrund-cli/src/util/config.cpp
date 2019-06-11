@@ -30,9 +30,12 @@ namespace config {
         values.library = new image_library();
         values.max_folder_depth = 50;
         values.tag_image_names = false;
+        values.silent = false;
+        values.config_path = "";
         values.rule_path = "";
         values.library_path = "";
         values.auto_tag_path = "";
+        values.tag_path = "";
         values.file_types = { strdup("png"), strdup("jpg"), strdup("jpeg"),
                               strdup("bmp"), strdup("tif"), strdup("tga") };
     }
@@ -50,70 +53,86 @@ namespace config {
     bool read_config(int* return_value)
     {
         *return_value = SUCCESS;
-        if (strlen(values.config_path) > 0) {
+        json_error_t error;
 
-            if (util::file_exists(values.config_path)) {
-                json_error_t error;
-                auto* cfg_json = json_load_file(values.config_path, 0, &error);
+        auto* cfg_json = json_load_file(values.config_path, 0, &error);
+        if (cfg_json) {
+            /* Start loading */
+            const char* tmp_rule, *tmp_lib, *tmp_tag;
+            json_t* file_type_array;
+            int temp = 0;
+            if (json_unpack_ex(cfg_json, &error, 0, "{sssssssisbso}",
+                           KEY_CONFIG_RULES_PATH, &tmp_rule,
+                           KEY_CONFIG_LIBRARY_PATH, &tmp_lib,
+                           KEY_CONFIG_TAGS_PATH, &tmp_tag,
+                           KEY_CONFIG_FOLDER_DEPTH, &values.max_folder_depth,
+                           KEY_CONFIG_TAG_IMAGE_NAMES, &temp,
+                           KEY_CONFIG_FILE_TYPE_ARRAY, &file_type_array) < 0)
+            {
+                util::log("Json unpacking for config file failed\n");
+                util::print_json_error(&error);
+            } else {
+                /* Apparently passing values.tag_image_names to jansson
+                 * will make it handle the boolean as an integer (32 bit) and write
+                 * over two values instead of just one */
+                values.tag_image_names = temp ? true : false;
+                values.rule_path = strdup(tmp_rule);
+                values.library_path = strdup(tmp_lib);
+                values.tag_path = strdup(tmp_tag);
+                util::log("Successfully loaded config...\n"""
+                          " Library path:\t%s\n"
+                          " Rule path:\t\t%s\n"
+                          " Tag path:\t\t%s\n"
+                          " Accepted filetypes: ",
+                       values.library_path, values.rule_path, values.tag_path);
 
-                if (!cfg_json) {
-                    /* Loading failed, report jansson errors */
-                    *return_value = JSON_PARSING_FAILED;
-                    util::print_json_error(&error);
-                } else {
-                    /* Start loading */
-                    json_error_t error;
-                    json_t* file_type_array = nullptr;
-                    auto* json = json_load_file(values.config_path, 0, &error);
-                    const char* tmp_rule, *tmp_lib;
-                    if (json) {
-                        if (json_unpack_ex(json, &error, 0, "{sssssisiso}",
-                                       KEY_CONFIG_RULES_PATH, &tmp_rule,
-                                       KEY_CONFIG_LIBRARY_PATH, &tmp_lib,
-                                       KEY_CONFIG_FOLDER_DEPTH, &values.max_folder_depth,
-                                       KEY_CONFIG_TAG_IMAGE_NAMES, &values.tag_image_names,
-                                       KEY_CONFIG_FILE_TYPE_ARRAY, &file_type_array) < 0)
-                        {
-                            printf("Json unpacking failed\n");
-                            util::print_json_error(&error);
-                        } else {
-                            values.rule_path = strdup(tmp_rule);
-                            values.library_path = strdup(tmp_lib);
-
-                            printf("Successfully loaded config...\n Library path: %s\n Rule path: %s\n Accepted filetypes: ",
-                                   values.library_path, values.rule_path);
-
-                            size_t index;
-                            json_t* value;
-                            json_array_foreach(file_type_array, index, value) {
-                                if (value) {
-                                    printf("%s ", json_string_value(value));
-                                    values.file_types.emplace_back(strdup(json_string_value(value)));
-                                }
-                            }
-                            printf("\n");
-                        }
-                        json_decref(json);
-                    } else {
-                        printf("Json parsing failed\n");
-                        util::print_json_error(&error);
+                size_t index;
+                json_t* value;
+                json_array_foreach(file_type_array, index, value) {
+                    if (value) {
+                        util::log("%s ", json_string_value(value));
+                        values.file_types.emplace_back(strdup(json_string_value(value)));
                     }
                 }
+                util::log("\n");
+
+                /* Now try and load library, tags & rules */
+                tagging::read_tags(return_value);
+                if (*return_value != SUCCESS)
+                    util::log("Loading tags failed\n");
+
+                rules::read_rules(return_value);
+                if (*return_value != SUCCESS)
+                    util::log("Loading rules failed\n");
+
+                library::read_library(return_value);
+                if (*return_value != SUCCESS)
+                    util::log("Loading library failed\n");
+            }
+            json_decref(cfg_json);
+        } else {
+            /* File existed, but loading failed*/
+            if (util::file_exists(config::values.config_path)) {
+                *return_value = JSON_PARSING_FAILED;
+                util::log("Json parsing failed\n");
+                util::print_json_error(&error);
             } else {
-                /* Create new config if library and rule path are provided */
-                json_error_t error;
-                if (strlen(values.rule_path) > 0 && strlen(values.library_path) > 0
+                /* File doesnt exist -> create placeholder */
+                if (strlen(values.rule_path) > 0
+                        && strlen(values.library_path) > 0
+                        && strlen(values.tag_path) > 0
                         && util::try_create_file(values.config_path)
                         && create_config(values.config_path, &error)) {
-                    printf("Successfully created default config file\n");
+                    util::log("Successfully created default config file\n");
                 } else {
-                    printf("Can't create new config file without library and rule path\n"
+                    util::log("Can't create new config file without library, tags and rule path\n"
                            "Make sure they're provided as arguments!\n"
                            "Also possibly missing rights to write to file\n");
                     *return_value = MISSING_ARG;
                 }
             }
         }
+
         return false;
     }
 
@@ -127,33 +146,34 @@ namespace config {
             for (auto& file_type : values.file_types) {
                 if (file_type && strlen(file_type) > 0) {
                     if (json_array_append_new(file_type_array, json_string(file_type)) < 0) {
-                        printf("Error appending to file type array\n");
+                        util::log("Error appending to file type array\n");
                         result = false;
                         break;
                     }
                 }
             }
         } else {
-            printf("Error writing file types\n");
+            util::log("Error writing file types\n");
             result = false;
         }
 
-        auto* json = json_pack_ex(error, 0, "{sssssisiso}",
+        auto* json = json_pack_ex(error, 0, "{sssssssisbso}",
                                   KEY_CONFIG_RULES_PATH, values.rule_path,
                                   KEY_CONFIG_LIBRARY_PATH, values.library_path,
+                                  KEY_CONFIG_TAGS_PATH, values.tag_path,
                                   KEY_CONFIG_FOLDER_DEPTH, values.max_folder_depth,
                                   KEY_CONFIG_TAG_IMAGE_NAMES, values.tag_image_names,
                                   KEY_CONFIG_FILE_TYPE_ARRAY, file_type_array);
 
         if (!json)
         {
-            printf("Error while creating new config values\n");
+            util::log("Error while creating new config values\n");
             util::print_json_error(error);
             result = false;
         }
 
         if (json_dump_file(json, path, JSON_INDENT(4)) < 0) {
-            printf("Error while writing json file\n");
+            util::log("Error while writing json file\n");
             result = false;
         }
 

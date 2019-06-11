@@ -28,9 +28,10 @@ typedef std::vector<std::unique_ptr<image>> image_vector;
 class image_library
 {
     image_vector m_images;
-    uint32_t m_sequential_current = 0;
+    uint32_t m_sequential_current;
+    bool m_loaded;
 public:
-    image_library() = default;
+    image_library();
 
     bool write_to_config(json_t* config, json_error_t* error);
     bool read_from_config(json_t *config, json_error_t *error);
@@ -39,7 +40,9 @@ public:
     bool add_image(const char* file_name, const char* path, std::deque<const tag*>& tags);
     bool add_image(const char* file_name, std::deque<const tag*>& tags);
 
-    const image_vector* images();
+    const image_vector* images() const;
+    int image_count() const;
+    bool loaded() const;
 };
 
 /* HEEEEEY, this is library */

@@ -14,6 +14,7 @@
  *
  */
 #include "rule_io.hpp"
+#include "../util/util.hpp"
 #include <cstring>
 
 rule_io::rule_io(rule_type type)
@@ -52,7 +53,7 @@ bool rule_io::write_to_config(json_t *config, json_error_t *error)
                                            m_io_type, KEY_RULE_COMP_TYPE, m_comp_type,
                                            KEY_RULE_INT_TARGET, m_int_target);
             if (!base_vals || json_object_set_new(config, KEY_RULE_IO_BASE, base_vals) < 0) {
-                printf("Error while packing base values for io_rule\n");
+                util::log("Error while packing base values for io_rule\n");
                 result = false;
             }
         } else {
@@ -60,7 +61,7 @@ bool rule_io::write_to_config(json_t *config, json_error_t *error)
                                            m_io_type, KEY_RULE_COMP_TYPE, m_comp_type,
                                            KEY_RULE_STRING_TARGET, m_str_target);
             if (!base_vals || json_object_set_new(config, KEY_RULE_IO_BASE, base_vals) < 0) {
-                printf("Error while packing base values for io_rule\n");
+                util::log("Error while packing base values for io_rule\n");
                 result = false;
             }
         }
@@ -94,11 +95,11 @@ bool rule_io::read_from_config(json_t *config, json_error_t *error)
 
             if (unpack_result < 0) {
                 result = false;
-                printf("Error while unpacking rule_io base values\n");
+                util::log("Error while unpacking rule_io base values\n");
             }
         } else {
             result = false;
-            printf("Error while getting base rule_io data\n");
+            util::log("Error while getting base rule_io data\n");
         }
     }
 

@@ -14,6 +14,7 @@
  *
  */
 #include "rule_weekday.hpp"
+#include "../util/util.hpp"
 
 rule_weekday::rule_weekday()
     : rule_date(RULE_WEEKDAY)
@@ -59,7 +60,7 @@ bool rule_weekday::write_to_config(json_t* config, json_error_t* error)
                                   KEY_RULE_WEEKDAY_END, m_end);
         if (!body || json_object_set_new(config, KEY_RULE_WEEKDAY_BASE, body) < 0) {
             result = false;
-            printf("Error while setting weekday base\n");
+            util::log("Error while setting weekday base\n");
         }
     }
 
@@ -75,7 +76,7 @@ bool rule_weekday::read_from_config(json_t *config, json_error_t *error)
                            &m_is_span, KEY_RULE_WEEKDAY_START, &m_start,
                            KEY_RULE_WEEKDAY_END, &m_end) < 0) {
             result = false;
-            printf("Error while unpacking weekday base\n");
+            util::log("Error while unpacking weekday base\n");
         }
     }
 

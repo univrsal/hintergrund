@@ -14,6 +14,7 @@
  *
  */
 #pragma once
+#include <cstdarg>
 
 #define VERSION "1.0"
 #define UNUSED_PARAM(a)    ((void) a)
@@ -29,4 +30,6 @@ namespace util {
 
     char* concatenate(const char* a, const char* b);
     char* append(char* a, const char* b);
+
+    extern void log(const char* fmt, ...);
 }

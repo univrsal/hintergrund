@@ -14,6 +14,7 @@
  *
  */
 #include "rule_date_span.hpp"
+#include "../util/util.hpp"
 
 rule_date_span::rule_date_span()
     : rule_date(RULE_DATE)
@@ -61,16 +62,16 @@ bool rule_date_span::write_to_config(json_t* config, json_error_t* error)
         auto* is_span = json_pack_ex(error, 0, "b", m_is_span);
 
         if (!is_span || json_object_set_new(config, KEY_RULE_DATE_IS_SPAN, is_span)) {
-            printf("Error while setting date is_span boolean\n");
+            util::log("Error while setting date is_span boolean\n");
             result = false;
         } else if (!start || json_object_set_new(config, KEY_RULE_DATE_BEGIN, start) < 0) {
-            printf("Error while setting date span start\n");
+            util::log("Error while setting date span start\n");
             result = false;
         } else if (m_is_span) {
             auto end = json_pack_ex(error, 0, "{sisi}", KEY_RULE_DATE_MONTH, m_end.month, KEY_RULE_DATE_DAY, m_end.day);
 
             if (!end || json_object_set_new(config, KEY_RULE_DATE_BEGIN, end) < 0) {
-                printf("Error while setting date span end\n");
+                util::log("Error while setting date span end\n");
                 result = false;
             }
         }
@@ -84,22 +85,26 @@ bool rule_date_span::read_from_config(json_t* config, json_error_t* error)
 
     if (result) {
         auto* start = json_object_get(config, KEY_RULE_DATE_BEGIN);
-        auto* end = json_object_get(config, KEY_RULE_DATE_END);
+       auto* is_span = json_object_get(config, KEY_RULE_DATE_IS_SPAN);
+
+        if (!is_span || json_unpack_ex(is_span, error, 0, "b", &m_is_span) < 0) {
+            util::log("Error while decoding date\n");
+            result = false;
+        }
 
         if (!start || json_unpack_ex(start, error, 0, "{sisi}", KEY_RULE_DATE_MONTH,
                                      &m_start.month, KEY_RULE_DATE_DAY, &m_start.day) < 0) {
-            printf("Error while decoding date\n");
+            util::log("Error while decoding date\n");
             result = false;
-        } else {
-            json_decref(start);
         }
 
-        if (!end || json_unpack_ex(end, error, 0, "{sisi}", KEY_RULE_DATE_MONTH,
-                                   &m_end.month, KEY_RULE_DATE_DAY, &m_end.month) < 0){
-            printf("Error while decoding date\n");
-            result = false;
-        } else {
-            json_decref(end);
+        if (m_is_span) {
+            auto* end = json_object_get(config, KEY_RULE_DATE_END);
+            if (!end || json_unpack_ex(end, error, 0, "{sisi}", KEY_RULE_DATE_MONTH,
+                                       &m_end.month, KEY_RULE_DATE_DAY, &m_end.month) < 0){
+                util::log("Error while decoding date\n");
+                result = false;
+            }
         }
     }
 

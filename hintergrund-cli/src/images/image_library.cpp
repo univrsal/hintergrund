@@ -19,6 +19,12 @@
 #include <cstring>
 #include <unistd.h>
 
+image_library::image_library()
+{
+    m_sequential_current = 0;
+    m_loaded = false;
+}
+
 bool image_library::write_to_config(json_t *config, json_error_t *error)
 {
     bool result = true;
@@ -26,7 +32,7 @@ bool image_library::write_to_config(json_t *config, json_error_t *error)
 
     for (const auto& image : m_images) {
         if (!image->write_to_config(img_array, error)) {
-            printf("Error while writing image to library array\n");
+            util::log("Error while writing image to library array\n");
             util::print_json_error(error);
             result = false;
             break;
@@ -36,7 +42,7 @@ bool image_library::write_to_config(json_t *config, json_error_t *error)
     if (result) {
         if (json_object_set_new(config, KEY_LIBRARY_SEQUENTIAL_INDEX, json_integer(m_sequential_current)) < 0 ||
                 json_object_set_new(config, KEY_LIBRARY_IMAGE_ARRAY, img_array) < 0) {
-            printf("Image library json value setting failed\n");
+             util::log("Image library json value setting failed\n");
             result = false;
         }
     }
@@ -52,8 +58,8 @@ bool image_library::read_from_config(json_t *config, json_error_t *error)
 
     if (json_unpack_ex(config, error, 0, "{siso}",
                        KEY_LIBRARY_SEQUENTIAL_INDEX, &m_sequential_current,
-                       KEY_LIBRARY_IMAGE_ARRAY, array) < 0) {
-        printf("Unpacking library object failed\n");
+                       KEY_LIBRARY_IMAGE_ARRAY, &array) < 0) {
+        util::log("Unpacking library object failed\n");
         util::print_json_error(error);
         result = false;
     } else  {
@@ -61,7 +67,7 @@ bool image_library::read_from_config(json_t *config, json_error_t *error)
             if (value) {
                 auto* new_image = new image();
                 if (!new_image->read_from_config(value, error)) {
-                    printf("Error while reading image from library\n");
+                    util::log("Error while reading image from library\n");
                     util::print_json_error(error);
                     delete new_image;
                     result = false;
@@ -72,7 +78,8 @@ bool image_library::read_from_config(json_t *config, json_error_t *error)
             }
         }
     }
-    json_decref(array);
+
+    m_loaded = result;
     return result;
 }
 
@@ -100,7 +107,7 @@ bool image_library::add_image(const char *file_name, std::deque<const tag *> &ta
     char cwd[2049]; /* use current working directory as path */
 
     if (!getcwd(cwd, 2049)) {
-        printf("Couldn't get current working directory\n");
+        util::log("Couldn't get current working directory\n");
         result = false;
     } else {
         result = add_image(file_name, cwd, tags);
@@ -127,36 +134,63 @@ bool image_library::add_image(const char *file_name, const char *path, std::dequ
     return true;
 }
 
-const image_vector* image_library::images()
+const image_vector* image_library::images() const
 {
     return &m_images;
+}
+
+int image_library::image_count() const
+{
+    return m_images.size();
+}
+
+bool image_library::loaded() const
+{
+    return m_loaded;
 }
 
 namespace library {
     bool read_library(int* return_value) {
         *return_value = config::SUCCESS;
+        if (config::values.library->loaded())
+            return false; /* nothing to do */
 
-        if (strlen(config::values.library_path) > 0) {
-            json_error_t error;
-            json_t* library_obj = nullptr;
-            if (!util::file_exists(config::values.library_path)) {
-                /* Create empty placeholder file */
-                library_obj = json_object();
-                if (!config::values.library->write_to_config(library_obj, &error)) {
-                    printf("Creating empty library place holder failed\n");
+        if (strlen(config::values.library_path) < 1) {
+            util::log("No image library path provided\n");
+            *return_value = config::MISSING_ARG;
+            return false;
+        }
+
+        json_error_t error;
+        json_t* library_obj = nullptr;
+        if (util::file_exists(config::values.library_path)) {
+            library_obj = json_load_file(config::values.library_path, 0, &error);
+
+            if (!library_obj || !config::values.library->
+                    read_from_config(library_obj, &error)) {
+                 *return_value = config::READ_LIBRARY_FAILED;
+            } else {
+                util::log("Successfully loaded %i images\n",
+                          config::values.library->image_count());
+            }
+        } else {
+            /* Create empty placeholder file */
+            library_obj = json_object();
+            if (config::values.library->write_to_config(library_obj, &error)) {
+                if (json_dump_file(library_obj, config::values.library_path, 0) < 0) {
+                    util::log("Writing library placeholder json failed\n");
                     *return_value = config::WRITE_EMPTY_LIBRARY_FAILED;
+                } else {
+                    util::log("Successfully created default library\n");
                 }
             } else {
-                library_obj = json_load_file(config::values.library_path, 0, &error);
-
-                if (!library_obj || config::values.library->
-                        read_from_config(library_obj, &error)) {
-                     *return_value = config::READ_RULES_FAILED;
-                }
+                util::log("Creating empty library json failed\n");
+                *return_value = config::WRITE_EMPTY_LIBRARY_FAILED;
             }
-            if (library_obj)
-                json_decref(library_obj);
         }
+
+        if (library_obj)
+            json_decref(library_obj);
         return false;
     }
 }

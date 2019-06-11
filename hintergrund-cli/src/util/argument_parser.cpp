@@ -25,28 +25,31 @@
 
 namespace arguments {
     argument_t args[] = {
-        { "-h", "--help",           "Shows this help screen",
+        { "-h", "--help",           "Shows this help screen", false,
                                     print_help, nullptr},
-        { "-v", "--version",        "Prints the current version",
+        { "-v", "--version",        "Prints the current version", false,
                                     print_version, nullptr },
-        { "-d", "--duplicates",     "Check for duplicate image files when auto tagging",
+        { "-d", "--duplicates",     "Check for duplicate image files when auto tagging", false,
                                     config::check_duplicates, nullptr },
-        { "-r", "--random",         "Randomly pick an image from the library",
+        { "-b", "--random",         "Randomly pick an image from the library", true,
                                     hintergrund_cli::shuffle, nullptr },
-        { "-s", "--sequential",     "Pick the next image in the library",
+        { "-s", "--sequential",     "Pick the next image in the library", true,
                                     hintergrund_cli::sequential, nullptr },
-        { "-c", "--controlled",     "Pick a random image with currently applicable tags",
+        { "-c", "--controlled",     "Pick a random image with currently applicable tags", true,
                                     hintergrund_cli::controlled_shuffle, nullptr },
         { "-p", "--config [path]",  "Load or create config from path. If a new config\n"
-                                    "\t\t\t\tis created also provide -r and -l\n"
-                                    "\t\t\t\tThis can be ommited if an existing config is in ~/.config/hintergrund.json",
+                                    "\t\t\t\tis created also provide -r, -t and -l\n"
+                                    "\t\t\t\tThis can be ommited if an existing config is\n"
+                                    "\t\t\t\tin ~/.config/hintergrund.json", false,
                                     config::read_config, &config::values.config_path },
-        { "-r", "--rules [path]",   "Load or create a rule file\n",
+        { "-r", "--rules [path]",   "Load or create a rule file", false,
                                     rules::read_rules, &config::values.rule_path },
-        { "-l", "--library [path]", "Load or create image library from path",
+        { "-l", "--library [path]", "Load or create image library from path", false,
                                     library::read_library, &config::values.library_path },
+        { "-t", "--tags [path]",    "Load or create tags file from path", false,
+                                    tagging::read_tags, &config::values.tag_path },
         { "-a", "--auto [path]",    "Auto tag sub folders and index images in path\n"
-                                    "\t\t\t\tRequires -l or an exisiting config file",
+                                    "\t\t\t\tRequires -l or an exisiting config file", false,
                                     tagging::tag_path, &config::values.auto_tag_path }
     };
 
@@ -54,12 +57,12 @@ namespace arguments {
     {
         UNUSED_PARAM(return_val);
         print_version(nullptr);
-        printf("License GPLv2+: GNU GPL version 2 or later <http://www.gnu.org/licenses/>.\n"
+        util::log("License GPLv2+: GNU GPL version 2 or later <http://www.gnu.org/licenses/>.\n"
         "This is free software: you are free to change and redistribute it.\n"
         "There is NO WARRANTY, to the extent permitted by law.\n\n");
 
         for (const auto& arg : args)
-            printf(" %4s  %20s \t%s\n", arg.id_unix, arg.id_gnu, arg.description);
+            util::log(" %4s  %20s \t%s\n", arg.id_unix, arg.id_gnu, arg.description);
 
         return true;
     }
@@ -67,7 +70,7 @@ namespace arguments {
     bool print_version(int* return_val)
     {
         UNUSED_PARAM(return_val);
-        printf("hintergrund-cli v%s"
+        util::log("hintergrund-cli v%s"
 #ifdef DEBUG
                 "-debug"
 #endif
@@ -79,19 +82,33 @@ namespace arguments {
     {
         int result = 0;
         if (argc > 1) {
-            /* First iteration extracts paths*/
+            /* First iteration extracts paths / silent option */
             for (int i = 1; i < argc; i++) { /* argument 0 is the program path */
+                bool valid_option = false;
                 for (auto& arg : args) {
-                    if (arg.path_destination && (strcmp(arg.id_gnu, argv[i]) == 0
-                            || strcmp(arg.id_unix, argv[i]) == 0)) {
-                        if (i + 1 < argc) {
-                            *arg.path_destination = strdup(argv[i + 1]);
-                            i++; /* Skip next argument since it's the path for the current one */
+                    if (strcmp(arg.id_gnu, argv[i]) == 0 || strcmp(arg.id_unix, argv[i]) == 0) {
+                        if (arg.force_silent)
+                            config::values.silent = true;
+                        valid_option = true;
+                        if (arg.path_destination) {
+                            if (i + 1 < argc) {
+                                *arg.path_destination = strdup(argv[i + 1]);
+                                i++; /* Skip next argument since it's the path for the current one */
+                            }
                         }
                         break;
                     }
                 }
+
+                if (!valid_option) { /* Error reporting overrules silent option */
+                    printf("Invalid option \"%s\"\n", argv[i]);
+                    goto end;
+                }
             }
+
+            /* If no config path was provided assume default */
+            if (strlen(config::values.config_path) < 1)
+                config::values.config_path = strdup("~/.config/hintergrund.json");
 
             /* Iterates over all provided arguments
              * and executes the matching methods if
