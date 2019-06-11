@@ -53,7 +53,7 @@ bool rule_set::write_rules(json_t *json, json_error_t *error)
     bool result = true;
 
     if (!rule_array) {
-        util::log("Error creating rule array\n");
+        debug("Error creating rule array\n");
         return false;
     }
 
@@ -64,7 +64,7 @@ bool rule_set::write_rules(json_t *json, json_error_t *error)
             break;
         } else {
             if (json_array_append_new(rule_array, rule_entry) < 0) {
-                util::log("Error while appending to rule aray\n");
+                debug("Error while appending to rule aray\n");
                 result = false;
                 break;
             }
@@ -73,7 +73,7 @@ bool rule_set::write_rules(json_t *json, json_error_t *error)
 
     if (result && json_object_set_new(json, KEY_RULE_ARRAY, rule_array) < 0) {
         result = false;
-        util::log("Error while setting rule array\n");
+        debug("Error while setting rule array\n");
     }
 
     return result;
@@ -123,12 +123,12 @@ bool rule_set::read_rules(const char* path)
                             break;
                         }
                     } else {
-                        util::log("Error while loading rule type\n");
+                        debug("Error while loading rule type\n");
                         result = false;
                         break;
                     }
                 } else {
-                    util::log("Error while loading rule base info\n");
+                    debug("Error while loading rule base info\n");
                     result = false;
                     break;
                 }
@@ -136,7 +136,7 @@ bool rule_set::read_rules(const char* path)
         }
         json_decref(rule_array);
     } else {
-        util::log("Error loading rule array\n");
+        debug("Error loading rule array\n");
         util::print_json_error(&error);
     }
     m_loaded = result;
@@ -162,14 +162,14 @@ namespace rules {
 
         if (strlen(config::values.rule_path) < 1) {
             *return_value = config::MISSING_ARG;
-            util::log("Missing rules path\n");
+            debug("Missing rules path\n");
             return false;
         }
 
         if (util::file_exists(config::values.rule_path)) {
             if (config::values.rules_manager->read_rules(
                         config::values.rule_path)) {
-                util::log("Successfully loaded %i rules\n",
+                debug("Successfully loaded %i rules\n",
                           config::values.rules_manager->rule_count());
             } else {
                 *return_value = config::READ_RULES_FAILED;
@@ -178,10 +178,10 @@ namespace rules {
             /* Create empty placeholder file */
             json_t* arr = json_array();
             if (json_dump_file(arr, config::values.rule_path, 0) < 0) {
-                util::log("Failed to create placeholder rule file."
+                debug("Failed to create placeholder rule file."
                        "Make sure the permissions are set correctly\n");
             } else {
-                util::log("Successfully created default rules file\n");
+                debug("Successfully created default rules file\n");
             }
             json_decref(arr);
          }

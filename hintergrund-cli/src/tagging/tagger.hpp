@@ -23,8 +23,10 @@
 class tagger
 {
     std::vector<std::unique_ptr<tag>> m_tags;
-    uint32_t m_tag_counter;
+    uint32_t m_tag_counter; /* Used to assign tag ids */
     bool m_loaded;
+    int m_img_counter, m_new_tag_counter; /* Count new images and tags in auto_tag */
+
     /* Iterates over contents of folder DIR* d and
      * adds all folder names to the m_tags vector
      * if use_filenames is true the file names will also

@@ -44,7 +44,7 @@ bool tag::write_to_config(json_t *config, json_error_t *error) const
                               m_tag_name, KEY_TAG_WEIGHT, m_weight);
     if (!rule || json_array_append_new(config, rule) < 0) {
         result = false;
-        util::log("Error saving tag data to array\n");
+        debug("Error saving tag data to array\n");
         util::print_json_error(error);
     }
     return result;
@@ -54,13 +54,15 @@ bool tag::read_from_config(json_t *config, json_error_t *error)
 {
     bool result = true;
     const char* temp = nullptr;
+    static double temp_weight;
     if (json_unpack_ex(config, error, 0, "{sisssf}", KEY_TAG_ID, &m_tag_id, KEY_TAG_NAME, &temp,
-                       KEY_TAG_WEIGHT, &m_weight) < 0) {
+                       KEY_TAG_WEIGHT, &temp_weight) < 0) {
         result = false;
-        util::log("Error while unpacking tag body\n");
+        debug("Error while unpacking tag body\n");
     } else {
         /* jansson only returns a direct pointer to the tag name so we make a copy */
         m_tag_name = strdup(temp);
+        m_weight = static_cast<float>(temp_weight); /* Float has enough precsion*/
     }
 
     return result;

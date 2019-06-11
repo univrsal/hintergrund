@@ -43,25 +43,25 @@ bool rule::write_to_config(json_t* json, json_error_t* error)
                              m_priority);
     if (!j_base || json_object_set_new(json, KEY_RULE_BASE, j_base) < 0) {
         result = false;
-        util::log("Error while writing rule to file\n");
+        debug("Error while writing rule to file\n");
     }
 
     auto* tag_array = json_array();
 
     if (!tag_array) {
-        util::log("Error while creating tag array\n");
+        debug("Error while creating tag array\n");
         result = false;
     } else if (result) {
         for (const auto& tag : m_tags) {
             if (!tag->write_to_config(tag_array, error)) {
-                util::log("Error while writing rule to file\n");
+                debug("Error while writing rule to file\n");
                 result = false;
                 break;
             }
         }
 
         if (result && json_object_set_new(json, KEY_RULE_TAGS, tag_array) < 0) {
-            util::log("Error while settings tag array\n");
+            debug("Error while settings tag array\n");
             result = false;
         }
     }
@@ -78,10 +78,10 @@ bool rule::read_from_config(json_t* config, json_error_t* error)
         if (json_unpack_ex(base, error, 0, "{sisi}", KEY_RULE_TYPE,
                            &m_type, KEY_RULE_PRIORITY, &m_priority) < 0) {
             result = false;
-            util::log("Error while unpacking base info about rule\n");
+            debug("Error while unpacking base info about rule\n");
         }
     } else {
-        util::log("Error getting base values for rule\n");
+        debug("Error getting base values for rule\n");
     }
 
     auto* tag_array = json_object_get(config, KEY_RULE_TAGS);

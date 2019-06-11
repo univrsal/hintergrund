@@ -28,7 +28,7 @@ typedef std::vector<std::unique_ptr<image>> image_vector;
 class image_library
 {
     image_vector m_images;
-    uint32_t m_sequential_current;
+    json_int_t m_sequential_current;
     bool m_loaded;
 public:
     image_library();

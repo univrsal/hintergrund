@@ -31,6 +31,7 @@ namespace config {
         values.max_folder_depth = 50;
         values.tag_image_names = false;
         values.silent = false;
+        values.check_duplicates = false;
         values.config_path = "";
         values.rule_path = "";
         values.library_path = "";
@@ -69,7 +70,7 @@ namespace config {
                            KEY_CONFIG_TAG_IMAGE_NAMES, &temp,
                            KEY_CONFIG_FILE_TYPE_ARRAY, &file_type_array) < 0)
             {
-                util::log("Json unpacking for config file failed\n");
+                debug("Json unpacking for config file failed\n");
                 util::print_json_error(&error);
             } else {
                 /* Apparently passing values.tag_image_names to jansson
@@ -79,7 +80,7 @@ namespace config {
                 values.rule_path = strdup(tmp_rule);
                 values.library_path = strdup(tmp_lib);
                 values.tag_path = strdup(tmp_tag);
-                util::log("Successfully loaded config...\n"""
+                debug("Successfully loaded config...\n"""
                           " Library path:\t%s\n"
                           " Rule path:\t\t%s\n"
                           " Tag path:\t\t%s\n"
@@ -99,22 +100,22 @@ namespace config {
                 /* Now try and load library, tags & rules */
                 tagging::read_tags(return_value);
                 if (*return_value != SUCCESS)
-                    util::log("Loading tags failed\n");
+                    debug("Loading tags failed\n");
 
                 rules::read_rules(return_value);
                 if (*return_value != SUCCESS)
-                    util::log("Loading rules failed\n");
+                    debug("Loading rules failed\n");
 
                 library::read_library(return_value);
                 if (*return_value != SUCCESS)
-                    util::log("Loading library failed\n");
+                    debug("Loading library failed\n");
             }
             json_decref(cfg_json);
         } else {
             /* File existed, but loading failed*/
             if (util::file_exists(config::values.config_path)) {
                 *return_value = JSON_PARSING_FAILED;
-                util::log("Json parsing failed\n");
+                debug("Json parsing failed\n");
                 util::print_json_error(&error);
             } else {
                 /* File doesnt exist -> create placeholder */
@@ -123,9 +124,9 @@ namespace config {
                         && strlen(values.tag_path) > 0
                         && util::try_create_file(values.config_path)
                         && create_config(values.config_path, &error)) {
-                    util::log("Successfully created default config file\n");
+                    debug("Successfully created default config file\n");
                 } else {
-                    util::log("Can't create new config file without library, tags and rule path\n"
+                    debug("Can't create new config file without library, tags and rule path\n"
                            "Make sure they're provided as arguments!\n"
                            "Also possibly missing rights to write to file\n");
                     *return_value = MISSING_ARG;
@@ -146,14 +147,14 @@ namespace config {
             for (auto& file_type : values.file_types) {
                 if (file_type && strlen(file_type) > 0) {
                     if (json_array_append_new(file_type_array, json_string(file_type)) < 0) {
-                        util::log("Error appending to file type array\n");
+                        debug("Error appending to file type array\n");
                         result = false;
                         break;
                     }
                 }
             }
         } else {
-            util::log("Error writing file types\n");
+            debug("Error writing file types\n");
             result = false;
         }
 
@@ -167,13 +168,13 @@ namespace config {
 
         if (!json)
         {
-            util::log("Error while creating new config values\n");
+            debug("Error while creating new config values\n");
             util::print_json_error(error);
             result = false;
         }
 
         if (json_dump_file(json, path, JSON_INDENT(4)) < 0) {
-            util::log("Error while writing json file\n");
+            debug("Error while writing json file\n");
             result = false;
         }
 

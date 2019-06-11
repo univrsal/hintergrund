@@ -25,7 +25,7 @@ class tag
 {
     const char* m_tag_name;
     float m_weight;
-    uint32_t m_tag_id;
+    json_int_t m_tag_id;
 public:
     tag();
     tag(const char* name, float weight, uint32_t tag_id);

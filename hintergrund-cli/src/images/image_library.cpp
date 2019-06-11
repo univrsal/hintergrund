@@ -32,7 +32,7 @@ bool image_library::write_to_config(json_t *config, json_error_t *error)
 
     for (const auto& image : m_images) {
         if (!image->write_to_config(img_array, error)) {
-            util::log("Error while writing image to library array\n");
+            debug("Error while writing image to library array\n");
             util::print_json_error(error);
             result = false;
             break;
@@ -42,7 +42,7 @@ bool image_library::write_to_config(json_t *config, json_error_t *error)
     if (result) {
         if (json_object_set_new(config, KEY_LIBRARY_SEQUENTIAL_INDEX, json_integer(m_sequential_current)) < 0 ||
                 json_object_set_new(config, KEY_LIBRARY_IMAGE_ARRAY, img_array) < 0) {
-             util::log("Image library json value setting failed\n");
+             debug("Image library json value setting failed\n");
             result = false;
         }
     }
@@ -59,7 +59,7 @@ bool image_library::read_from_config(json_t *config, json_error_t *error)
     if (json_unpack_ex(config, error, 0, "{siso}",
                        KEY_LIBRARY_SEQUENTIAL_INDEX, &m_sequential_current,
                        KEY_LIBRARY_IMAGE_ARRAY, &array) < 0) {
-        util::log("Unpacking library object failed\n");
+        debug("Unpacking library object failed\n");
         util::print_json_error(error);
         result = false;
     } else  {
@@ -67,7 +67,7 @@ bool image_library::read_from_config(json_t *config, json_error_t *error)
             if (value) {
                 auto* new_image = new image();
                 if (!new_image->read_from_config(value, error)) {
-                    util::log("Error while reading image from library\n");
+                    debug("Error while reading image from library\n");
                     util::print_json_error(error);
                     delete new_image;
                     result = false;
@@ -107,7 +107,7 @@ bool image_library::add_image(const char *file_name, std::deque<const tag *> &ta
     char cwd[2049]; /* use current working directory as path */
 
     if (!getcwd(cwd, 2049)) {
-        util::log("Couldn't get current working directory\n");
+        debug("Couldn't get current working directory\n");
         result = false;
     } else {
         result = add_image(file_name, cwd, tags);
@@ -127,11 +127,23 @@ bool image_library::add_image(const char *file_name, const char *path, std::dequ
     else
         full_path = strdup(path);
     full_path = util::append(full_path, file_name);
+    bool result = true;
 
-    m_images.emplace_back(new image(full_path, tags));
+    if (config::values.check_duplicates) {
+        for (const auto& img : m_images) {
+            if (strcmp(full_path, img->path()) == 0) {
+                debug("Duplicate image: %s\n", full_path);
+                result = false;
+                break;
+            }
+        }
+    }
+
+    if (result)
+        m_images.emplace_back(new image(full_path, tags));
+
     free((void*) full_path);
-
-    return true;
+    return result;
 }
 
 const image_vector* image_library::images() const
@@ -156,7 +168,7 @@ namespace library {
             return false; /* nothing to do */
 
         if (strlen(config::values.library_path) < 1) {
-            util::log("No image library path provided\n");
+            debug("No image library path provided\n");
             *return_value = config::MISSING_ARG;
             return false;
         }
@@ -170,7 +182,7 @@ namespace library {
                     read_from_config(library_obj, &error)) {
                  *return_value = config::READ_LIBRARY_FAILED;
             } else {
-                util::log("Successfully loaded %i images\n",
+                debug("Successfully loaded %i images\n",
                           config::values.library->image_count());
             }
         } else {
@@ -178,13 +190,13 @@ namespace library {
             library_obj = json_object();
             if (config::values.library->write_to_config(library_obj, &error)) {
                 if (json_dump_file(library_obj, config::values.library_path, 0) < 0) {
-                    util::log("Writing library placeholder json failed\n");
+                    debug("Writing library placeholder json failed\n");
                     *return_value = config::WRITE_EMPTY_LIBRARY_FAILED;
                 } else {
-                    util::log("Successfully created default library\n");
+                    debug("Successfully created default library\n");
                 }
             } else {
-                util::log("Creating empty library json failed\n");
+                debug("Creating empty library json failed\n");
                 *return_value = config::WRITE_EMPTY_LIBRARY_FAILED;
             }
         }

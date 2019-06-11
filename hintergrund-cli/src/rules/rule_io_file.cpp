@@ -48,7 +48,7 @@ bool rule_io_file::write_to_config(json_t *config, json_error_t *error)
     if (result) {
         auto* file_path = json_pack_ex(error, 0, "s", m_file_path);
         if (!file_path || json_object_set_new(config, KEY_RULE_FILE_PATH, file_path) < 0) {
-            util::log("Error while packing io_rule file path\n");
+            debug("Error while packing io_rule file path\n");
             result = false;
         }
     }
@@ -66,7 +66,7 @@ bool rule_io_file::read_from_config(json_t *config, json_error_t *error)
         if (file_path) {
             m_file_path = strdup(json_string_value(file_path));
         } else {
-            util::log("Error while getting io_rule file path\n");
+            debug("Error while getting io_rule file path\n");
             result = false;
         }
     }

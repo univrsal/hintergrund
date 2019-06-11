@@ -47,7 +47,7 @@ bool image::read_from_config(json_t *config, json_error_t *error)
     if (json_unpack_ex(config, error, 0, "{ssso}",
                        KEY_IMAGE_PATH, &tmp_path,
                        KEY_IMAGE_TAGS, &tag_array) < 0) {
-        util::log("Error unpacking tag body\n");
+        debug("Error unpacking tag body\n");
     } else {
         m_path = strdup(tmp_path);
         size_t index;
@@ -75,7 +75,7 @@ bool image::write_to_config(json_t *config, json_error_t *error) const
     if (tag_array) {
         for (const auto& tag : m_tags) {
             if (json_array_append_new(tag_array, json_string(tag->name()))) {
-                util::log("Error writing tag \"%s\" to json\n", tag->name());
+                debug("Error writing tag \"%s\" to json\n", tag->name());
                 result = false;
                 break;
             }
@@ -86,10 +86,10 @@ bool image::write_to_config(json_t *config, json_error_t *error) const
         if (image_json) {
             json_array_append_new(config, image_json);
         } else {
-             util::log("Error while packing image json\n");
+             debug("Error while packing image json\n");
         }
     } else {
-         util::log("Error creating image tag array\n");
+         debug("Error creating image tag array\n");
         result = false;
     }
 

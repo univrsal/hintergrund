@@ -19,6 +19,12 @@
 #define VERSION "1.0"
 #define UNUSED_PARAM(a)    ((void) a)
 
+#ifdef DEBUG
+#define debug(format, ...) util::log("[%.8s:%03d] " format, __func__, __LINE__, ##__VA_ARGS__)
+#else
+#define debug(format, ...) debug(format, ##__VA_ARGS__)
+#endif
+
 struct json_error_t;
 
 namespace util {

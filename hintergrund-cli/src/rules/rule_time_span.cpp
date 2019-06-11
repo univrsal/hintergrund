@@ -56,7 +56,7 @@ bool rule_time_span::write_to_config(json_t* config, json_error_t* error)
             json_object_set_new(config, KEY_RULE_TIME_BEGIN, start);
             json_object_set_new(config, KEY_RULE_TIME_END, end);
         } else {
-            util::log("Error while packing time span data\n");
+            debug("Error while packing time span data\n");
             result = false;
         }
     }
@@ -73,13 +73,13 @@ bool rule_time_span::read_from_config(json_t* config, json_error_t* error)
 
         if (!start || json_unpack_ex(start, error, 0, "{sisi}", KEY_RULE_MOMENT_HOUR,
                                      &m_begin.hour, KEY_RULE_MOMENT_MINUTE, &m_begin.minute) < 0) {
-            util::log("Error while decoding time span\n");
+            debug("Error while decoding time span\n");
             result = false;
         }
 
         if (!end || json_unpack_ex(end, error, 0, "{sisi}", KEY_RULE_MOMENT_HOUR,
                                      &m_end.hour, KEY_RULE_MOMENT_MINUTE, &m_end.minute) < 0) {
-            util::log("Error while decoding time span\n");
+            debug("Error while decoding time span\n");
             result = false;
         }
     }

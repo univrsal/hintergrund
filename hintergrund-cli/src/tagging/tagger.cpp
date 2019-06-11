@@ -33,7 +33,7 @@ const tag* tagger::add_new_tag(const char *name, float weight)
     for (const auto& tag : m_tags)
     {
         if (strcmp(tag->name(), name) == 0) {
-            util::log("Duplicate tag name \"%s\". Ignoring...\n", name);
+            debug("Duplicate tag name \"%s\". Ignoring...\n", name);
             unique = false;
             /* It's not a new tag, but files under this folder should still get this tag */
             result = tag.get();
@@ -42,7 +42,7 @@ const tag* tagger::add_new_tag(const char *name, float weight)
     }
 
     if (unique) {
-        util::log("Added new tag %s\n", name);
+        debug("Added new tag %s\n", name);
         result = new tag(name, weight, m_tag_counter++);
         m_tags.emplace_back(result);
     }
@@ -75,7 +75,7 @@ int tagger::tag_string(const char *str, std::deque<const tag*>& current_tags)
             bool can_add = true;
             for (const auto& tag : current_tags) {
                 if (strcmp(tag->name(), new_tag->name()) == 0) {
-                    util::log("Error duplicate tags within folder hierarchie!\n");
+                    debug("Error duplicate tags within folder hierarchie!\n");
                     can_add = false;
                 }
             }
@@ -109,7 +109,7 @@ void tagger::iterate_folder(DIR *d, int depth, std::deque<const tag*>& current_t
             if (temp) {
                 /* Extract tags from folder name and adds it to the stack */
                 int new_tags = tag_string(entry->d_name, current_tags);
-
+                m_new_tag_counter += new_tags;
                 chdir(entry->d_name); /* Go into folder */
                 iterate_folder(temp, ++depth, current_tags);
                 closedir(temp);
@@ -118,7 +118,7 @@ void tagger::iterate_folder(DIR *d, int depth, std::deque<const tag*>& current_t
                 for (int i = 0; i < new_tags; i++) /* Remove previously added tags */
                     current_tags.pop_front();
             } else {
-                util::log("Error opening \"%s\"\n", entry->d_name);
+                debug("Error opening \"%s\"\n", entry->d_name);
             }
         } else {
             if (config::values.library->valid_file_type(entry->d_name)) {
@@ -128,8 +128,8 @@ void tagger::iterate_folder(DIR *d, int depth, std::deque<const tag*>& current_t
                     new_tags = tag_string(entry->d_name, current_tags);
                 }
 
-                config::values.library->add_image(entry->d_name, current_tags);
-
+                if (config::values.library->add_image(entry->d_name, current_tags))
+                    m_img_counter++;
                 for (int i = 0; i < new_tags; i++) /* Remove previouslytags */
                     current_tags.pop_front();
             }
@@ -139,10 +139,12 @@ void tagger::iterate_folder(DIR *d, int depth, std::deque<const tag*>& current_t
 
 bool tagger::auto_tag(const char *root_folder)
 {
+    m_img_counter = 0;
+    m_new_tag_counter = 0;
     bool result = true;
     char cwd[2049]; /* current working directory */
     if (!getcwd(cwd, 2049)) {
-        printf("Error getting current working directory\n");
+        debug("Error getting current working directory\n");
         return false;
     }
     std::deque<const tag*> temp_tags;
@@ -150,7 +152,7 @@ bool tagger::auto_tag(const char *root_folder)
 
     DIR *dp = opendir(root_folder);
     if (!dp) {
-        printf("Couldn't open root folder\n");
+        debug("Couldn't open root folder\n");
         return false;
     }
 
@@ -158,20 +160,24 @@ bool tagger::auto_tag(const char *root_folder)
     closedir(dp);
     chdir(cwd); /* Revert to original working directory */
 
+    debug("Successfully tagged %i new images with %i new tags\n",
+          m_img_counter, m_new_tag_counter);
+
     /* Now write newly indexed library */
     json_error_t error;
     json_t* library_object = json_object();
 
     result = config::values.library->write_to_config(library_object, &error);
     if (!result || json_dump_file(library_object, config::values.library_path, 0) < 0) {
-        util::log("Error while writing library to json\n");
+        debug("Error while writing library to json\n");
     } else {
         /* And now write the tags */
         json_t* tag_array = json_array();
         result = config::values.tag_manager->write_to_config(tag_array, &error);
         if (!result || json_dump_file(tag_array, config::values.tag_path, 0) < 0) {
-            util::log("Error while writing tag array to json\n");
+            debug("Error while writing tag array to json\n");
         }
+
         json_decref(tag_array);
     }
 
@@ -199,7 +205,7 @@ bool tagger::write_to_config(json_t *config, json_error_t *error)
     bool result = true;
     for (auto& tag : m_tags) {
         if (!tag->write_to_config(config, error)) {
-            util::log("Error while writing tag\n");
+            debug("Error while writing tag\n");
             result = false;
             break;
         }
@@ -220,7 +226,7 @@ bool tagger::read_from_config(json_t *config, json_error_t *error)
         tag* new_tag = new tag();
         if (!new_tag->read_from_config(value, error)) {
             result = false;
-            util::log("Error while reading tag from tag array\n");
+            debug("Error while reading tag from tag array\n");
             delete new_tag;
             break;
         } else {
@@ -255,18 +261,18 @@ namespace tagging {
         if (strlen(config::values.tag_path) < 1)
         {
             *return_value = config::READ_TAGS_FAILED;
-            util::log("No tag file path provided\n");
+            debug("No tag file path provided\n");
         } else {
             if (util::file_exists(config::values.tag_path)) {
                 json_error_t error;
                 json_t* tag_array = json_load_file(config::values.tag_path, 0, &error);
 
                 if (!tag_array || !config::values.tag_manager->read_from_config(tag_array, &error)) {
-                    util::log("Loading tag array failed\n");
+                    debug("Loading tag array failed\n");
                     util::print_json_error(&error);
                     *return_value = config::READ_TAGS_FAILED;
                 } else {
-                    util::log("Successfully loaded %i tags\n",
+                    debug("Successfully loaded %i tags\n",
                               config::values.tag_manager->tag_count());
                 }
             } else {
@@ -274,12 +280,11 @@ namespace tagging {
                 json_t* tag_array = json_array();
 
                 if (!tag_array || json_dump_file(tag_array, config::values.tag_path, 0) < 0) {
-                    util::log("Writing creating placeholder tags file\n");
+                    debug("Writing creating placeholder tags file\n");
                     *return_value = config::READ_TAGS_FAILED;
                 } else {
-                    util::log("Successfully created default tags file\n");
+                    debug("Successfully created default tags file\n");
                 }
-
 
                 json_decref(tag_array);
             }
@@ -291,12 +296,12 @@ namespace tagging {
         *return_value = config::SUCCESS;
 
         if (strlen(config::values.library_path) < 1) {
-            util::log("Error: No image library path provided\n");
+            debug("Error: No image library path provided\n");
             *return_value = config::MISSING_ARG;
         }
 
         if (strlen(config::values.auto_tag_path) < 1) {
-            util::log("Error: No auto tag path provided\n");
+            debug("Error: No auto tag path provided\n");
             *return_value = config::MISSING_ARG;
         }
 

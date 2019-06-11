@@ -60,19 +60,19 @@ bool rule_month_span::write_to_config(json_t* config, json_error_t* error)
                                   m_start.day);
         if (!start || json_object_set_new(config, KEY_RULE_MONTH_SPAN_START, start) < 0) {
             result = false;
-            util::log("Error while setting date start\n");
+            debug("Error while setting date start\n");
         }
 
         auto span = json_pack_ex(error, 0, "b", m_is_span);
         if (!span || json_object_set_new(config, KEY_RULE_MONTH_SPAN_IS_SPAN, span) < 0) {
-            util::log("Error while setting is_span boolean\n");
+            debug("Error while setting is_span boolean\n");
             result = false;
         }
 
         if (m_is_span) {
             auto end = json_pack_ex(error, 0, "{sisi}", KEY_RULE_MONTH_SPAN_MONTH, m_end.month, KEY_RULE_MONTH_SPAN_DAY, m_end.day);
             if (end && json_object_set_new(config, KEY_RULE_MONTH_SPAN_END, end) < 0) {
-                util::log("Error while setting date end\n");
+                debug("Error while setting date end\n");
                 result = false;
             }
         }
@@ -91,18 +91,18 @@ bool rule_month_span::read_from_config(json_t* config, json_error_t* error)
                                      KEY_RULE_MONTH_SPAN_MONTH, &m_start.month,
                                      KEY_RULE_MONTH_SPAN_DAY, &m_start.day) < 0)
         {
-            util::log("Error while decoding month span start\n");
+            debug("Error while decoding month span start\n");
             result = false;
         } else if (!span || json_unpack_ex(span, error, 0, "b",
                                            KEY_RULE_MONTH_SPAN_IS_SPAN, &m_is_span)) {
-            util::log("Error while decoding month span is span\n");
+            debug("Error while decoding month span is span\n");
             result = false;
         } else if (m_is_span) {
             auto* end = json_object_get(config, KEY_RULE_MONTH_SPAN_END);
             if (!end || json_unpack_ex(end, error, 0, KEY_RULE_MONTH_SPAN_MONTH,
                                        &m_end.month, KEY_RULE_MONTH_SPAN_DAY,
                                        &m_end.day) < 0) {
-                util::log("Error while decoding month span end\n");
+                debug("Error while decoding month span end\n");
                 result = false;
             }
         }
