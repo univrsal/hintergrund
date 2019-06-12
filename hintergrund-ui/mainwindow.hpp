@@ -16,7 +16,7 @@
 #pragma once
 
 #include <QMainWindow>
-
+#include <QTreeWidgetItem>
 namespace Ui {
 class MainWindow;
 }
@@ -28,6 +28,17 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+
+private slots:
+    void on_actionOpen_triggered();
+
+    void on_actionAbout_Qt_triggered();
+
+    void on_actionAbout_triggered();
+
+    void on_actionQuit_triggered();
+
+    void on_file_tree_itemActivated(QTreeWidgetItem *item, int column);
 
 private:
     Ui::MainWindow *ui;

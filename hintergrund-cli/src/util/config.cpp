@@ -47,6 +47,21 @@ namespace config {
         delete values.rules_manager;
         delete values.library;
 
+        if (strlen(values.config_path) > 0)
+            free((void*) values.config_path);
+        if (strlen(values.rule_path) > 0)
+            free((void*) values.rule_path);
+        if (strlen(values.library_path) > 0)
+            free((void*) values.library_path);
+        if (strlen(values.auto_tag_path) > 0)
+            free((void*) values.auto_tag_path);
+
+        values.config_path = "";
+        values.rule_path = "";
+        values.library_path = "";
+        values.auto_tag_path = "";
+        values.tag_path = "";
+
         for (auto& file_type : values.file_types)
             free((void*) file_type);
     }

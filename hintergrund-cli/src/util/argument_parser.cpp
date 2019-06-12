@@ -130,10 +130,6 @@ namespace arguments {
 
         /* To exit the outer for loop from within the inner loop */
         end:
-        for (auto& arg : args) {
-            if (arg.path_destination && *arg.path_destination && strlen(*arg.path_destination) > 0)
-                free((void*)*arg.path_destination);
-        }
 
         config::close_config();
         return result;

@@ -26,10 +26,13 @@ CONFIG += c++11
 
 SOURCES += \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+        ui_helper.cpp
+        ../hintergrund-cli/src/util/config.cpp
 
 HEADERS += \
-        mainwindow.hpp
+        mainwindow.hpp \
+        ui_helper.hpp
 
 FORMS += \
         mainwindow.ui
