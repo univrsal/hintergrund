@@ -27,6 +27,7 @@ CONFIG += c++11
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
+        tags_dialog.cpp \
         ui_helper.cpp \
         ../hintergrund-cli/src/util/*.cpp \
         ../hintergrund-cli/src/tagging/*.cpp \
@@ -35,6 +36,7 @@ SOURCES += \
         ../hintergrund-cli/src/*.cpp
 HEADERS += \
         mainwindow.hpp \
+        tags_dialog.hpp \
         ui_helper.hpp \
         ../hintergrund-cli/src/util/*.hpp \
         ../hintergrund-cli/src/tagging/*.hpp \
@@ -42,7 +44,8 @@ HEADERS += \
         ../hintergrund-cli/src/images/*.hpp \
         ../hintergrund-cli/src/*.hpp
 FORMS += \
-        mainwindow.ui
+        mainwindow.ui \
+        tags_dialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
