@@ -23,6 +23,10 @@
 #include "../hintergrund_cli.hpp"
 #include "argument_parser.hpp"
 
+#ifndef TIMESTAMP
+#define TIMESTAMP "N/A"
+#endif
+
 namespace arguments {
     argument_t args[] = {
         { "-h", "--help",           "Shows this help screen", false,

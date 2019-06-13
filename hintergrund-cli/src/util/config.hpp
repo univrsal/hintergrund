@@ -20,7 +20,7 @@
 
 #define KEY_CONFIG_RULES_PATH       "rules_path"
 #define KEY_CONFIG_LIBRARY_PATH     "library_path"
-#define KEY_CONFIG_TAGS_PATH         "tags_path"
+#define KEY_CONFIG_TAGS_PATH        "tags_path"
 #define KEY_CONFIG_FOLDER_DEPTH     "folder_depth"
 #define KEY_CONFIG_TAG_IMAGE_NAMES  "tag_image_names"
 #define KEY_CONFIG_FILE_TYPE_ARRAY  "file_types"
@@ -63,13 +63,13 @@ namespace config {
         CONTROLLED_SHUFFLE_FAILED
     };
 
-    void init_config();
-    void close_config();
-    bool create_config(const char* path, json_error_t* error);
+    extern void init_config();
+    extern void close_config();
+    extern bool create_config(const char* path, json_error_t* error);
 
     /* Argument handlers */
-    bool read_config(int* return_value);
-    bool check_duplicates(int* return_value);
+    extern bool read_config(int* return_value);
+    extern bool check_duplicates(int* return_value);
 
     extern values_t values;
 }

@@ -16,7 +16,8 @@
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
 #include "ui_helper.hpp"
-#include "../hintergrund-cli/src/util/config.hpp"
+#include "util/config.hpp"
+#include "util/util.hpp"
 #include <QMessageBox>
 #include <QFileDialog>
 
@@ -87,5 +88,6 @@ void MainWindow::on_actionQuit_triggered()
 
 void MainWindow::on_file_tree_itemActivated(QTreeWidgetItem *item, int column)
 {
-
+    UNUSED_PARAM(item);
+    UNUSED_PARAM(column);
 }

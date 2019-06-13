@@ -1,5 +1,5 @@
 #include "ui_helper.hpp"
-#include "../hintergrund-cli/src/util/config.hpp"
+#include "util/config.hpp"
 #include <cstring>
 #include <QTreeWidget>
 

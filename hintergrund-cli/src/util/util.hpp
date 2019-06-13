@@ -28,14 +28,14 @@
 struct json_error_t;
 
 namespace util {
-    const char* json_err_to_str(int i);
-    bool file_exists(const char* path);
-    bool try_create_file(const char* path);
+    extern const char* json_err_to_str(int i);
+    extern bool file_exists(const char* path);
+    extern bool try_create_file(const char* path);
 
-    void print_json_error(json_error_t* error);
+    extern void print_json_error(json_error_t* error);
 
-    char* concatenate(const char* a, const char* b);
-    char* append(char* a, const char* b);
+    extern char* concatenate(const char* a, const char* b);
+    extern char* append(char* a, const char* b);
 
     extern void log(const char* fmt, ...);
 }
