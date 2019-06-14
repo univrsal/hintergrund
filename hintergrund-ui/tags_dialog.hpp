@@ -14,6 +14,9 @@ public:
     explicit tags_dialog(QWidget *parent = nullptr);
     ~tags_dialog();
 
+private slots:
+    void on_tags_table_activated(const QModelIndex &index);
+
 private:
     Ui::tags_dialog *ui;
 };

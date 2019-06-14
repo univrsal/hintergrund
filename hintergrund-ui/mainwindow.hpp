@@ -40,6 +40,8 @@ private slots:
 
     void on_file_tree_itemActivated(QTreeWidgetItem *item, int column);
 
+    void on_actionView_Tags_triggered();
+
 private:
     Ui::MainWindow *ui;
 };

@@ -60,6 +60,8 @@ public:
 
     int tag_count() const;
     bool loaded() const;
+
+    const std::vector<std::unique_ptr<tag>>& tags() const;
 };
 
 namespace tagging {

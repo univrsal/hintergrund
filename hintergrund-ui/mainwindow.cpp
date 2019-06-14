@@ -16,6 +16,7 @@
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
 #include "ui_helper.hpp"
+#include "tags_dialog.hpp"
 #include "util/config.hpp"
 #include "util/util.hpp"
 #include <QMessageBox>
@@ -90,4 +91,10 @@ void MainWindow::on_file_tree_itemActivated(QTreeWidgetItem *item, int column)
 {
     UNUSED_PARAM(item);
     UNUSED_PARAM(column);
+}
+
+void MainWindow::on_actionView_Tags_triggered()
+{
+    auto* dialog = new tags_dialog(this);
+    dialog->open();
 }

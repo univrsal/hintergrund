@@ -251,6 +251,10 @@ bool tagger::loaded() const
     return m_loaded;
 }
 
+const std::vector<std::unique_ptr<tag>>& tagger::tags() const
+{
+    return m_tags;
+}
 namespace tagging {
     bool read_tags(int* return_value)
     {
