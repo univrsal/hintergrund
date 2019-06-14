@@ -29,20 +29,46 @@ SOURCES += \
         mainwindow.cpp \
         tags_dialog.cpp \
         ui_helper.cpp \
-        ../hintergrund-cli/src/util/*.cpp \
-        ../hintergrund-cli/src/tagging/*.cpp \
-        ../hintergrund-cli/src/rules/*.cpp \
-        ../hintergrund-cli/src/images/*.cpp \
-        ../hintergrund-cli/src/*.cpp
+        ../hintergrund-cli/src/util/argument_parser.cpp \
+        ../hintergrund-cli/src/util/config.cpp \
+        ../hintergrund-cli/src/util/util.cpp \
+        ../hintergrund-cli/src/tagging/tagger.cpp \
+        ../hintergrund-cli/src/tagging/tag.cpp \
+        ../hintergrund-cli/src/rules/rule.cpp \
+        ../hintergrund-cli/src/rules/rule_date.cpp \
+        ../hintergrund-cli/src/rules/rule_date_span.cpp \
+        ../hintergrund-cli/src/rules/rule_io.cpp \
+        ../hintergrund-cli/src/rules/rule_io_file.cpp \
+        ../hintergrund-cli/src/rules/rule_io_stdin.cpp \
+        ../hintergrund-cli/src/rules/rule_month_span.cpp \
+        ../hintergrund-cli/src/rules/rule_set.cpp \
+        ../hintergrund-cli/src/rules/rule_time_span.cpp \
+        ../hintergrund-cli/src/rules/rule_weekday.cpp \
+        ../hintergrund-cli/src/images/image.cpp \
+        ../hintergrund-cli/src/images/image_library.cpp \
+        ../hintergrund-cli/src/hintergrund_cli.cpp
 HEADERS += \
         mainwindow.hpp \
         tags_dialog.hpp \
         ui_helper.hpp \
-        ../hintergrund-cli/src/util/*.hpp \
-        ../hintergrund-cli/src/tagging/*.hpp \
-        ../hintergrund-cli/src/rules/*.hpp \
-        ../hintergrund-cli/src/images/*.hpp \
-        ../hintergrund-cli/src/*.hpp
+        ../hintergrund-cli/src/util/argument_parser.hpp \
+        ../hintergrund-cli/src/util/config.hpp \
+        ../hintergrund-cli/src/util/util.hpp \
+        ../hintergrund-cli/src/tagging/tagger.hpp \
+        ../hintergrund-cli/src/tagging/tag.hpp \
+        ../hintergrund-cli/src/rules/rule.hpp \
+        ../hintergrund-cli/src/rules/rule_date.hpp \
+        ../hintergrund-cli/src/rules/rule_date_span.hpp \
+        ../hintergrund-cli/src/rules/rule_io.hpp \
+        ../hintergrund-cli/src/rules/rule_io_file.hpp \
+        ../hintergrund-cli/src/rules/rule_io_stdin.hpp \
+        ../hintergrund-cli/src/rules/rule_month_span.hpp \
+        ../hintergrund-cli/src/rules/rule_set.hpp \
+        ../hintergrund-cli/src/rules/rule_time_span.hpp \
+        ../hintergrund-cli/src/rules/rule_weekday.hpp \
+        ../hintergrund-cli/src/images/image.hpp \
+        ../hintergrund-cli/src/images/image_library.hpp \
+        ../hintergrund-cli/src/hintergrund_cli.hpp
 FORMS += \
         mainwindow.ui \
         tags_dialog.ui
