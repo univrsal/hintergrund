@@ -30,9 +30,9 @@ bool image_library::write_to_config(json_t *config, json_error_t *error)
     bool result = true;
     json_t* img_array = json_array();
 
-    for (const auto& image : m_images) {
-        if (!image->write_to_config(img_array, error)) {
-            debug("Error while writing image to library array\n");
+    for (const auto& folder : m_base_folders) {
+        if (!folder->write_to_config(img_array, error)) {
+            debug("Error while writing base folder to json\n");
             util::print_json_error(error);
             result = false;
             break;
@@ -41,7 +41,7 @@ bool image_library::write_to_config(json_t *config, json_error_t *error)
 
     if (result) {
         if (json_object_set_new(config, KEY_LIBRARY_SEQUENTIAL_INDEX, json_integer(m_sequential_current)) < 0 ||
-                json_object_set_new(config, KEY_LIBRARY_IMAGE_ARRAY, img_array) < 0) {
+                json_object_set_new(config, KEY_LIBRARY_BASE_FOLDER_ARRAY, img_array) < 0) {
              debug("Image library json value setting failed\n");
             result = false;
         }
@@ -101,18 +101,31 @@ bool image_library::valid_file_type(const char *file_name)
     return result;
 }
 
-bool image_library::add_image(const char *file_name, std::deque<const tag *> &tags)
-{
-    bool result = true;
-    char cwd[2049]; /* use current working directory as path */
 
-    if (!getcwd(cwd, 2049)) {
-        debug("Couldn't get current working directory\n");
-        result = false;
-    } else {
-        result = add_image(file_name, cwd, tags);
+
+bool image_library::add_image(const char *file_name, std::deque<const tag *> &folder_tags, std::deque<const tag*>& add_tags)
+{
+    if (!file_name || strlen(file_name) < 1)
+        return false;
+    char* full_path = nullptr;
+
+    full_path = util::append(full_path, file_name);
+    bool result = true;
+
+    if (config::values.check_duplicates) {
+        for (const auto& img : m_images) {
+            if (strcmp(full_path, img->path()) == 0) {
+                debug("Duplicate image: %s\n", full_path);
+                result = false;
+                break;
+            }
+        }
     }
 
+    if (result)
+        m_images.emplace_back(new image(full_path, tags));
+
+    free((void*) full_path);
     return result;
 }
 

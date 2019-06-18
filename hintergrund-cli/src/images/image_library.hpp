@@ -15,19 +15,18 @@
  */
 #pragma once
 #include "image.hpp"
+#include "../folder.hpp"
 #include <vector>
 #include <memory>
 #include <jansson.h>
 #include <deque>
 
 #define KEY_LIBRARY_SEQUENTIAL_INDEX    "index"
-#define KEY_LIBRARY_IMAGE_ARRAY         "images"
-
-typedef std::vector<std::unique_ptr<image>> image_vector;
+#define KEY_LIBRARY_BASE_FOLDER_ARRAY   "images"
 
 class image_library
 {
-    image_vector m_images;
+    std::vector<folder> m_base_folders;
     json_int_t m_sequential_current;
     bool m_loaded;
 public:
@@ -37,10 +36,9 @@ public:
     bool read_from_config(json_t *config, json_error_t *error);
 
     bool valid_file_type(const char* file_name);
-    bool add_image(const char* file_name, const char* path, std::deque<const tag*>& tags);
-    bool add_image(const char* file_name, std::deque<const tag*>& tags);
+    bool add_image(const char* file_name, std::deque<const tag*>& folder_tags);
+    bool add_image(const char* file_naem, std::deque<const tag*>& folder_tags, std::deque<const tag*> add_tags);
 
-    const image_vector* images() const;
     int image_count() const;
     bool loaded() const;
 };

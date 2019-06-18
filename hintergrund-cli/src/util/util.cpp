@@ -19,10 +19,17 @@
 #include <fstream>
 #include <cstring>
 
+#ifdef QT_LOGGING
+
+#endif
+
 #ifdef LINUX
 #include <sys/stat.h>
 #endif
 namespace util {
+#ifdef QT_LOGGING
+    QMessageLogger logger;
+#endif
     const char* json_err_to_str(int i)
     {
         switch (i) {
@@ -126,10 +133,10 @@ namespace util {
 
     void log(const char* fmt, ...)
     {
-        if (config::values.silent)
-            return;
         va_list arguments;
         va_start(arguments, fmt);
+        if (config::values.silent)
+            return;
         vprintf(fmt, arguments);
         va_end(arguments);
     }

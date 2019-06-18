@@ -19,12 +19,14 @@
 
 tag::tag()
 {
+    m_folder_tag = false;
     m_tag_name = nullptr;
     m_weight = 1.f;
     m_tag_id = 0;
 }
 tag::tag(const char* name, float weight, uint32_t tag_id)
 {
+    m_folder_tag = false;
     m_tag_id = tag_id;
     m_tag_name = strdup(name);
     m_weight = weight;

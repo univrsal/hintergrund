@@ -20,14 +20,29 @@
 #define UNUSED_PARAM(a)    ((void) a)
 
 #ifdef DEBUG
+#ifdef QT_LOGGING
+#include <QMessageLogger>
+#define debug(format, ...) util::logger.info("[%.8s:%03d] " format, ##__VA_ARGS__)
+#else
 #define debug(format, ...) util::log("[%.8s:%03d] " format, __func__, __LINE__, ##__VA_ARGS__)
+#endif /* QT_LOGGING*/
+#else
+#ifdef QT_LOGGING
+#include <QMessageLogger>
+#define debug(format, ...) util::logger.info(format, ##__VA_ARGS__)
 #else
 #define debug(format, ...) util::log(format, ##__VA_ARGS__)
-#endif
+#endif /* QT_LOGGING */
+#endif /* DEBUG */
+
+class tag;
 
 struct json_error_t;
 
 namespace util {
+#ifdef QT_LOGGING
+    extern QMessageLogger logger;
+#endif
     extern const char* json_err_to_str(int i);
     extern bool file_exists(const char* path);
     extern bool try_create_file(const char* path);

@@ -41,13 +41,12 @@ class tagger
      */
     void iterate_folder(DIR* d, int depth, std::deque<const tag*>& current_tags);
 
+public:
     /* Splits str into tags at spaces and adds them as new tags
      * also pushes each new tag to the stack and returns the
      * amount of newly added tags
      */
-    int tag_string(const char* str, std::deque<const tag*>& current_tags);
-public:
-    tagger();
+    int tag_string(const char* str, std::deque<const tag*>& current_tags);    tagger();
 
     bool write_to_config(json_t *config, json_error_t *error);
     bool read_from_config(json_t *config, json_error_t *error);

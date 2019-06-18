@@ -25,10 +25,12 @@ class tag;
 class image
 {
     const char* m_path; /* Full file path on hdd */
-    std::vector<const tag*> m_tags;
+    std::vector<const tag*> m_additional_tags; /* User defined tags or file name*/
+    std::vector<const tag*> m_folder_tags; /* Tags applied over file path (not saved to library) */
 public:
     image();
-    image(const char* path, std::deque<const tag*>& tags);
+    image(const char* path, const std::deque<const tag*>& path_tags);
+    image(const char* path, const std::deque<const tag*>& path_tags, const std::deque<const tag*>& add_tags);
     ~image();
 
     bool write_to_config(json_t* config, json_error_t* error) const;

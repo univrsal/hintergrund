@@ -25,11 +25,20 @@ image::image()
     m_path = nullptr;
 }
 
-image::image(const char* path, std::deque<const tag*>& tags)
+image::image(const char* path, const std::deque<const tag*>& path_tags)
 {
     m_path = strdup(path);
-    for (const auto& tag : tags)
-        m_tags.emplace_back(tag);
+    for (const auto& tag : path_tags)
+        m_folder_tags.emplace_back(tag);
+}
+
+image::image(const char* path, const std::deque<const tag*>& path_tags, const std::deque<const tag*>& add_tags)
+{
+    m_path = strdup(path);
+    for (const auto& tag : path_tags)
+        m_folder_tags.emplace_back(tag);
+    for (const auto& tag : add_tags)
+        m_additional_tags.emplace_back(tag);
 }
 
 image::~image()
@@ -59,7 +68,7 @@ bool image::read_from_config(json_t *config, json_error_t *error)
                 tmp_tag = config::values.tag_manager->
                           get_tag_for_str(json_string_value(value));
                 if (tmp_tag)
-                    m_tags.emplace_back(tmp_tag);
+                    m_additional_tags.emplace_back(tmp_tag);
             }
         }
     }
@@ -73,7 +82,7 @@ bool image::write_to_config(json_t *config, json_error_t *error) const
     json_t* tag_array = json_array();
 
     if (tag_array) {
-        for (const auto& tag : m_tags) {
+        for (const auto& tag : m_additional_tags) {
             if (json_array_append_new(tag_array, json_string(tag->name()))) {
                 debug("Error writing tag \"%s\" to json\n", tag->name());
                 result = false;

@@ -35,6 +35,7 @@ add_executable(${PROJECT_NAME}
         src/util/config.cpp
         src/hintergrund_cli.cpp
         src/util/argument_parser.cpp
+        src/folder.cpp
         )
 
 include_directories(${JANSSON_INCLUDE_DIRS})

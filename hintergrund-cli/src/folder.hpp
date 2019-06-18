@@ -1,4 +1,4 @@
-/* rule_date.cpp created on 2019.6.4
+/* folder.hpp created on 2019.6.15
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,28 +14,30 @@
  *
  */
 #pragma once
+#include "images/image.hpp"
+#include <vector>
+#include <deque>
+#include <memory>
 #include <jansson.h>
-#include <stdint.h>
+#include <dirent.h>
 
-#define KEY_TAG_NAME    "name"
-#define KEY_TAG_WEIGHT  "weight"
-#define KEY_TAG_ID      "tag_id"
+class tag;
 
-class tag
+class folder
 {
-    const char* m_tag_name;
-    float m_weight;
-    json_int_t m_tag_id;
+    std::vector<std::unique_ptr<folder>> m_sub_folders;
+    std::vector<std::unique_ptr<image>> m_image_files;
+    char* m_path;
 public:
-    tag();
-    tag(const char* name, float weight, uint32_t tag_id);
-    ~tag();
+    folder();
+    folder(const char* path);
+    ~folder();
 
-    bool write_to_config(json_t* config, json_error_t* error) const;
-    bool read_from_config(json_t* config, json_error_t* error);
+    bool write_to_config(json_t* cfg, json_error_t* error) const;
+    bool read_from_config(json_t* cfg, json_error_t* error);
 
-    void set_folder_tag();
-    const char* name() const;
-    float weight() const;
-    uint32_t id() const;
+    void iterate_contents(std::deque<const tag*> current_tags, DIR* d, int depth);
+
+    static folder* create_from_path(const char* path);
 };
+
