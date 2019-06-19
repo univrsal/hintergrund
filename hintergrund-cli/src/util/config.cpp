@@ -55,6 +55,8 @@ namespace config {
             free((void*) values.library_path);
         if (strlen(values.auto_tag_path) > 0)
             free((void*) values.auto_tag_path);
+        if (strlen(values.tag_path) > 0)
+            free((void*) values.tag_path);
 
         values.config_path = "";
         values.rule_path = "";
