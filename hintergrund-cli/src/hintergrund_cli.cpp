@@ -29,7 +29,9 @@ namespace hintergrund_cli {
 
         if (images.size() > 0) {
             auto img = select_randomly(images.begin(), images.end());
-            printf("%s", (*img.base())->path()); /* Don't use debug since these should be printed in silent mode */
+            auto* p = (*img.base())->path();
+            printf("%s", p); /* Don't use debug since these should be printed in silent mode */
+            free((void*) p);
         } else {
             printf("No images to shuffle\n");
             *return_value = config::SHUFFLE_FAILED;

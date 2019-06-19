@@ -79,7 +79,7 @@ namespace config {
             const char* tmp_rule, *tmp_lib, *tmp_tag;
             json_t* file_type_array;
             int temp = 0;
-            if (json_unpack_ex(cfg_json, &error, 0, "{sssssssisbso}",
+            if (json_unpack_ex(cfg_json, &error, 0, "{ss:ss:ss:si:sb:so}",
                            KEY_CONFIG_RULES_PATH, &tmp_rule,
                            KEY_CONFIG_LIBRARY_PATH, &tmp_lib,
                            KEY_CONFIG_TAGS_PATH, &tmp_tag,

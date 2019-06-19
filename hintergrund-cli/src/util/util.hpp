@@ -22,9 +22,9 @@
 #ifdef DEBUG
 #ifdef QT_LOGGING
 #include <QMessageLogger>
-#define debug(format, ...) util::logger.info("[%.8s:%03d] " format, ##__VA_ARGS__)
+#define debug(format, ...) util::logger.info("[%.14s:%03d] " format, FILE_BASENAME, __LINE__ ##__VA_ARGS__)
 #else
-#define debug(format, ...) util::log("[%.8s:%03d] " format, __func__, __LINE__, ##__VA_ARGS__)
+#define debug(format, ...) util::log("[%.14s:%03d] " format, FILE_BASENAME, __LINE__, ##__VA_ARGS__)
 #endif /* QT_LOGGING*/
 #else
 #ifdef QT_LOGGING

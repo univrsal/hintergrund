@@ -17,24 +17,35 @@
 #include <vector>
 #include <jansson.h>
 #include <deque>
-#define KEY_IMAGE_PATH  "path"
+#define KEY_IMAGE_NAME  "name"
 #define KEY_IMAGE_TAGS  "tags"
 
 class tag;
+class folder;
 
 class image
 {
-    const char* m_path; /* Full file path on hdd */
+    /* Filename on hdd */
+    const char* m_name;
+    /* Direct pointer to folder in library::base_folders */
+    const folder* m_place;
+
     std::vector<const tag*> m_additional_tags; /* User defined tags or file name*/
     std::vector<const tag*> m_folder_tags; /* Tags applied over file path (not saved to library) */
 public:
     image();
-    image(const char* path, const std::deque<const tag*>& path_tags);
-    image(const char* path, const std::deque<const tag*>& path_tags, const std::deque<const tag*>& add_tags);
+    image(const folder* place, const char* name, const std::deque<const tag*>& path_tags);
+    image(const folder* place, const char* name, const std::deque<const tag*>& path_tags, const std::deque<const tag*>& add_tags);
     ~image();
 
     bool write_to_config(json_t* config, json_error_t* error) const;
     bool read_from_config(json_t* config, json_error_t* error);
 
+    /* Direct pointer */
+    const char* name() const;
+    /* Constructs a full path based on the folder tags. Needs to be free()'d */
     const char* path() const;
+
+    void set_path_tags(const std::deque<const tag*>& pt);
+    void set_place(const folder* f);
 };

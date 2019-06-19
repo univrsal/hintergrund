@@ -91,16 +91,35 @@ int tagger::tag_string(const char *str, std::deque<const tag*>& current_tags)
 
 bool tagger::auto_tag(const char *root_folder)
 {
+    bool result = true;
     folder* new_folder = folder::create_from_path(root_folder);
     if (new_folder) {
         config::values.library->add_folder(new_folder);
-        return true;
+        /* Now write newly indexed library */
+        json_error_t error;
+        json_t* library_object = json_object();
+
+        result = config::values.library->write_to_config(library_object, &error);
+        if (!result || json_dump_file(library_object, config::values.library_path, 0) < 0) {
+            debug("Error while writing library to json\n");
+        } else {
+            /* And now write the tags */
+            json_t* tag_array = json_array();
+            result = config::values.tag_manager->write_to_config(tag_array, &error);
+            if (!result || json_dump_file(tag_array, config::values.tag_path, 0) < 0) {
+                debug("Error while writing tag array to json\n");
+            }
+
+            json_decref(tag_array);
+        }
+        json_decref(library_object);
+    } else {
+        result = false;
     }
-    return false;
+    return result;
 }
 
-const tag* tagger::get_tag_for_str(const char *string)
-{
+const tag* tagger::get_tag_for_str(const char *string) {
     if (!string)
         return nullptr;
 

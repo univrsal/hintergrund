@@ -25,10 +25,12 @@
 folder::folder()
 {
     m_path = nullptr;
+    m_parent = nullptr;
 }
 
-folder::folder(const char* path)
+folder::folder(const char* path, const folder* parent)
 {
+    m_parent = parent;
     m_path = strdup(path);
     if (path[strlen(path)] == '/')
         m_path[strlen(path)] = '\0';
@@ -65,16 +67,11 @@ bool folder::write_to_config(json_t *cfg, json_error_t *error) const
                 result = false;
                 break;
             }
-            if (json_array_append_new(image_array, image_array)) {
-                result = false;
-                debug("Appending to image array failed\n");
-                break;
-            }
         }
     }
 
     if (result) {
-        folder_obj = json_pack_ex(error, 0, "{sisoso}", KEY_FOLDER_PATH, m_path,
+        folder_obj = json_pack_ex(error, 0, "{ss:so:so}", KEY_FOLDER_PATH, m_path,
                                   KEY_FOLDER_SUB_FOLDER_ARRAY, folder_array,
                                   KEY_FOLDER_IMAGE_FILE_ARRAY, image_array);
         if (!folder_obj) {
@@ -88,13 +85,14 @@ bool folder::write_to_config(json_t *cfg, json_error_t *error) const
     return result;
 }
 
-bool folder::read_from_config(json_t *cfg, json_error_t *error)
+bool folder::read_from_config(json_t *cfg, json_error_t *error,
+                              std::deque<const tag*>& tags, const folder* parent)
 {
     bool result = true;
     char* tmp_path;
     json_t* folder_array, *image_array;
 
-    if (json_unpack_ex(cfg, error, 0, "{sisoso}",
+    if (json_unpack_ex(cfg, error, 0, "{ss:so:so}",
                        KEY_FOLDER_PATH, &tmp_path,
                        KEY_FOLDER_SUB_FOLDER_ARRAY, &folder_array,
                        KEY_FOLDER_IMAGE_FILE_ARRAY, &image_array) < 0) {
@@ -102,11 +100,26 @@ bool folder::read_from_config(json_t *cfg, json_error_t *error)
         util::print_json_error(error);
         result = false;
     } else {
+        bool added = false;
+        if (tmp_path && strlen(tmp_path) > 0) {
+            if (tmp_path[0] != '/') { /* base folders are a full path and aren't included in tags */
+                auto* tag = config::values.tag_manager->get_tag_for_str(tmp_path);
+                if (tag) {
+                    tags.emplace_back(tag);
+                    added = true;
+                } else {
+                    debug("Error: no tag for folder \"%s\"\n", tmp_path);
+                }
+            }
+        }
+        /* Copy the folders name loaded from json.(jansson returns a borrowed reference) */
+        m_path = strdup(tmp_path);
+        m_parent = parent;
         size_t index;
         json_t* value;
         json_array_foreach(folder_array, index, value) {
             folder* new_folder = new folder();
-            if (new_folder->read_from_config(value, error)) {
+            if (new_folder->read_from_config(value, error, tags, this)) {
                 m_sub_folders.emplace_back(new_folder);
             } else {
                 delete new_folder;
@@ -119,6 +132,8 @@ bool folder::read_from_config(json_t *cfg, json_error_t *error)
             json_array_foreach(image_array, index, value) {
                 image* new_image = new image();
                 if (new_image->read_from_config(value, error)) {
+                    new_image->set_path_tags(tags);
+                    new_image->set_place(this);
                     m_image_files.emplace_back(new_image);
                 } else {
                     util::print_json_error(error);
@@ -128,6 +143,12 @@ bool folder::read_from_config(json_t *cfg, json_error_t *error)
                 }
             }
         }
+        /* All files and subfolders are loaded ->
+         * go up one directory and remove this
+         * folders tag from the stack.
+         */
+        if (added)
+            tags.pop_back();
     }
 
     return result;
@@ -154,7 +175,7 @@ void folder::iterate_contents(std::deque<const tag *>& current_tags, DIR* d, int
         if (entry->d_type == DT_DIR) {
             DIR* temp = opendir(entry->d_name);
             if (temp) {
-                folder* sf = new folder(entry->d_name);
+                folder* sf = new folder(entry->d_name, this);
                 /* Extract tags from folder name and adds it to the stack */
                 int new_tags = config::values.tag_manager->tag_string(entry->d_name, current_tags);
                 chdir(entry->d_name); /* Go into folder */
@@ -173,12 +194,12 @@ void folder::iterate_contents(std::deque<const tag *>& current_tags, DIR* d, int
                 std::deque<const tag*> file_name_tags;
                 new_tags = config::values.tag_manager->tag_string(entry->d_name, current_tags);
 
-                m_image_files.emplace_back(new image(entry->d_name, current_tags, file_name_tags));
+                m_image_files.emplace_back(new image(this, entry->d_name, current_tags, file_name_tags));
                 /* Remove any previously added tags from the file name */
                 for (int i = 0; i < new_tags; i++)
                     current_tags.pop_back();
             } else {
-                m_image_files.emplace_back(new image(entry->d_name, current_tags));
+                m_image_files.emplace_back(new image(this, entry->d_name, current_tags));
             }
         }
     }
@@ -209,6 +230,27 @@ void folder::get_files(std::vector<const image *> &imgv)
     for (const auto& image : m_image_files)
         imgv.emplace_back(image.get());
 }
+
+const folder* folder::parent() const
+{
+    return m_parent;
+}
+
+const folder* folder::root() const
+{
+    const folder* p = parent();
+    const folder* last_parent = p;
+    while (p && (p = p->parent())) {
+        last_parent = p;
+    }
+    return last_parent;
+}
+
+const char* folder::path() const
+{
+    return m_path;
+}
+
 folder* folder::create_from_path(const char *path)
 {
     folder* result = nullptr;
@@ -223,11 +265,12 @@ folder* folder::create_from_path(const char *path)
     chdir(path);
     DIR* dp = opendir(path);
     if (!dp) {
-        debug("Couldn't open root folder\n");
+        debug("Couldn't open root folder %s\n", path);
         return result;
     }
 
-    result = new folder(path);
+    result = new folder(path, nullptr);
     result->iterate_contents(current_tags, dp, 0);
+    closedir(dp);
     return result;
 }

@@ -28,7 +28,7 @@
 class tag;
 class folder;
 
-typedef std::vector<std::unique_ptr<folder>> folder_list;
+typedef std::vector<std::unique_ptr<folder>>	folder_list;
 typedef std::vector<std::unique_ptr<image>>	image_list;
 
 class folder
@@ -36,22 +36,33 @@ class folder
     folder_list m_sub_folders;
     image_list m_image_files;
     char* m_path;
+    const folder* m_parent;
 public:
     folder();
-    folder(const char* path);
+    folder(const char* path, const folder* parent);
     ~folder();
 
     bool write_to_config(json_t* cfg, json_error_t* error) const;
-    bool read_from_config(json_t* cfg, json_error_t* error);
+    bool read_from_config(json_t* cfg, json_error_t* error,
+                          std::deque<const tag*>& tags,
+                          const folder* parent);
 
     void iterate_contents(std::deque<const tag*>& current_tags, DIR* d, int depth);
 
     image_list& images();
     folder_list& folders();
 
+    /* Recursively gets file count within this folder and
+     * all subfolders
+     */
     size_t get_file_count() const;
+    /* Recursively gets all files within this folder and
+     * all subfolders
+     */
     void get_files(std::vector<const image*>& imgv);
-
+    const folder* parent() const;
+    const folder* root() const;
+    const char* path() const; /* Direct pointer */
     static folder* create_from_path(const char* path);
 };
 

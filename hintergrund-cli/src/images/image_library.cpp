@@ -61,9 +61,11 @@ bool image_library::read_from_config(json_t *config, json_error_t *error)
     } else {
         json_t* value;
         size_t index;
+        std::deque<const tag*> tmp_tags(0);
+
         json_array_foreach(base_folders, index, value) {
             folder* new_base_folder = new folder();
-            if (new_base_folder->read_from_config(value, error)) {
+            if (new_base_folder->read_from_config(value, error, tmp_tags, nullptr)) {
                 m_base_folders.emplace_back(new_base_folder);
             } else {
                 debug("Reading base folder from library array failed\n");

@@ -18,23 +18,29 @@
 #include "../util/config.hpp"
 #include "../tagging/tagger.hpp"
 #include "../util/util.hpp"
+#include "../folder.hpp"
 #include <cstring>
+#include <sstream>
 
 image::image()
 {
-    m_path = nullptr;
+    m_name = nullptr;
 }
 
-image::image(const char* path, const std::deque<const tag*>& path_tags)
+image::image(const folder* place, const char* path,
+             const std::deque<const tag*>& path_tags)
 {
-    m_path = strdup(path);
+    m_place = place;
+    m_name = strdup(path);
     for (const auto& tag : path_tags)
         m_folder_tags.emplace_back(tag);
 }
 
-image::image(const char* path, const std::deque<const tag*>& path_tags, const std::deque<const tag*>& add_tags)
+image::image(const folder* place,
+             const char* path, const std::deque<const tag*>& path_tags, const std::deque<const tag*>& add_tags)
 {
-    m_path = strdup(path);
+    m_place = place;
+    m_name = strdup(path);
     for (const auto& tag : path_tags)
         m_folder_tags.emplace_back(tag);
     for (const auto& tag : add_tags)
@@ -43,8 +49,8 @@ image::image(const char* path, const std::deque<const tag*>& path_tags, const st
 
 image::~image()
 {
-    free((void*)m_path);
-    m_path = nullptr;
+    free((void*)m_name);
+    m_name = nullptr;
 }
 
 bool image::read_from_config(json_t *config, json_error_t *error)
@@ -54,11 +60,11 @@ bool image::read_from_config(json_t *config, json_error_t *error)
     json_t* tag_array = nullptr;
 
     if (json_unpack_ex(config, error, 0, "{ssso}",
-                       KEY_IMAGE_PATH, &tmp_path,
+                       KEY_IMAGE_NAME, &tmp_path,
                        KEY_IMAGE_TAGS, &tag_array) < 0) {
         debug("Error unpacking tag body\n");
     } else {
-        m_path = strdup(tmp_path);
+        m_name = strdup(tmp_path);
         size_t index;
         json_t* value;
         const tag* tmp_tag;
@@ -87,7 +93,7 @@ bool image::write_to_config(json_t *config, json_error_t *error) const
             }
         }
         json_t* image_json = json_pack_ex(error, 0, "{ssso}",
-                                          KEY_IMAGE_PATH, m_path,
+                                          KEY_IMAGE_NAME, m_name,
                                           KEY_IMAGE_TAGS, tag_array);
         if (image_json) {
             json_array_append_new(config, image_json);
@@ -102,7 +108,36 @@ bool image::write_to_config(json_t *config, json_error_t *error) const
     return result;
 }
 
+const char* image::name() const
+{
+    return m_name;
+}
+
 const char* image::path() const
 {
-    return m_path;
+    std::stringstream stream;
+    if (m_place) {
+        auto* r = m_place->root();
+        if (r && r->path())
+            stream << m_place->root()->path() << "/";
+    } else {
+        debug("Error: image file has no folder instance\n");
+    }
+
+    for (const auto& tag : m_folder_tags)
+        stream << tag->name() << "/";
+    stream << m_name;
+    return strdup(stream.str().c_str());
+}
+
+void image::set_path_tags(const std::deque<const tag *> &pt)
+{
+    m_folder_tags.clear();
+    for (const auto& tag : pt)
+        m_folder_tags.emplace_back(tag);
+}
+
+void image::set_place(const folder *f)
+{
+    m_place = f;
 }
