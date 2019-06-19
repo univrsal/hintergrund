@@ -91,47 +91,45 @@ bool rule_set::read_rules(const char* path)
         size_t index;
         json_t* value = nullptr;
         json_array_foreach(rule_array, index, value) {
-            if (value) {
-                auto* base_info = json_object_get(value, KEY_RULE_BASE);
-                if (base_info) {
-                    auto* type_id = json_object_get(base_info, KEY_RULE_TYPE);
+            auto* base_info = json_object_get(value, KEY_RULE_BASE);
+            if (base_info) {
+                auto* type_id = json_object_get(base_info, KEY_RULE_TYPE);
 
-                    if (type_id) {
-                        switch (json_integer_value(type_id)) {
-                            case RULE_DATE:
-                                new_rule = new rule_date_span();
-                                break;
-                            case RULE_TIME:
-                                new_rule = new rule_time_span();
-                                break;
-                            case RULE_WEEKDAY:
-                                new_rule = new rule_weekday();
-                                break;
-                            case RULE_MONTH:
-                                new_rule = new rule_month_span();
-                                break;
-                            case RULE_IO_FILE:
-                                new_rule = new rule_io_file();
-                                break;
-                            case RULE_IO_STDIN:
-                                new_rule = new rule_io_stdin();
-                                break;
-                        }
-                        if (new_rule && !new_rule->read_from_config(value, &error)) {
-                            result = false;
-                            util::print_json_error(&error);
+                if (type_id) {
+                    switch (json_integer_value(type_id)) {
+                        case RULE_DATE:
+                            new_rule = new rule_date_span();
                             break;
-                        }
-                    } else {
-                        debug("Error while loading rule type\n");
+                        case RULE_TIME:
+                            new_rule = new rule_time_span();
+                            break;
+                        case RULE_WEEKDAY:
+                            new_rule = new rule_weekday();
+                            break;
+                        case RULE_MONTH:
+                            new_rule = new rule_month_span();
+                            break;
+                        case RULE_IO_FILE:
+                            new_rule = new rule_io_file();
+                            break;
+                        case RULE_IO_STDIN:
+                            new_rule = new rule_io_stdin();
+                            break;
+                    }
+                    if (new_rule && !new_rule->read_from_config(value, &error)) {
                         result = false;
+                        util::print_json_error(&error);
                         break;
                     }
                 } else {
-                    debug("Error while loading rule base info\n");
+                    debug("Error while loading rule type\n");
                     result = false;
                     break;
                 }
+            } else {
+                debug("Error while loading rule base info\n");
+                result = false;
+                break;
             }
         }
         json_decref(rule_array);

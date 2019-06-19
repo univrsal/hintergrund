@@ -52,34 +52,27 @@ bool image_library::write_to_config(json_t *config, json_error_t *error)
 bool image_library::read_from_config(json_t *config, json_error_t *error)
 {
     bool result = true;
-    size_t index;
-    json_t* value;
-    json_t* array = nullptr;
-
+    json_t* base_folders;
     if (json_unpack_ex(config, error, 0, "{siso}",
                        KEY_LIBRARY_SEQUENTIAL_INDEX, &m_sequential_current,
-                       KEY_LIBRARY_IMAGE_ARRAY, &array) < 0) {
+                       KEY_LIBRARY_BASE_FOLDER_ARRAY, &base_folders) < 0) {
         debug("Unpacking library object failed\n");
         util::print_json_error(error);
-        result = false;
-    } else  {
-        json_array_foreach(array, index, value) {
-            if (value) {
-                auto* new_image = new image();
-                if (!new_image->read_from_config(value, error)) {
-                    debug("Error while reading image from library\n");
-                    util::print_json_error(error);
-                    delete new_image;
-                    result = false;
-                    break;
-                } else {
-                    m_images.emplace_back(new_image);
-                }
+    } else {
+        json_t* value;
+        size_t index;
+        json_array_foreach(base_folders, index, value) {
+            folder* new_base_folder = new folder();
+            if (new_base_folder->read_from_config(value, error)) {
+                m_base_folders.emplace_back(new_base_folder);
+            } else {
+                debug("Reading base folder from library array failed\n");
+                result = false;
+                delete new_base_folder;
+                break;
             }
         }
     }
-
-    m_loaded = result;
     return result;
 }
 
@@ -101,77 +94,29 @@ bool image_library::valid_file_type(const char *file_name)
     return result;
 }
 
-
-
-bool image_library::add_image(const char *file_name, std::deque<const tag *> &folder_tags, std::deque<const tag*>& add_tags)
+size_t image_library::image_count() const
 {
-    if (!file_name || strlen(file_name) < 1)
-        return false;
-    char* full_path = nullptr;
-
-    full_path = util::append(full_path, file_name);
-    bool result = true;
-
-    if (config::values.check_duplicates) {
-        for (const auto& img : m_images) {
-            if (strcmp(full_path, img->path()) == 0) {
-                debug("Duplicate image: %s\n", full_path);
-                result = false;
-                break;
-            }
-        }
+    size_t count = 0;
+    for (const auto& folder : m_base_folders) {
+        count += folder->get_file_count();
     }
-
-    if (result)
-        m_images.emplace_back(new image(full_path, tags));
-
-    free((void*) full_path);
-    return result;
-}
-
-bool image_library::add_image(const char *file_name, const char *path, std::deque<const tag *> &tags)
-{
-    if (!file_name || !path || strlen(file_name) < 1 || strlen(path) < 1)
-        return false;
-    char* full_path = nullptr;
-
-    if (path[strlen(path)] != '/')
-        full_path = util::concatenate(path, "/");
-    else
-        full_path = strdup(path);
-    full_path = util::append(full_path, file_name);
-    bool result = true;
-
-    if (config::values.check_duplicates) {
-        for (const auto& img : m_images) {
-            if (strcmp(full_path, img->path()) == 0) {
-                debug("Duplicate image: %s\n", full_path);
-                result = false;
-                break;
-            }
-        }
-    }
-
-    if (result)
-        m_images.emplace_back(new image(full_path, tags));
-
-    free((void*) full_path);
-    return result;
-}
-
-const image_vector* image_library::images() const
-{
-    return &m_images;
-}
-
-int image_library::image_count() const
-{
-    return m_images.size();
+    return count;
 }
 
 bool image_library::loaded() const
 {
     return m_loaded;
+}
+
+void image_library::add_folder(folder *f)
+{
+    m_base_folders.emplace_back(f);
+}
+
+void image_library::get_images(std::vector<const image *> &imgv)
+{
+    for (const auto& folder : m_base_folders)
+        folder->get_files(imgv);
 }
 
 namespace library {

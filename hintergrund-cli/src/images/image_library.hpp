@@ -26,21 +26,22 @@
 
 class image_library
 {
-    std::vector<folder> m_base_folders;
+    std::vector<std::unique_ptr<folder>> m_base_folders;
     json_int_t m_sequential_current;
     bool m_loaded;
+
 public:
     image_library();
 
     bool write_to_config(json_t* config, json_error_t* error);
     bool read_from_config(json_t *config, json_error_t *error);
 
+    void add_folder(folder* f);
     bool valid_file_type(const char* file_name);
-    bool add_image(const char* file_name, std::deque<const tag*>& folder_tags);
-    bool add_image(const char* file_naem, std::deque<const tag*>& folder_tags, std::deque<const tag*> add_tags);
-
-    int image_count() const;
+    size_t image_count() const;
     bool loaded() const;
+
+    void get_images(std::vector<const image*>& imgv);
 };
 
 /* HEEEEEY, this is library */

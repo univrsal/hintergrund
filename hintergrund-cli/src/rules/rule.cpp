@@ -89,12 +89,10 @@ bool rule::read_from_config(json_t* config, json_error_t* error)
         size_t index;
         json_t* value = nullptr;
         json_array_foreach(tag_array, index, value) {
-            if (value) {
-                auto* new_tag = new tag();
-                result = new_tag->read_from_config(value, error);
-                if (!result)
-                    break;
-            }
+            auto* new_tag = new tag();
+            result = new_tag->read_from_config(value, error);
+            if (!result)
+                break;
         }
     }
     return result;

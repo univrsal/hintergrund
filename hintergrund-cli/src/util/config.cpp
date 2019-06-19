@@ -105,10 +105,8 @@ namespace config {
                 size_t index;
                 json_t* value;
                 json_array_foreach(file_type_array, index, value) {
-                    if (value) {
-                        debug("%s ", json_string_value(value));
-                        values.file_types.emplace_back(strdup(json_string_value(value)));
-                    }
+                    debug("%s ", json_string_value(value));
+                    values.file_types.emplace_back(strdup(json_string_value(value)));
                 }
                 util::log("\n");
 

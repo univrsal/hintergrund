@@ -24,10 +24,12 @@ namespace hintergrund_cli {
     bool shuffle(int* return_value)
     {
         *return_value = config::SUCCESS;
-        auto* images = config::values.library->images();
-        if (images->size() > 0) {
-            const image* img = select_randomly(images->begin(), images->end())->get();
-            printf("%s", img->path()); /* Don't use debug since these should be printed in silent mode */
+        std::vector<const image*> images;
+        config::values.library->get_images(images);
+
+        if (images.size() > 0) {
+            auto img = select_randomly(images.begin(), images.end());
+            printf("%s", (*img.base())->path()); /* Don't use debug since these should be printed in silent mode */
         } else {
             printf("No images to shuffle\n");
             *return_value = config::SHUFFLE_FAILED;

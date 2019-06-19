@@ -21,12 +21,20 @@
 #include <jansson.h>
 #include <dirent.h>
 
+#define KEY_FOLDER_IMAGE_FILE_ARRAY	"image_files"
+#define KEY_FOLDER_SUB_FOLDER_ARRAY	"sub_folders"
+#define KEY_FOLDER_PATH				"path"
+
 class tag;
+class folder;
+
+typedef std::vector<std::unique_ptr<folder>> folder_list;
+typedef std::vector<std::unique_ptr<image>>	image_list;
 
 class folder
 {
-    std::vector<std::unique_ptr<folder>> m_sub_folders;
-    std::vector<std::unique_ptr<image>> m_image_files;
+    folder_list m_sub_folders;
+    image_list m_image_files;
     char* m_path;
 public:
     folder();
@@ -36,7 +44,13 @@ public:
     bool write_to_config(json_t* cfg, json_error_t* error) const;
     bool read_from_config(json_t* cfg, json_error_t* error);
 
-    void iterate_contents(std::deque<const tag*> current_tags, DIR* d, int depth);
+    void iterate_contents(std::deque<const tag*>& current_tags, DIR* d, int depth);
+
+    image_list& images();
+    folder_list& folders();
+
+    size_t get_file_count() const;
+    void get_files(std::vector<const image*>& imgv);
 
     static folder* create_from_path(const char* path);
 };

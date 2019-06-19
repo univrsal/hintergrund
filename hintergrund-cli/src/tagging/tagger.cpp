@@ -89,102 +89,14 @@ int tagger::tag_string(const char *str, std::deque<const tag*>& current_tags)
     return new_tags;
 }
 
-void tagger::iterate_folder(DIR *d, int depth, std::deque<const tag*>& current_tags)
-{
-    if (!d)
-        return;
-    if (depth >= config::values.max_folder_depth) {
-        printf("Folder depth exceeded maximum of %i\n", config::values.max_folder_depth);
-        return;
-    }
-    struct dirent *entry;
-
-    while ((entry = readdir(d))) {
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
-            continue;
-
-        if (entry->d_type == DT_DIR) {
-
-            DIR* temp = opendir(entry->d_name);
-            if (temp) {
-                /* Extract tags from folder name and adds it to the stack */
-                int new_tags = tag_string(entry->d_name, current_tags);
-                m_new_tag_counter += new_tags;
-                chdir(entry->d_name); /* Go into folder */
-                iterate_folder(temp, ++depth, current_tags);
-                closedir(temp);
-                chdir(".."); /* Go back out of folder */
-
-                for (int i = 0; i < new_tags; i++) /* Remove previously added tags */
-                    current_tags.pop_front();
-            } else {
-                debug("Error opening \"%s\"\n", entry->d_name);
-            }
-        } else {
-            if (config::values.library->valid_file_type(entry->d_name)) {
-                int new_tags = 0;
-                if (config::values.tag_image_names) {
-                    /* Separate file name by commas and put results into tags */
-                    new_tags = tag_string(entry->d_name, current_tags);
-                }
-
-                if (config::values.library->add_image(entry->d_name, current_tags))
-                    m_img_counter++;
-                for (int i = 0; i < new_tags; i++) /* Remove previouslytags */
-                    current_tags.pop_front();
-            }
-        }
-    }
-}
-
 bool tagger::auto_tag(const char *root_folder)
 {
-    m_img_counter = 0;
-    m_new_tag_counter = 0;
-    bool result = true;
-    char cwd[2049]; /* current working directory */
-    if (!getcwd(cwd, 2049)) {
-        debug("Error getting current working directory\n");
-        return false;
+    folder* new_folder = folder::create_from_path(root_folder);
+    if (new_folder) {
+        config::values.library->add_folder(new_folder);
+        return true;
     }
-    std::deque<const tag*> temp_tags;
-    chdir(root_folder); /* Start in root folder and then work through folder tree */
-
-    DIR *dp = opendir(root_folder);
-    if (!dp) {
-        debug("Couldn't open root folder\n");
-        return false;
-    }
-
-    iterate_folder(dp, 0, temp_tags);
-    closedir(dp);
-    chdir(cwd); /* Revert to original working directory */
-
-    debug("Successfully tagged %i new images with %i new tags\n",
-          m_img_counter, m_new_tag_counter);
-
-    /* Now write newly indexed library */
-    json_error_t error;
-    json_t* library_object = json_object();
-
-    result = config::values.library->write_to_config(library_object, &error);
-    if (!result || json_dump_file(library_object, config::values.library_path, 0) < 0) {
-        debug("Error while writing library to json\n");
-    } else {
-        /* And now write the tags */
-        json_t* tag_array = json_array();
-        result = config::values.tag_manager->write_to_config(tag_array, &error);
-        if (!result || json_dump_file(tag_array, config::values.tag_path, 0) < 0) {
-            debug("Error while writing tag array to json\n");
-        }
-
-        json_decref(tag_array);
-    }
-
-    json_decref(library_object);
-
-
-    return result;
+    return false;
 }
 
 const tag* tagger::get_tag_for_str(const char *string)
@@ -255,6 +167,7 @@ const std::vector<std::unique_ptr<tag>>& tagger::tags() const
 {
     return m_tags;
 }
+
 namespace tagging {
     bool read_tags(int* return_value)
     {
