@@ -52,6 +52,9 @@ public:
     image_list& images();
     folder_list& folders();
 
+    const image_list& images() const;
+    const folder_list& folders() const;
+
     /* Recursively gets file count within this folder and
      * all subfolders
      */

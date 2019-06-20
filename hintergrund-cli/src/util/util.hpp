@@ -22,7 +22,8 @@
 #ifdef DEBUG
 #ifdef QT_LOGGING
 #include <QMessageLogger>
-#define debug(format, ...) util::logger.info("[%.14s:%03d] " format, FILE_BASENAME, __LINE__ ##__VA_ARGS__)
+/* Don't know of a way to get the short file name for source files as a macro in qt creator */
+#define debug(format, ...) util::logger.info("[%.14s:%03d] " format, __FUNCTION__, __LINE__, ##__VA_ARGS__)
 #else
 #define debug(format, ...) util::log("[%.14s:%03d] " format, FILE_BASENAME, __LINE__, ##__VA_ARGS__)
 #endif /* QT_LOGGING*/

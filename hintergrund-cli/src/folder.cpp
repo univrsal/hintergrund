@@ -215,6 +215,16 @@ image_list& folder::images()
     return m_image_files;
 }
 
+const folder_list& folder::folders() const
+{
+    return m_sub_folders;
+}
+
+const image_list& folder::images() const
+{
+    return m_image_files;
+}
+
 size_t folder::get_file_count() const
 {
     size_t c = m_image_files.size();

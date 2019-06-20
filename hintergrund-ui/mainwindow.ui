@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>981</width>
-    <height>424</height>
+    <width>614</width>
+    <height>459</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,16 +31,6 @@
      </widget>
     </item>
     <item>
-     <widget class="QListView" name="current_folder_list">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-     </widget>
-    </item>
-    <item>
      <widget class="QFrame" name="frame_options">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -56,12 +46,40 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
+        <widget class="QLabel" name="lbl_tags">
+         <property name="text">
+          <string>Labels for selected image</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QListWidget" name="list_tags">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="txt_new_label">
+         <property name="placeholderText">
+          <string>Type name of existing tag</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btn_add_tag">
+         <property name="text">
+          <string>Add New Tag</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btn_remove_selected">
+         <property name="text">
+          <string>Remove Selected</string>
          </property>
         </widget>
        </item>
@@ -75,7 +93,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>981</width>
+     <width>614</width>
      <height>20</height>
     </rect>
    </property>

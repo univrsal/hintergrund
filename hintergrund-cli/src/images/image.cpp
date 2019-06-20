@@ -141,3 +141,39 @@ void image::set_place(const folder *f)
 {
     m_place = f;
 }
+
+const std::vector<const tag*>& image::additional_tags() const
+{
+    return m_additional_tags;
+}
+
+const std::vector<const tag*>& image::folder_tags() const
+{
+    return m_folder_tags;
+}
+
+bool image::add_tag(const tag *t)
+{
+    bool exists = false;
+    for (const auto& tag : m_additional_tags) {
+        if (tag->id() == t->id()) {
+            exists = true;
+            break;
+        }
+    }
+
+    if (!exists) {
+        for (const auto& tag : m_folder_tags) {
+            if (tag->id() == t->id()) {
+                exists = true;
+                break;
+            }
+        }
+    }
+
+    if (exists)
+        debug("Tried to add existing tag \"%s\" to file \"%s\"\n", t->name(), m_name);
+    else
+        m_additional_tags.emplace_back(t);
+    return !exists;
+}

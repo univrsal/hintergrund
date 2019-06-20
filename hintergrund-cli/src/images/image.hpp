@@ -48,4 +48,9 @@ public:
 
     void set_path_tags(const std::deque<const tag*>& pt);
     void set_place(const folder* f);
+
+    const std::vector<const tag*>& additional_tags() const;
+    const std::vector<const tag*>& folder_tags() const;
+
+    bool add_tag(const tag* t);
 };

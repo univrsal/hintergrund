@@ -16,6 +16,11 @@ TEMPLATE = app
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
+DEFINES += QT_LOGGING
+
+debug {
+  DEFINES += DEBUG
+}
 
 # You can also make your code fail to compile if you use deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -27,6 +32,7 @@ CONFIG += c++11
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
+        settings_dialog.cpp \
         tags_dialog.cpp \
         ui_helper.cpp \
         ../hintergrund-cli/src/util/argument_parser.cpp \
@@ -46,9 +52,11 @@ SOURCES += \
         ../hintergrund-cli/src/rules/rule_weekday.cpp \
         ../hintergrund-cli/src/images/image.cpp \
         ../hintergrund-cli/src/images/image_library.cpp \
-        ../hintergrund-cli/src/hintergrund_cli.cpp
+        ../hintergrund-cli/src/hintergrund_cli.cpp \
+        ../hintergrund-cli/src/folder.cpp
 HEADERS += \
         mainwindow.hpp \
+        settings_dialog.hpp \
         tags_dialog.hpp \
         ui_helper.hpp \
         ../hintergrund-cli/src/util/argument_parser.hpp \
@@ -68,9 +76,11 @@ HEADERS += \
         ../hintergrund-cli/src/rules/rule_weekday.hpp \
         ../hintergrund-cli/src/images/image.hpp \
         ../hintergrund-cli/src/images/image_library.hpp \
-        ../hintergrund-cli/src/hintergrund_cli.hpp
+        ../hintergrund-cli/src/hintergrund_cli.hpp \
+        ../hintergrund-cli/src/folder.hpp
 FORMS += \
         mainwindow.ui \
+        settings_dialog.ui \
         tags_dialog.ui
 
 # Default rules for deployment.

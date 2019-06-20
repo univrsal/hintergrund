@@ -19,6 +19,10 @@
 #include "tags_dialog.hpp"
 #include "util/config.hpp"
 #include "util/util.hpp"
+#include "images/image.hpp"
+#include "tagging/tag.hpp"
+#include "tagging/tagger.hpp"
+#include "settings_dialog.hpp"
 #include <QMessageBox>
 #include <QFileDialog>
 
@@ -42,6 +46,7 @@ void MainWindow::on_actionOpen_triggered()
     QString cfg_path =
             QFileDialog::getOpenFileName(this, tr("Select config file"), "~/",
                                                   "JSON (*.json);;All files (*.*)");
+
     if (strlen(config::values.config_path) > 0)
         free((void*) config::values.config_path);
 
@@ -87,14 +92,65 @@ void MainWindow::on_actionQuit_triggered()
     quick_exit(0);
 }
 
-void MainWindow::on_file_tree_itemActivated(QTreeWidgetItem *item, int column)
-{
-    UNUSED_PARAM(item);
-    UNUSED_PARAM(column);
-}
-
 void MainWindow::on_actionView_Tags_triggered()
 {
     auto* dialog = new tags_dialog(this);
     dialog->open();
+}
+
+void MainWindow::on_btn_add_tag_clicked()
+{
+    /* First remove any white spaces, since they're not allowed in tag names */
+    auto text = ui->txt_new_label->text();
+    ui->txt_new_label->setText(text.remove(' '));
+
+    if (!m_selected_image) {
+        QMessageBox::warning(this, "Error", "You must select a file first");
+    } else if (ui->txt_new_label->text().length() < 1) {
+        QMessageBox::warning(this, "Error", "You must provide a tag name");
+    } else {
+        auto* tmp = qPrintable(ui->txt_new_label->text());
+        auto* tag = config::values.tag_manager->get_tag_for_str(tmp);
+        if (tag) {
+            if (m_selected_image->add_tag(tag))
+                ui->list_tags->addItem(QString(tag->name()));
+            else
+                QMessageBox::warning(this, "Error", "Duplicate tags.");
+        } else {
+            QMessageBox::warning(this, "Error", "No existing tag with provided name. You can add new tags via Tools > View Tags");
+        }
+    }
+}
+
+void MainWindow::on_file_tree_itemPressed(QTreeWidgetItem *item, int column)
+{
+    m_selected_image = nullptr;
+    if (item->childCount() < 1) {
+        /* this is a file */
+        auto* f = ui_helper::image_tree_map[item];
+        if (f) {
+            ui->list_tags->clear();
+            for (const auto& tag : f->additional_tags()) {
+                ui->list_tags->addItem(QString(tag->name()));
+            }
+            m_selected_image = f;
+        }
+    }
+
+}
+
+void MainWindow::on_btn_remove_selected_clicked()
+{
+    auto selected = ui->list_tags->selectedItems();
+    if (selected.empty()) {
+        QMessageBox::warning(this, "Error", "No tag slected");
+    } else {
+        ui->list_tags->removeItemWidget(ui->list_tags->selectedItems().first());
+    }
+}
+
+void MainWindow::on_actionSettings_triggered()
+{
+    auto* settings = new settings_dialog(this);
+    settings->show();
 }

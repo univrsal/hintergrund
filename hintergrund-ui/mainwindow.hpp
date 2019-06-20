@@ -20,6 +20,7 @@
 namespace Ui {
 class MainWindow;
 }
+class image;
 
 class MainWindow : public QMainWindow
 {
@@ -38,11 +39,18 @@ private slots:
 
     void on_actionQuit_triggered();
 
-    void on_file_tree_itemActivated(QTreeWidgetItem *item, int column);
-
     void on_actionView_Tags_triggered();
+
+    void on_btn_add_tag_clicked();
+
+    void on_file_tree_itemPressed(QTreeWidgetItem *item, int column);
+
+    void on_btn_remove_selected_clicked();
+
+    void on_actionSettings_triggered();
 
 private:
     Ui::MainWindow *ui;
+    image* m_selected_image;
 };
 

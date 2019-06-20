@@ -26,7 +26,7 @@
 
 class image_library
 {
-    std::vector<std::unique_ptr<folder>> m_base_folders;
+    folder_list m_base_folders;
     json_int_t m_sequential_current;
     bool m_loaded;
 
@@ -42,6 +42,7 @@ public:
     bool loaded() const;
 
     void get_images(std::vector<const image*>& imgv);
+    const folder_list& base_folders() const;
 };
 
 /* HEEEEEY, this is library */

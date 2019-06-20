@@ -75,6 +75,8 @@ bool image_library::read_from_config(json_t *config, json_error_t *error)
             }
         }
     }
+
+    m_loaded = result;
     return result;
 }
 
@@ -119,6 +121,11 @@ void image_library::get_images(std::vector<const image *> &imgv)
 {
     for (const auto& folder : m_base_folders)
         folder->get_files(imgv);
+}
+
+const folder_list& image_library::base_folders() const
+{
+    return m_base_folders;
 }
 
 namespace library {
