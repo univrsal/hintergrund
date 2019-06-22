@@ -1,3 +1,4 @@
+![img](https://i.imgur.com/YzYLvzV.png)
 # hintergrund
 is a wallpaper chooser, which allows for three different ways of choosing a wallpaper
 - Shuffle
