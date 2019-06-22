@@ -171,7 +171,7 @@
        <item>
         <widget class="QLabel" name="lbl_tags">
          <property name="text">
-          <string>Tags for selected image</string>
+          <string>Additional tags for selected image</string>
          </property>
         </widget>
        </item>
@@ -195,14 +195,14 @@
        <item>
         <widget class="QPushButton" name="btn_add_tag">
          <property name="text">
-          <string>Add New Tag</string>
+          <string>Add new tag</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="btn_remove_selected">
          <property name="text">
-          <string>Remove Selected</string>
+          <string>Remove selected</string>
          </property>
         </widget>
        </item>
