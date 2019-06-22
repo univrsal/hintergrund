@@ -50,6 +50,8 @@ private slots:
     void on_actionSettings_triggered();
 
 private:
+    bool load_image(const QString& path);
+
     Ui::MainWindow *ui;
     image* m_selected_image;
 };

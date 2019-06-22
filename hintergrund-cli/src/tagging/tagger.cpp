@@ -28,25 +28,30 @@ tagger::tagger()
 
 const tag* tagger::add_new_tag(const char *name, float weight)
 {
-    bool unique = true;
-    tag* result = nullptr;
+    const tag* result = tag_exists(name);
+
+    if (result) {
+        debug("Duplicate tag name \"%s\". Ignoring...\n", name);
+    } else {
+        tag* new_tag = new tag(name, weight, m_tag_counter++);
+        m_tags.emplace_back(new_tag);
+        result = new_tag;
+        debug("Added new tag %s\n", name); /* Qt's debug call modifies the name string so it's called last */
+    }
+    return result;
+}
+
+const tag* tagger::tag_exists(const char *name) const
+{
+    const tag* result = nullptr;
     for (const auto& tag : m_tags)
     {
         if (strcmp(tag->name(), name) == 0) {
-            debug("Duplicate tag name \"%s\". Ignoring...\n", name);
-            unique = false;
             /* It's not a new tag, but files under this folder should still get this tag */
             result = tag.get();
             break;
         }
     }
-
-    if (unique) {
-        debug("Added new tag %s\n", name);
-        result = new tag(name, weight, m_tag_counter++);
-        m_tags.emplace_back(result);
-    }
-
     return result;
 }
 
@@ -185,6 +190,11 @@ bool tagger::loaded() const
 const std::vector<std::unique_ptr<tag>>& tagger::tags() const
 {
     return m_tags;
+}
+
+void tagger::clear_tags()
+{
+    m_tags.clear();
 }
 
 namespace tagging {

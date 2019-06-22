@@ -15,7 +15,16 @@ public:
     ~tags_dialog();
 
 private slots:
-    void on_tags_table_activated(const QModelIndex &index);
+
+    void on_btn_remove_selected_clicked();
+
+    void on_tags_table_cellClicked(int row, int column);
+
+    void on_btn_save_clicked();
+
+    void on_btn_save_new_clicked();
+
+    void on_buttonBox_accepted();
 
 private:
     Ui::tags_dialog *ui;

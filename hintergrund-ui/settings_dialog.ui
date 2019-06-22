@@ -70,7 +70,11 @@
           <number>2</number>
          </property>
          <item>
-          <widget class="QLineEdit" name="txt_lib_path"/>
+          <widget class="QLineEdit" name="txt_lib_path">
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QPushButton" name="btn_lib_path">
@@ -111,7 +115,11 @@
           <number>2</number>
          </property>
          <item>
-          <widget class="QLineEdit" name="txt_tag_path"/>
+          <widget class="QLineEdit" name="txt_tag_path">
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QPushButton" name="btn_tag_path">
@@ -140,7 +148,7 @@
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_4">
          <property name="spacing">
-          <number>2</number>
+          <number>6</number>
          </property>
          <property name="leftMargin">
           <number>2</number>
@@ -155,7 +163,11 @@
           <number>2</number>
          </property>
          <item>
-          <widget class="QLineEdit" name="txt_rule_path"/>
+          <widget class="QLineEdit" name="txt_rule_path">
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QPushButton" name="btn_rule_path">
@@ -247,7 +259,11 @@
              <number>2</number>
             </property>
             <item>
-             <widget class="QLineEdit" name="txt_file_type"/>
+             <widget class="QLineEdit" name="txt_file_type">
+              <property name="placeholderText">
+               <string>Type filetype here</string>
+              </property>
+             </widget>
             </item>
             <item>
              <widget class="QPushButton" name="btn_add_type">

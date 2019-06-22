@@ -25,6 +25,7 @@
 #include "settings_dialog.hpp"
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QImageReader>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -32,12 +33,34 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     config::init_config();
+    ui->lbl_image->setBackgroundRole(QPalette::Base);
 }
 
 MainWindow::~MainWindow()
 {
     config::close_config();
     delete ui;
+}
+
+bool MainWindow::load_image(const QString &path)
+{
+    QImageReader reader(path);
+    reader.setAutoTransform(true);
+    const QImage newImage = reader.read();
+    if (newImage.isNull()) {
+        QMessageBox::warning(this, "Error", "Couldn't load image file");
+        return false;
+    }
+
+    if (ui->cb_fit->isChecked()) {
+        int w = ui->lbl_image->width();
+        int h = ui->lbl_image->height();
+
+        ui->lbl_image->setPixmap(QPixmap::fromImage(newImage.scaled(w, h, Qt::KeepAspectRatio)));
+    } else {
+        ui->lbl_image->setPixmap(QPixmap::fromImage(newImage));
+    }
+    return true;
 }
 
 void MainWindow::on_actionOpen_triggered()
@@ -68,6 +91,10 @@ void MainWindow::on_actionOpen_triggered()
         break;
     case config::SUCCESS:
         ui_helper::populate_file_tree(ui->file_tree);
+        ui->actionSettings->setEnabled(true);
+        ui->actionRules->setEnabled(true);
+        ui->actionView_Tags->setEnabled(true);
+        ui->actionOpen->setEnabled(false);
         break;
     }
 }
@@ -117,7 +144,7 @@ void MainWindow::on_btn_add_tag_clicked()
             else
                 QMessageBox::warning(this, "Error", "Duplicate tags.");
         } else {
-            QMessageBox::warning(this, "Error", "No existing tag with provided name. You can add new tags via Tools > View Tags");
+            QMessageBox::warning(this, "Error", "No existing tag with provided name. You can add new tags via Tools > Tags");
         }
     }
 }
@@ -129,6 +156,7 @@ void MainWindow::on_file_tree_itemPressed(QTreeWidgetItem *item, int column)
         /* this is a file */
         auto* f = ui_helper::image_tree_map[item];
         if (f) {
+            load_image(f->path());
             ui->list_tags->clear();
             for (const auto& tag : f->additional_tags()) {
                 ui->list_tags->addItem(QString(tag->name()));
