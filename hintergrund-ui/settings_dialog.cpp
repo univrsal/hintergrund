@@ -1,6 +1,8 @@
 #include "settings_dialog.hpp"
 #include "ui_settings_dialog.h"
 #include "util/config.hpp"
+#include <QFileDialog>
+#include <QMessageBox>
 
 settings_dialog::settings_dialog(QWidget *parent) :
     QDialog(parent),
@@ -43,4 +45,58 @@ void settings_dialog::on_settings_dialog_accepted()
         auto* str = qPrintable(ui->list_file_types->item(i)->text());
         config::values.file_types.emplace_back(strdup(str));
     }
+
+    config::values.max_folder_depth = ui->spin_max_folder_depth->value();
+    config::values.tag_image_names = ui->cb_tag_item_names->isChecked();
+}
+
+void settings_dialog::browse_file(QLineEdit* line_edit, const QString& title)
+{
+    line_edit->setText(
+            QFileDialog::getOpenFileName(this, title, "~/",
+                                                  "JSON (*.json);;All files (*.*)"));
+}
+
+void settings_dialog::on_btn_lib_path_clicked()
+{
+    browse_file(ui->txt_lib_path, "Select image library file");
+}
+
+void settings_dialog::on_btn_tag_path_clicked()
+{
+    browse_file(ui->txt_tag_path, "Select tag file");
+}
+
+void settings_dialog::on_btn_rule_path_clicked()
+{
+    browse_file(ui->txt_rule_path, "Select rule file");
+}
+
+void settings_dialog::on_btn_add_type_clicked()
+{
+    if (ui->txt_file_type->text().length() > 0) {
+        bool unique = true;
+        QString new_type = ui->txt_file_type->text();
+        for(int i = 0; i < ui->list_file_types->count(); ++i)
+        {
+            QListWidgetItem* item = ui->list_file_types->item(i);
+            if (new_type == item->text()) {
+                unique = false;
+                break;
+            }
+        }
+
+        if (unique) {
+            ui->list_file_types->addItem(new_type);
+        } else {
+            QMessageBox::warning(this, "Error", "This file type already exists");
+        }
+    }
+}
+
+void settings_dialog::on_btn_remove_selected_clicked()
+{
+    auto* first = ui->list_file_types->selectedItems().first();
+    if (first)
+        ui->list_file_types->removeItemWidget(first);
 }

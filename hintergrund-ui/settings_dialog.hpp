@@ -5,6 +5,7 @@
 namespace Ui {
 class settings_dialog;
 }
+class QLineEdit;
 
 class settings_dialog : public QDialog
 {
@@ -17,7 +18,18 @@ public:
 private slots:
     void on_settings_dialog_accepted();
 
+    void on_btn_lib_path_clicked();
+
+    void on_btn_tag_path_clicked();
+
+    void on_btn_rule_path_clicked();
+
+    void on_btn_add_type_clicked();
+
+    void on_btn_remove_selected_clicked();
+
 private:
+    void browse_file(QLineEdit* le, const QString& title);
     Ui::settings_dialog *ui;
 };
 
