@@ -12,7 +12,7 @@ settings_dialog::settings_dialog(QWidget *parent) :
     ui->txt_lib_path->setText(config::values.library_path);
     ui->txt_tag_path->setText(config::values.tag_path);
     ui->txt_rule_path->setText(config::values.rule_path);
-
+    ui->list_file_types->clear();
     for (const auto& type : config::values.file_types)
         ui->list_file_types->addItem(type);
 }
