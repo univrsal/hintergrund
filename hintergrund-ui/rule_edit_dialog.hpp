@@ -16,6 +16,8 @@ public:
     ~rule_edit_dialog();
 
     void select_rule_tab(rule_type type);
+
+    void load_rule(const rule* r);
 private slots:
     void on_rb_check_string_toggled(bool checked);
 
