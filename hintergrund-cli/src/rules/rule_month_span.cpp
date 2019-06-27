@@ -110,3 +110,33 @@ bool rule_month_span::read_from_config(json_t* config, json_error_t* error)
 
     return result;
 }
+
+const date_t* rule_month_span::begin() const
+{
+    return &m_start;
+}
+
+const date_t* rule_month_span::end() const
+{
+    return &m_end;
+}
+
+bool rule_month_span::is_span() const
+{
+    return m_is_span;
+}
+
+void rule_month_span::set_begin(const date_t &d)
+{
+    m_start = d;
+}
+
+void rule_month_span::set_end(const date_t &d)
+{
+    m_end = d;
+}
+
+void rule_month_span::set_is_span(bool b)
+{
+    m_is_span = b;
+}

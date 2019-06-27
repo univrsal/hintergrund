@@ -32,4 +32,21 @@ public:
     bool read_from_config(json_t* config, json_error_t* error) override;
 
     bool evaluate() override;
+    const char* file_path() const;
+
+    void set_file_path(const char* p);
+
+#ifdef HINTERGRUND_UI
+    void to_string(QString &str) override
+    {
+        str += "File rule | Checks for ";
+        if (m_io_type == IO_STRING) {
+            str += m_str_target;
+        } else {
+            str += "a number ";
+            str += comp_to_str(m_comp_type);
+            str += " " + QString::number(m_int_target);
+        }
+    }
+#endif
 };

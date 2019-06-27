@@ -97,3 +97,8 @@ bool rule::read_from_config(json_t* config, json_error_t* error)
     }
     return result;
 }
+
+rule_type rule::type() const
+{
+    return m_type;
+}

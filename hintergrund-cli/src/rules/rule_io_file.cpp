@@ -38,7 +38,7 @@ rule_io_file::rule_io_file(const char* file_path, const char* target, compare_ty
 
 rule_io_file::~rule_io_file()
 {
-    delete m_file_path;
+    free((void*)m_file_path);
 }
 
 bool rule_io_file::write_to_config(json_t *config, json_error_t *error)
@@ -95,4 +95,15 @@ bool rule_io_file::evaluate()
         }
     }
     return result;
+}
+
+const char* rule_io_file::file_path() const
+{
+    return m_file_path;
+}
+
+void rule_io_file::set_file_path(const char *p)
+{
+    free((void*) m_file_path);
+    m_file_path = strdup(p);
 }

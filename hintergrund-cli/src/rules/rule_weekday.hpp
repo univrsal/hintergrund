@@ -44,5 +44,48 @@ public:
     bool read_from_config(json_t* config, json_error_t* error) override;
 
     bool evaluate() override;
+
+    weekday begin() const;
+    weekday end() const;
+    bool is_span() const;
+
+    void set_is_span(bool b);
+    void set_begin(weekday wd);
+    void set_end(weekday wd);
+
+    inline const char* weekday_to_str(weekday wd)
+    {
+        switch (wd) {
+        case SUNDAY:
+            return "Sunday";
+        case MONDAY:
+            return "Monday";
+        case TUESDAY:
+            return "Tuesday";
+        case WEDNESDAY:
+            return "Wednesday";
+        case THURSDAY:
+            return "Thursday";
+        case FRIDAY:
+            return "Friday";
+        case SATURDAY:
+            return "Saturday";
+        }
+    }
+
+#ifdef HINTERGRUND_UI
+    void to_string(QString& str) override
+    {
+        str += "Weekday rule | ";
+        if (m_is_span)
+            str += "Start: ";
+        str += weekday_to_str(m_start);
+
+        if (m_is_span) {
+            str += " End: ";
+            str += weekday_to_str(m_end);
+        }
+    }
+#endif
 };
 

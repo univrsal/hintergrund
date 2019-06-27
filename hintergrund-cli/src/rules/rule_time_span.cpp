@@ -87,3 +87,22 @@ bool rule_time_span::read_from_config(json_t* config, json_error_t* error)
     return result;
 }
 
+const moment_t* rule_time_span::begin() const
+{
+    return &m_begin;
+}
+
+const moment_t* rule_time_span::end() const
+{
+    return &m_end;
+}
+
+void rule_time_span::set_begin(const moment_t &m)
+{
+    m_begin = m;
+}
+
+void rule_time_span::set_end(const moment_t &m)
+{
+    m_end = m;
+}

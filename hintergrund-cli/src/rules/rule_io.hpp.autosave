@@ -97,18 +97,5 @@ public:
     void set_str_target(const char* str);
     void set_int_target(int i);
 
-#ifdef HINTERGRUND_UI
-    void to_string(QString &str) override
-    {
-        str += "File rule | Checks for ";
-        if (m_io_type == IO_STRING) {
-            str += m_str_target;
-        } else {
-            str += "a number ";
-            str += comp_to_str(m_comp_type);
-            str += " " + QString::number(m_int_target);
-        }
-    }
-#endif
 };
 

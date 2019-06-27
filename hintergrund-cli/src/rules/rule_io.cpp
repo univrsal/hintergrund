@@ -108,5 +108,47 @@ bool rule_io::read_from_config(json_t *config, json_error_t *error)
 
 rule_io::~rule_io()
 {
-    delete m_str_target;
+    free((void*)m_str_target);
+    m_str_target = nullptr;
+}
+
+compare_type rule_io::comp_type() const
+{
+    return m_comp_type;
+}
+
+io_type rule_io::target() const
+{
+    return m_io_type;
+}
+
+const char* rule_io::str_target() const
+{
+    return m_str_target;
+}
+
+int rule_io::int_target() const
+{
+    return m_int_target;
+}
+
+void rule_io::set_target(io_type t)
+{
+    m_io_type = t;
+}
+
+void rule_io::set_comp_type(compare_type t)
+{
+    m_comp_type = t;
+}
+
+void rule_io::set_int_target(int i)
+{
+    m_int_target = i;
+}
+
+void rule_io::set_str_target(const char *str)
+{
+    free((void*) m_str_target);
+    m_str_target = strdup(str);
 }

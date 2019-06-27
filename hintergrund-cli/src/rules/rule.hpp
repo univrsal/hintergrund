@@ -4,6 +4,10 @@
 #include <string>
 #include <jansson.h>
 
+#ifdef HINTERGRUND_UI
+#include <QString>
+#endif
+
 /* JSON keys */
 #define KEY_RULE_PRIORITY    "priority"
 #define KEY_RULE_TYPE        "type"
@@ -13,12 +17,13 @@
 class tag;
 
 enum rule_type {
-    RULE_DATE,
     RULE_TIME,
     RULE_WEEKDAY,
+    RULE_DATE,
     RULE_MONTH,
     RULE_IO_FILE,
-    RULE_IO_STDIN
+    RULE_IO_STDIN,
+    RULE_COUNT
 };
 
 /* Rules determine which image tags
@@ -32,6 +37,10 @@ class rule
 public:
     rule(rule_type t);
 
+#ifdef HINTERGRUND_UI
+    virtual void to_string(QString& str) = 0;
+#endif
+
     /* Does this rule currently apply? */
     virtual bool evaluate() = 0;
 
@@ -44,6 +53,8 @@ public:
 
     /* Higher priority rules overtake lower ranked ones */
     int priority();
+
+    rule_type type() const;
 
     /* For sorting by priority */
     bool operator<(const rule& other)

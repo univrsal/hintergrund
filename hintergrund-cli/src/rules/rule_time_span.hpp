@@ -34,5 +34,21 @@ public:
     /* Encode/Decode this rule to the config file */
     bool write_to_config(json_t* config, json_error_t* error) override;
     bool read_from_config(json_t* config, json_error_t* error) override;
-};
 
+    const moment_t* begin() const;
+    const moment_t* end() const;
+
+    void set_begin(const moment_t& m);
+    void set_end(const moment_t& m);
+
+#ifdef HINTERGRUND_UI
+    void to_string(QString& str) override
+    {
+        str += "Time rule | Start: ";
+        str += QString::number(m_begin.hour).rightJustified(2, '0') + ":"
+                + QString::number(m_begin.minute).rightJustified(2, '0');
+        str += " - " + QString::number(m_end.hour).rightJustified(2, '0')
+                + ":" + QString::number(m_end.minute).rightJustified(2, '0');
+    }
+#endif
+};

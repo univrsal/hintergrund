@@ -82,3 +82,33 @@ bool rule_weekday::read_from_config(json_t *config, json_error_t *error)
 
     return result;
 }
+
+weekday rule_weekday::begin() const
+{
+    return m_start;
+}
+
+weekday rule_weekday::end() const
+{
+    return m_end;
+}
+
+bool rule_weekday::is_span() const
+{
+    return m_is_span;
+}
+
+void rule_weekday::set_begin(weekday wd)
+{
+    m_start = wd;
+}
+
+void rule_weekday::set_end(weekday wd)
+{
+    m_end = wd;
+}
+
+void rule_weekday::set_is_span(bool b)
+{
+    m_is_span = b;
+}

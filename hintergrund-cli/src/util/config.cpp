@@ -70,6 +70,11 @@ namespace config {
 
     bool read_config(int* return_value)
     {
+        /* Delete predefined filetypes, otherwise vector contains duplicates */
+        for (auto file_type : values.file_types)
+            free((void*) file_type);
+        values.file_types.clear();
+
         *return_value = SUCCESS;
         json_error_t error;
 

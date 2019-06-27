@@ -27,4 +27,18 @@ public:
     rule_io_stdin(const char* target);
 
     bool evaluate() override;
+
+#ifdef HINTERGRUND_UI
+    void to_string(QString &str) override
+    {
+        str += "Stdin rule | Checks for ";
+        if (m_io_type == IO_STRING) {
+            str += m_str_target;
+        } else {
+            str += "a number ";
+            str += comp_to_str(m_comp_type);
+            str += " " + QString::number(m_int_target);
+        }
+    }
+#endif
 };

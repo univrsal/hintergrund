@@ -35,5 +35,31 @@ public:
     bool read_from_config(json_t* config, json_error_t* error) override;
 
     bool evaluate() override;
+
+    const date_t* begin() const;
+    const date_t* end() const;
+    bool is_span() const;
+
+    void set_begin(const date_t& begin);
+    void set_end(const date_t& end);
+    void set_is_span(bool b);
+
+#ifdef HINTERGRUND_UI
+    void to_string(QString& str) override
+    {
+        str += "Date rule | ";
+
+        if (m_is_span)
+            str += "Start: ";
+        str += month_to_str(m_start.month);
+        str += " " + QString::number(m_start.day) + day_postfix(m_start.day);
+
+        if (m_is_span) {
+            str += " End: ";
+            str += month_to_str(m_end.month);
+            str += " " + QString::number(m_end.day) + day_postfix(m_end.day);
+        }
+    }
+#endif
 };
 
