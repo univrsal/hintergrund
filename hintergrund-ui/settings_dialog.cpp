@@ -8,6 +8,7 @@ settings_dialog::settings_dialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::settings_dialog)
 {
+    setAttribute(Qt::WA_DeleteOnClose);
     ui->setupUi(this);
     ui->cb_tag_item_names->setChecked(config::values.tag_image_names);
     ui->spin_max_folder_depth->setValue(config::values.max_folder_depth);
@@ -96,7 +97,22 @@ void settings_dialog::on_btn_add_type_clicked()
 
 void settings_dialog::on_btn_remove_selected_clicked()
 {
+    if (ui->list_file_types->count())
+        return;
     auto* first = ui->list_file_types->selectedItems().first();
-    if (first)
-        ui->list_file_types->removeItemWidget(first);
+    if (first) {
+        int row = ui->list_file_types->row(first);
+        delete ui->list_file_types->takeItem(row);
+    }
+}
+
+void settings_dialog::on_buttonBox_accepted()
+{
+    /* Todo: save settings */
+    close();
+}
+
+void settings_dialog::on_buttonBox_rejected()
+{
+    close();
 }

@@ -28,6 +28,10 @@ private slots:
 
     void on_btn_remove_selected_clicked();
 
+    void on_buttonBox_accepted();
+
+    void on_buttonBox_rejected();
+
 private:
     void browse_file(QLineEdit* le, const QString& title);
     Ui::settings_dialog *ui;

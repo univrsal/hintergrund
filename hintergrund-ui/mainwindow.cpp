@@ -23,6 +23,7 @@
 #include "tagging/tag.hpp"
 #include "tagging/tagger.hpp"
 #include "settings_dialog.hpp"
+#include "rules_dialog.hpp"
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QImageReader>
@@ -164,7 +165,6 @@ void MainWindow::on_file_tree_itemPressed(QTreeWidgetItem *item, int column)
             m_selected_image = f;
         }
     }
-
 }
 
 void MainWindow::on_btn_remove_selected_clicked()
@@ -181,4 +181,10 @@ void MainWindow::on_actionSettings_triggered()
 {
     auto* settings = new settings_dialog(this);
     settings->show();
+}
+
+void MainWindow::on_actionRules_triggered()
+{
+    auto* rules = new rules_dialog(this);
+    rules->show();
 }

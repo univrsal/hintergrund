@@ -11,7 +11,7 @@ tags_dialog::tags_dialog(QWidget *parent) :
     ui(new Ui::tags_dialog)
 {
     ui->setupUi(this);
-
+    setAttribute(Qt::WA_DeleteOnClose);
     ui->tags_table->setRowCount(config::values.tag_manager->tag_count());
     ui->tags_table->setColumnCount(2);
     int row = 0;
@@ -94,4 +94,5 @@ void tags_dialog::on_buttonBox_accepted()
         auto* name = qPrintable(name_qstr);
         tag_mgr->add_new_tag(name, weight);
     }
+    close();
 }

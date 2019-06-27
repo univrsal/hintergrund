@@ -49,6 +49,8 @@ private slots:
 
     void on_actionSettings_triggered();
 
+    void on_actionRules_triggered();
+
 private:
     bool load_image(const QString& path);
 

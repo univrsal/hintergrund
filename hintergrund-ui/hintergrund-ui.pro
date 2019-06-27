@@ -32,6 +32,8 @@ CONFIG += c++11
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
+        rule_edit_dialog.cpp \
+        rules_dialog.cpp \
         settings_dialog.cpp \
         tags_dialog.cpp \
         ui_helper.cpp \
@@ -56,6 +58,8 @@ SOURCES += \
         ../hintergrund-cli/src/folder.cpp
 HEADERS += \
         mainwindow.hpp \
+        rule_edit_dialog.hpp \
+        rules_dialog.hpp \
         settings_dialog.hpp \
         tags_dialog.hpp \
         ui_helper.hpp \
@@ -80,6 +84,8 @@ HEADERS += \
         ../hintergrund-cli/src/folder.hpp
 FORMS += \
         mainwindow.ui \
+        rule_edit_dialog.ui \
+        rules_dialog.ui \
         settings_dialog.ui \
         tags_dialog.ui
 
