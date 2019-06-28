@@ -67,6 +67,20 @@
           </widget>
          </item>
          <item>
+          <widget class="QPushButton" name="btn_edit">
+           <property name="text">
+            <string>Modify selected</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_add_new">
+           <property name="text">
+            <string>Add new</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QComboBox" name="cb_new_type">
            <item>
             <property name="text">
@@ -98,13 +112,6 @@
              <string>Stdin Rule</string>
             </property>
            </item>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="btn_add_new">
-           <property name="text">
-            <string>Add new</string>
-           </property>
           </widget>
          </item>
          <item>

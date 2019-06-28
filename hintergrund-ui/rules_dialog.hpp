@@ -1,10 +1,13 @@
 #pragma once
 
 #include <QDialog>
+#include <QMap>
 
 namespace Ui {
 class rules_dialog;
 }
+
+class rule;
 
 class rules_dialog : public QDialog
 {
@@ -23,7 +26,10 @@ private slots:
 
     void on_btn_add_new_clicked();
 
+    void on_btn_edit_clicked();
+
 private:
     Ui::rules_dialog *ui;
+    QMap<int, rule*> m_rule_map;
 };
 

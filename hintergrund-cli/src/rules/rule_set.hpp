@@ -20,10 +20,12 @@
 
 #define KEY_RULE_ARRAY      "rules"
 
+typedef	std::vector<std::unique_ptr<rule>> rule_list;
+
 /* List of all active rules */
 class rule_set
 {
-    std::vector<std::unique_ptr<rule>> m_rules;
+    rule_list m_rules;
     bool m_loaded;
 public:
     rule_set();
@@ -35,6 +37,9 @@ public:
 
     int rule_count() const;
     bool loaded() const;
+
+    const rule_list& rules() const;
+    rule_list& rules();
 };
 
 namespace rules {

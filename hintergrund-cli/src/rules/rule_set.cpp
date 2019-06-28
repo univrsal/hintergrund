@@ -187,3 +187,13 @@ namespace rules {
          return false;
      }
 }
+
+const rule_list& rule_set::rules() const
+{
+    return m_rules;
+}
+
+rule_list& rule_set::rules()
+{
+    return m_rules;
+}
