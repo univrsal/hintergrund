@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Rule editor</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../logo.512.png</normaloff>../logo.512.png</iconset>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QTabWidget" name="tabs_rule_types">

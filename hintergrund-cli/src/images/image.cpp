@@ -1,4 +1,4 @@
-/* image.cpp created on 2019.6.6
+﻿/* image.cpp created on 2019.6.6
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,20 +59,30 @@ bool image::read_from_config(json_t *config, json_error_t *error)
     const char* tmp_path = nullptr;
     json_t* tag_array = nullptr;
 
-    if (json_unpack_ex(config, error, 0, "{ssso}",
-                       KEY_IMAGE_NAME, &tmp_path,
-                       KEY_IMAGE_TAGS, &tag_array) < 0) {
+    if (json_unpack_ex(config, error, 0, "{ss}",
+                       KEY_IMAGE_NAME, &tmp_path)) {
         debug("Error unpacking tag body\n");
     } else {
+        tag_array = json_object_get(config, KEY_IMAGE_TAGS);
+
         m_name = strdup(tmp_path);
-        size_t index;
-        json_t* value;
-        const tag* tmp_tag;
-        json_array_foreach(tag_array, index, value) {
-            tmp_tag = config::values.tag_manager->
+        /* An image object will only have a tag array object
+         * if the image was tagged with additional tags
+         */
+        if (tag_array) {
+            size_t index;
+            json_t* value;
+            const tag* tmp_tag;
+            json_array_foreach(tag_array, index, value) {
+                tmp_tag = config::values.tag_manager->
                       get_tag_for_str(json_string_value(value));
-            if (tmp_tag)
-                m_additional_tags.emplace_back(tmp_tag);
+
+                if (tmp_tag)
+                    m_additional_tags.emplace_back(tmp_tag);
+                else
+                    util::log("Couldn't find tag \"%s\" for image file \"%s\"\n",
+                              json_string_value(value), tmp_tag);
+            }
         }
     }
 
@@ -82,29 +92,33 @@ bool image::read_from_config(json_t *config, json_error_t *error)
 bool image::write_to_config(json_t *config, json_error_t *error) const
 {
     bool result = true;
-    json_t* tag_array = json_array();
+    json_t* tag_array = nullptr;
+    json_t* image_json = json_pack_ex(error, 0, "{ss}",
+                      KEY_IMAGE_NAME, m_name);
+    if (image_json) {
+        if (m_additional_tags.size() > 0) {
+            /* Do not write the tag array if it would be empty */
+            tag_array = json_array();
+            for (const auto& tag : m_additional_tags) {
+                if (json_array_append_new(tag_array, json_string(tag->name()))) {
+                    debug("Error writing tag \"%s\" to json\n", tag->name());
+                    result = false;
+                    break;
+                }
+            }
 
-    if (tag_array) {
-        for (const auto& tag : m_additional_tags) {
-            if (json_array_append_new(tag_array, json_string(tag->name()))) {
-                debug("Error writing tag \"%s\" to json\n", tag->name());
+            if (result && json_object_set_new(image_json, KEY_IMAGE_TAGS, tag_array) < 0) {
+                debug("Error writing tag array to json\n");
                 result = false;
-                break;
             }
         }
-        json_t* image_json = json_pack_ex(error, 0, "{ssso}",
-                                          KEY_IMAGE_NAME, m_name,
-                                          KEY_IMAGE_TAGS, tag_array);
-        if (image_json) {
-            json_array_append_new(config, image_json);
-        } else {
-             debug("Error while packing image json\n");
-        }
     } else {
-        debug("Error creating image tag array\n");
         result = false;
+        debug("Error while packing image json\n");
     }
 
+    if (result)
+        json_array_append_new(config, image_json);
     return result;
 }
 

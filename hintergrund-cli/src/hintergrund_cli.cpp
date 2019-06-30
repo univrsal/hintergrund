@@ -42,12 +42,14 @@ namespace hintergrund_cli {
     bool sequential(int* return_value)
     {
         *return_value = config::SUCCESS;
+        /* TODO: implement */
         return true;
     }
 
     bool controlled_shuffle(int* return_value)
     {
         *return_value = config::SUCCESS;
+        /* TODO: implement */
         return true;
     }
 

@@ -52,6 +52,9 @@ private slots:
     void on_actionRules_triggered();
 
 private:
+
+    void fit_to_window();
+
     bool load_image(const QString& path);
 
     Ui::MainWindow *ui;

@@ -60,11 +60,7 @@ namespace arguments {
     bool print_help(int* return_val)
     {
         UNUSED_PARAM(return_val);
-        print_version(nullptr);
-        util::log("License GPLv2+: GNU GPL version 2 or later <http://www.gnu.org/licenses/>.\n"
-                  "This is free software: you are free to change and redistribute it.\n"
-                  "There is NO WARRANTY, to the extent permitted by law.\n\n"
-                  "Arguments are processed in order, e.g. if auto tagging should watch\n"
+        util::log("Arguments are processed in order, e.g. if auto tagging should watch\n"
                   "for duplicate images provide the -d flag before -a\n\n");
 
         for (const auto& arg : args)
@@ -78,9 +74,12 @@ namespace arguments {
         UNUSED_PARAM(return_val);
         util::log("hintergrund-cli v%s"
 #ifdef DEBUG
-                "-debug"
+                  "-debug"
 #endif
-                " build on %s\n  github.com/univrsal\n", VERSION, TIMESTAMP);
+                  " build on %s\n  github.com/univrsal\n", VERSION, TIMESTAMP);
+        util::log("\nLicense GPLv2+: GNU GPL version 2 or later <http://www.gnu.org/licenses/>.\n"
+                  "This is free software: you are free to change and redistribute it.\n"
+                  "There is NO WARRANTY, to the extent permitted by law.\n");
         return true;
     }
 

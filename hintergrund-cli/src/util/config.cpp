@@ -70,16 +70,16 @@ namespace config {
 
     bool read_config(int* return_value)
     {
-        /* Delete predefined filetypes, otherwise vector contains duplicates */
-        for (auto file_type : values.file_types)
-            free((void*) file_type);
-        values.file_types.clear();
-
         *return_value = SUCCESS;
         json_error_t error;
 
         auto* cfg_json = json_load_file(values.config_path, 0, &error);
         if (cfg_json) {
+            /* Delete predefined filetypes, otherwise vector contains duplicates */
+            for (auto file_type : values.file_types)
+                free((void*) file_type);
+            values.file_types.clear();
+
             /* Start loading */
             const char* tmp_rule, *tmp_lib, *tmp_tag;
             json_t* file_type_array;
@@ -147,8 +147,8 @@ namespace config {
                     debug("Successfully created default config file\n");
                 } else {
                     debug("Can't create new config file without library, tags and rule path\n"
-                           "Make sure they're provided as arguments!\n"
-                           "Also possibly missing rights to write to file\n");
+                          "Make sure they're provided as arguments!\n"
+                          "Also possibly missing rights to write to file\n");
                     *return_value = MISSING_ARG;
                 }
             }

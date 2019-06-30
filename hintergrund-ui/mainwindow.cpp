@@ -35,12 +35,25 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     config::init_config();
     ui->lbl_image->setBackgroundRole(QPalette::Base);
+    ui->lbl_image->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    ui->lbl_image->setScaledContents(true);
+    ui->scrollArea->setBackgroundRole(QPalette::Dark);
+    ui->scrollArea->setVisible(false);
+
 }
 
 MainWindow::~MainWindow()
 {
     config::close_config();
     delete ui;
+}
+
+void MainWindow::fit_to_window()
+{
+    bool fit = ui->cb_fit->isChecked();
+    ui->scrollArea->setWidgetResizable(fit);
+    if (!fit)
+        ui->lbl_image->adjustSize();
 }
 
 bool MainWindow::load_image(const QString &path)
@@ -53,14 +66,27 @@ bool MainWindow::load_image(const QString &path)
         return false;
     }
 
+    fit_to_window();
     if (ui->cb_fit->isChecked()) {
         int w = ui->lbl_image->width();
         int h = ui->lbl_image->height();
-
-        ui->lbl_image->setPixmap(QPixmap::fromImage(newImage.scaled(w, h, Qt::KeepAspectRatio)));
+        ui->lbl_image->setPixmap(QPixmap::fromImage(newImage.scaled(
+                                                        w, h, Qt::KeepAspectRatio)));
     } else {
-        ui->lbl_image->setPixmap(QPixmap::fromImage(newImage));
+         ui->lbl_image->setPixmap(QPixmap::fromImage(newImage));
     }
+    ui->scrollArea->setVisible(true);
+    fit_to_window();
+
+//    if (ui->cb_fit->isChecked()) {
+//        int w = ui->lbl_image->width();
+//        int h = ui->lbl_image->height();
+
+//        ui->lbl_image->setPixmap(QPixmap::fromImage(newImage.scaled(w, h, Qt::KeepAspectRatio)));
+//    } else {
+//        ui->lbl_image->adjustSize();
+//        ui->lbl_image->setPixmap(QPixmap::fromImage(newImage));
+//    }
     return true;
 }
 

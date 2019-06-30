@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Edit tags</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../logo.512.png</normaloff>../logo.512.png</iconset>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QLabel" name="lbl_tag_list">
