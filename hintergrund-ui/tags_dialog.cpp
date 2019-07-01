@@ -77,6 +77,8 @@ void tags_dialog::on_btn_save_new_clicked()
             ui->tags_table->setRowCount(row_count + 1);
             ui->tags_table->setItem(row_count, 0, new QTableWidgetItem(QString::number(weight)));
             ui->tags_table->setItem(row_count, 1, new QTableWidgetItem(name));
+            ui->txt_name_new->clear();
+            ui->slider_weight_new->setValue(100);
         }
     } else {
         QMessageBox::warning(this, "Error", "Invalid tag name");

@@ -35,11 +35,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     config::init_config();
     ui->lbl_image->setBackgroundRole(QPalette::Base);
-    ui->lbl_image->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-    ui->lbl_image->setScaledContents(true);
     ui->scrollArea->setBackgroundRole(QPalette::Dark);
-    ui->scrollArea->setVisible(false);
-
 }
 
 MainWindow::~MainWindow()
@@ -48,12 +44,11 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::fit_to_window()
+void MainWindow::resizeEvent(QResizeEvent* event)
 {
-    bool fit = ui->cb_fit->isChecked();
-    ui->scrollArea->setWidgetResizable(fit);
-    if (!fit)
-        ui->lbl_image->adjustSize();
+    if (ui->cb_fit->isChecked() && m_selected_image) {
+        load_image(m_selected_image_path);
+    }
 }
 
 bool MainWindow::load_image(const QString &path)
@@ -66,27 +61,19 @@ bool MainWindow::load_image(const QString &path)
         return false;
     }
 
-    fit_to_window();
+    ui->scrollArea->setWidgetResizable(!ui->cb_fit->isChecked());
     if (ui->cb_fit->isChecked()) {
-        int w = ui->lbl_image->width();
-        int h = ui->lbl_image->height();
+        int w = ui->scrollArea->width() - 10;
+        int h = ui->scrollArea->height() - 10;
+        ui->lbl_image->resize(w, h);
+        ui->scrollAreaWidgetContents->resize(w, h);
         ui->lbl_image->setPixmap(QPixmap::fromImage(newImage.scaled(
                                                         w, h, Qt::KeepAspectRatio)));
     } else {
          ui->lbl_image->setPixmap(QPixmap::fromImage(newImage));
+         ui->lbl_image->adjustSize();
     }
-    ui->scrollArea->setVisible(true);
-    fit_to_window();
 
-//    if (ui->cb_fit->isChecked()) {
-//        int w = ui->lbl_image->width();
-//        int h = ui->lbl_image->height();
-
-//        ui->lbl_image->setPixmap(QPixmap::fromImage(newImage.scaled(w, h, Qt::KeepAspectRatio)));
-//    } else {
-//        ui->lbl_image->adjustSize();
-//        ui->lbl_image->setPixmap(QPixmap::fromImage(newImage));
-//    }
     return true;
 }
 
@@ -166,10 +153,12 @@ void MainWindow::on_btn_add_tag_clicked()
         auto* tmp = qPrintable(ui->txt_new_label->text());
         auto* tag = config::values.tag_manager->get_tag_for_str(tmp);
         if (tag) {
-            if (m_selected_image->add_tag(tag))
+            if (m_selected_image->add_tag(tag)) {
                 ui->list_tags->addItem(QString(tag->name()));
-            else
+                ui->txt_new_label->clear();
+            } else {
                 QMessageBox::warning(this, "Error", "Duplicate tags.");
+            }
         } else {
             QMessageBox::warning(this, "Error", "No existing tag with provided name. You can add new tags via Tools > Tags");
         }
@@ -183,7 +172,8 @@ void MainWindow::on_file_tree_itemPressed(QTreeWidgetItem *item, int column)
         /* this is a file */
         auto* f = ui_helper::image_tree_map[item];
         if (f) {
-            load_image(f->path());
+            f->path(m_selected_image_path);
+            load_image(m_selected_image_path);
             ui->list_tags->clear();
             for (const auto& tag : f->additional_tags()) {
                 ui->list_tags->addItem(QString(tag->name()));
@@ -213,4 +203,9 @@ void MainWindow::on_actionRules_triggered()
 {
     auto* rules = new rules_dialog(this);
     rules->show();
+}
+
+void MainWindow::on_cb_fit_clicked()
+{
+    load_image(m_selected_image_path);
 }

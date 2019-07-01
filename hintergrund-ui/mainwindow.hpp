@@ -30,7 +30,11 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+protected:
+    void resizeEvent(QResizeEvent* event) override;
+
 private slots:
+
     void on_actionOpen_triggered();
 
     void on_actionAbout_Qt_triggered();
@@ -51,13 +55,13 @@ private slots:
 
     void on_actionRules_triggered();
 
+    void on_cb_fit_clicked();
+
 private:
-
-    void fit_to_window();
-
     bool load_image(const QString& path);
 
     Ui::MainWindow *ui;
     image* m_selected_image;
+    QString m_selected_image_path;
 };
 

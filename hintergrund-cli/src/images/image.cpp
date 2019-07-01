@@ -144,6 +144,28 @@ const char* image::path() const
     return strdup(stream.str().c_str());
 }
 
+#ifdef HINTERGRUND_UI
+void image::path(QString& str) const
+{
+    str.clear();
+    if (m_place) {
+        auto* r = m_place->root();
+        if (r && r->path()) {
+            str += m_place->root()->path();
+            str += "/";
+        }
+    } else {
+        debug("Error: image file has no folder instance\n");
+    }
+
+    for (const auto& tag : m_folder_tags) {
+        str += tag->name();
+        str += "/";
+    }
+    str += m_name;
+}
+#endif
+
 void image::set_path_tags(const std::deque<const tag *> &pt)
 {
     m_folder_tags.clear();

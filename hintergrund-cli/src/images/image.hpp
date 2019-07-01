@@ -19,7 +19,9 @@
 #include <deque>
 #define KEY_IMAGE_NAME  "name"
 #define KEY_IMAGE_TAGS  "tags"
-
+#ifdef HINTERGRUND_UI
+#include <QString>
+#endif
 class tag;
 class folder;
 
@@ -45,7 +47,9 @@ public:
     const char* name() const;
     /* Constructs a full path based on the folder tags. Needs to be free()'d */
     const char* path() const;
-
+#ifdef HINTERGRUND_UI
+    void path(QString& str) const;
+#endif
     void set_path_tags(const std::deque<const tag*>& pt);
     void set_place(const folder* f);
 
