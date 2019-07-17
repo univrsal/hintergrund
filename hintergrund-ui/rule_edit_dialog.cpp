@@ -29,7 +29,8 @@ rule_edit_dialog::rule_edit_dialog(QWidget *parent, rule* edit_target) :
     m_edit_target = edit_target;
     std::vector<const tag*> active_tags;
     edit_target->get_tags(active_tags);
-
+    /* All tags that apply to the rule which is currently begin edited
+     * should be selected in the tag lits */
     for (const auto& tag : config::values.tag_manager->tags())
     {
         auto* new_item = new QListWidgetItem(tag->name());
@@ -63,6 +64,16 @@ void rule_edit_dialog::select_rule_tab(rule_type type)
     ui->tabs_rule_types->setCurrentIndex(type);
 }
 
+inline void date_to_qdate(const date_t* d, QDate& qd)
+{
+    qd.setDate(0, d->month, d->day);
+}
+
+inline void qdate_to_date(const QDate& qd, date_t* d)
+{
+    d->day = qd.day();
+    d->month = static_cast<month_t>(qd.month());
+}
 
 void weekday_to_date(weekday wd, QDate& d)
 {
@@ -116,6 +127,15 @@ void rule_edit_dialog::load_rule(const rule *r)
         }
         break;
     case RULE_DATE:
+        d_span = dynamic_cast<const rule_date_span*>(r);
+        if (!d_span)
+            break;
+        date_to_qdate(d_span->begin(), d);
+        ui->date_begin->setDate(d);
+        if (d_span->is_span()) {
+            date_to_qdate(d_span->end(), d);
+            ui->date_end->setDate(d);
+        }
         break;
     }
 }
