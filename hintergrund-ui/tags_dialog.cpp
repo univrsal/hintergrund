@@ -13,13 +13,15 @@ tags_dialog::tags_dialog(QWidget *parent) :
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose);
     ui->tags_table->setRowCount(config::values.tag_manager->tag_count());
-    ui->tags_table->setColumnCount(2);
+    ui->tags_table->setColumnCount(3);
     int row = 0;
     for (const auto& tag : config::values.tag_manager->tags()) {
         auto* name_item = new QTableWidgetItem(tag->name());
         auto* weight_item = new QTableWidgetItem(QString::number(tag->weight()));
+        auto* custom_item = new QTableWidgetItem(QString::number(tag->type() == tag_custom));
         ui->tags_table->setItem(row, 0, weight_item);
-        ui->tags_table->setItem(row++, 1, name_item);
+        ui->tags_table->setItem(row, 1, custom_item);
+        ui->tags_table->setItem(row++, 2, name_item);
     }
     ui->tags_table->sortByColumn(1, Qt::SortOrder::AscendingOrder);
 }
@@ -36,8 +38,18 @@ void tags_dialog::on_btn_remove_selected_clicked()
 
 void tags_dialog::on_tags_table_cellClicked(int row, int column)
 {
-    auto weight = ui->tags_table->item(row, 0)->text().toFloat() * 100;
-    auto name = ui->tags_table->item(row, 1)->text();
+    auto* w_item = ui->tags_table->item(row, 0);
+    auto* c_item = ui->tags_table->item(row, 1);
+    auto* n_item = ui->tags_table->item(row, 2);
+    if (!w_item || !c_item || !n_item) {
+        QMessageBox::warning(this, "Error", "Invalid table data!");
+        return;
+    }
+    auto weight = w_item->text().toFloat() * 100;
+    auto name = n_item->text();
+    auto custom = c_item->text() == "1";
+    ui->txt_name->setReadOnly(!custom);
+    ui->btn_remove_selected->setEnabled(custom);
     ui->txt_name->setText(name);
     ui->slider_weight->setValue(weight);
 }
@@ -48,13 +60,16 @@ void tags_dialog::on_btn_save_clicked()
     if (selected_row > -1) {
         QString weight = QString::number(ui->slider_weight->value() / 100.f);
         auto* weight_item = ui->tags_table->item(selected_row, 0);
-        auto* name_item = ui->tags_table->item(selected_row, 1);
+        auto* custom_item = ui->tags_table->item(selected_row, 1);
+        auto* name_item = ui->tags_table->item(selected_row, 2);
 
-        if (weight_item && name_item) {
+        if (weight_item && name_item && custom_item) {
             auto name = ui->txt_name->text().remove(' ');
             if (name.length() > 0) {
                 weight_item->setText(weight);
-                name_item->setText(ui->txt_name->text().remove(' '));
+                /* Only allow name change in custom tags */
+                if (custom_item->text() == "1")
+                    name_item->setText(ui->txt_name->text().remove(' '));
             } else {
                 QMessageBox::warning(this, "Error", "Invalid tag name");
             }
@@ -76,7 +91,9 @@ void tags_dialog::on_btn_save_new_clicked()
             int row_count = ui->tags_table->rowCount();
             ui->tags_table->setRowCount(row_count + 1);
             ui->tags_table->setItem(row_count, 0, new QTableWidgetItem(QString::number(weight)));
-            ui->tags_table->setItem(row_count, 1, new QTableWidgetItem(name));
+            /* Custom flag */
+            ui->tags_table->setItem(row_count, 1, new QTableWidgetItem("1"));
+            ui->tags_table->setItem(row_count, 2, new QTableWidgetItem(name));
             ui->txt_name_new->clear();
             ui->slider_weight_new->setValue(100);
         }
@@ -88,13 +105,20 @@ void tags_dialog::on_btn_save_new_clicked()
 void tags_dialog::on_buttonBox_accepted()
 {
     auto* tag_mgr = config::values.tag_manager;
-    tag_mgr->clear_tags();
+
+    for (auto name : m_removed_tags) {
+        auto* tag = config::values.tag_manager->get_tag_for_str(qPrintable(name));
+        if (!tag || tag->type() != tag_custom) continue; /* Invalid custom tag? */
+
+
+    }
 
     for (int row = 0; row < ui->tags_table->rowCount(); row++) {
         auto weight = ui->tags_table->item(row, 0)->text().toFloat();
-        auto name_qstr = ui->tags_table->item(row, 1)->text();
+        auto custom = ui->tags_table->item(row, 1)->text() == "1";
+        auto name_qstr = ui->tags_table->item(row, 2)->text();
         auto* name = qPrintable(name_qstr);
-        tag_mgr->add_new_tag(name, weight);
+        tag_mgr->add_new_tag(name, weight, tag_custom);
     }
     close();
 }

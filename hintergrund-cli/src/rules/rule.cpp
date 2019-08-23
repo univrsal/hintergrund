@@ -15,8 +15,14 @@
  */
 #include "rule.hpp"
 #include "../tagging/tag.hpp"
-#include <sstream>
 #include "../util/util.hpp"
+#include "rule_date_span.hpp"
+#include "rule_io_file.hpp"
+#include "rule_io_stdin.hpp"
+#include "rule_month_span.hpp"
+#include "rule_time_span.hpp"
+#include "rule_weekday.hpp"
+#include <sstream>
 
 rule::rule(rule_type type)
 {
@@ -101,4 +107,23 @@ bool rule::read_from_config(json_t* config, json_error_t* error)
 rule_type rule::type() const
 {
     return m_type;
+}
+
+rule* rule::make(rule_type t)
+{
+    switch (t) {
+    case RULE_DATE:
+        return new rule_date_span;
+    case RULE_TIME:
+        return new rule_time_span;
+    case RULE_MONTH:
+        return new rule_month_span;
+    case RULE_IO_FILE:
+        return new rule_io_file;
+    case RULE_IO_STDIN:
+        return new rule_io_stdin;
+    case RULE_WEEKDAY:
+        return new rule_weekday;
+    }
+    return nullptr;
 }

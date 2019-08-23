@@ -56,5 +56,6 @@ public:
     const std::vector<const tag*>& additional_tags() const;
     const std::vector<const tag*>& folder_tags() const;
 
+    void remove_custom_tag(const tag* t);
     bool add_tag(const tag* t);
 };

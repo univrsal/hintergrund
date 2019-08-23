@@ -14,6 +14,8 @@
  *
  */
 #include "tagger.hpp"
+#include "../folder.hpp"
+#include "../images/image.hpp"
 #include "../util/config.hpp"
 #include "../util/util.hpp"
 #include "../images/image_library.hpp"
@@ -26,14 +28,14 @@ tagger::tagger()
     m_loaded = false;
 }
 
-const tag* tagger::add_new_tag(const char *name, float weight)
+const tag* tagger::add_new_tag(const char *name, float weight, tag_type type)
 {
     const tag* result = tag_exists(name);
 
     if (result) {
         debug("Duplicate tag name \"%s\". Ignoring...\n", name);
     } else {
-        tag* new_tag = new tag(name, weight, m_tag_counter++);
+        tag* new_tag = new tag(name, weight, m_tag_counter++, type);
         m_tags.emplace_back(new_tag);
         result = new_tag;
         debug("Added new tag %s\n", name); /* Qt's debug call modifies the name string so it's called last */
@@ -55,7 +57,7 @@ const tag* tagger::tag_exists(const char *name) const
     return result;
 }
 
-int tagger::tag_string(const char *str, std::deque<const tag*>& current_tags)
+int tagger::tag_string(const char *str, std::deque<const tag*>& current_tags, tag_type t)
 {
     if (!str || strlen(str) <= 0)
         return 0;
@@ -74,7 +76,7 @@ int tagger::tag_string(const char *str, std::deque<const tag*>& current_tags)
 
         memcpy(temp_tag, str + old_it, it - old_it);
         temp_tag[it - old_it] = '\0';
-        auto* new_tag = add_new_tag(temp_tag, 1.f);
+        auto* new_tag = add_new_tag(temp_tag, 1.f, t);
 
         if (new_tag) {
             bool can_add = true;
@@ -195,6 +197,17 @@ const std::vector<std::unique_ptr<tag>>& tagger::tags() const
 void tagger::clear_tags()
 {
     m_tags.clear();
+}
+
+void tagger::remove_custom_tag(const tag *t)
+{
+    if (!t) return;
+    /* Removes the tag from any images that use it */
+    for (auto& folder : config::values.library->base_folders()) {
+        for (auto& image : folder->images()) {
+            image->remove_custom_tag(t);
+        }
+    }
 }
 
 namespace tagging {

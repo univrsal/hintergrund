@@ -48,7 +48,7 @@ public:
      * also pushes each new tag to the stack and returns the
      * amount of newly added tags
      */
-    int tag_string(const char* str, std::deque<const tag*>& current_tags);
+    int tag_string(const char* str, std::deque<const tag*>& current_tags, tag_type t);
     int tag_count() const;
 
     bool write_to_config(json_t *config, json_error_t *error);
@@ -56,12 +56,16 @@ public:
     bool loaded() const;
     bool auto_tag(const char* root_folder);
 
-    const tag* add_new_tag(const char* name, float weight);
+    const tag* add_new_tag(const char* name, float weight, tag_type type);
     const tag* tag_exists(const char* name) const;
     const tag* get_tag_for_str(const char* string);
     const std::vector<std::unique_ptr<tag>>& tags() const;
 
+    /* This will only delete the tag list,
+     * it will not remove the tags from any loaded images
+     */
     void clear_tags();
+    void remove_custom_tag(const tag* t);
 };
 
 namespace tagging {

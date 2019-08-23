@@ -43,6 +43,7 @@ public:
 
     void get_images(std::vector<const image*>& imgv);
     const folder_list& base_folders() const;
+    folder_list& base_folders();
 };
 
 /* HEEEEEY, this is library */

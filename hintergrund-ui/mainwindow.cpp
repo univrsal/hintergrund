@@ -70,8 +70,8 @@ bool MainWindow::load_image(const QString &path)
         ui->lbl_image->setPixmap(QPixmap::fromImage(newImage.scaled(
                                                         w, h, Qt::KeepAspectRatio)));
     } else {
-         ui->lbl_image->setPixmap(QPixmap::fromImage(newImage));
-         ui->lbl_image->adjustSize();
+        ui->lbl_image->setPixmap(QPixmap::fromImage(newImage));
+        ui->lbl_image->adjustSize();
     }
 
     return true;
@@ -108,6 +108,7 @@ void MainWindow::on_actionOpen_triggered()
         ui->actionSettings->setEnabled(true);
         ui->actionRules->setEnabled(true);
         ui->actionView_Tags->setEnabled(true);
+        ui->actionShow_preview->setEnabled(true);
         ui->actionOpen->setEnabled(false);
         break;
     }
@@ -173,7 +174,8 @@ void MainWindow::on_file_tree_itemPressed(QTreeWidgetItem *item, int column)
         auto* f = ui_helper::image_tree_map[item];
         if (f) {
             f->path(m_selected_image_path);
-            load_image(m_selected_image_path);
+            if (ui->actionShow_preview->isChecked())
+                load_image(m_selected_image_path);
             ui->list_tags->clear();
             for (const auto& tag : f->additional_tags()) {
                 ui->list_tags->addItem(QString(tag->name()));
@@ -208,4 +210,9 @@ void MainWindow::on_actionRules_triggered()
 void MainWindow::on_cb_fit_clicked()
 {
     load_image(m_selected_image_path);
+}
+
+void MainWindow::on_actionShow_preview_triggered(bool checked)
+{
+    ui->lbl_image->setVisible(checked);
 }

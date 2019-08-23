@@ -23,8 +23,10 @@ tag::tag()
     m_weight = 1.f;
     m_tag_id = 0;
 }
-tag::tag(const char* name, float weight, uint32_t tag_id)
+
+tag::tag(const char* name, float weight, uint32_t tag_id, tag_type t)
 {
+    m_type = t;
     m_tag_id = tag_id;
     m_tag_name = strdup(name);
     m_weight = weight;
@@ -40,8 +42,8 @@ bool tag::write_to_config(json_t *config, json_error_t *error) const
 {
     bool result = true;
 
-    auto* rule = json_pack_ex(error, 0, "{sisssf}", KEY_TAG_ID, m_tag_id, KEY_TAG_NAME,
-                              m_tag_name, KEY_TAG_WEIGHT, m_weight);
+    auto* rule = json_pack_ex(error, 0, "{sisssfsi}", KEY_TAG_ID, m_tag_id, KEY_TAG_NAME,
+                              m_tag_name, KEY_TAG_WEIGHT, m_weight, KEY_TAG_TYPE, m_type);
     if (!rule || json_array_append_new(config, rule) < 0) {
         result = false;
         debug("Error saving tag data to array\n");
@@ -55,8 +57,8 @@ bool tag::read_from_config(json_t *config, json_error_t *error)
     bool result = true;
     const char* temp = nullptr;
     static double temp_weight;
-    if (json_unpack_ex(config, error, 0, "{sisssf}", KEY_TAG_ID, &m_tag_id, KEY_TAG_NAME, &temp,
-                       KEY_TAG_WEIGHT, &temp_weight) < 0) {
+    if (json_unpack_ex(config, error, 0, "{sisssfsi}", KEY_TAG_ID, &m_tag_id, KEY_TAG_NAME, &temp,
+                       KEY_TAG_WEIGHT, &temp_weight, KEY_TAG_TYPE, &m_type) < 0) {
         result = false;
         debug("Error while unpacking tag body\n");
     } else {
@@ -81,4 +83,9 @@ float tag::weight() const
 uint32_t tag::id() const
 {
     return m_tag_id;
+}
+
+tag_type tag::type() const
+{
+    return m_type;
 }

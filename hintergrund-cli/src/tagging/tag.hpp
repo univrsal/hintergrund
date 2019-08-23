@@ -20,15 +20,24 @@
 #define KEY_TAG_NAME    "name"
 #define KEY_TAG_WEIGHT  "weight"
 #define KEY_TAG_ID      "tag_id"
+#define KEY_TAG_TYPE	"type"
+
+enum tag_type {
+    tag_invalid = -1,
+    tag_folder,
+    tag_file_name,
+    tag_custom
+};
 
 class tag
 {
     const char* m_tag_name;
     float m_weight;
     json_int_t m_tag_id;
+    tag_type m_type;
 public:
     tag();
-    tag(const char* name, float weight, uint32_t tag_id);
+    tag(const char* name, float weight, uint32_t tag_id, tag_type t);
     ~tag();
 
     bool write_to_config(json_t* config, json_error_t* error) const;
@@ -38,4 +47,5 @@ public:
     const char* name() const;
     float weight() const;
     uint32_t id() const;
+    tag_type type() const;
 };

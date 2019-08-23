@@ -61,4 +61,6 @@ public:
     {
         return m_priority < other.m_priority;
     }
+
+    static rule* make(rule_type t);
 };

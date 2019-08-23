@@ -21,6 +21,7 @@
 #include "../folder.hpp"
 #include <cstring>
 #include <sstream>
+#include <algorithm>
 
 image::image()
 {
@@ -120,6 +121,13 @@ bool image::write_to_config(json_t *config, json_error_t *error) const
     if (result)
         json_array_append_new(config, image_json);
     return result;
+}
+
+void image::remove_custom_tag(const tag *t)
+{
+    auto tag = std::find(m_additional_tags.begin(), m_additional_tags.end(), t);
+    if (tag != m_additional_tags.end())
+        m_additional_tags.erase(tag);
 }
 
 const char* image::name() const

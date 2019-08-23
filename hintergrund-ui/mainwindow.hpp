@@ -57,9 +57,10 @@ private slots:
 
     void on_cb_fit_clicked();
 
+    void on_actionShow_preview_triggered(bool checked);
+
 private:
     bool load_image(const QString& path);
-
     Ui::MainWindow *ui;
     image* m_selected_image;
     QString m_selected_image_path;

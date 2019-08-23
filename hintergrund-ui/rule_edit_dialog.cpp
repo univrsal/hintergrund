@@ -21,6 +21,16 @@ rule_edit_dialog::rule_edit_dialog(QWidget *parent) :
     }
 }
 
+rule_edit_dialog::rule_edit_dialog(QWidget *parent, rule** out,rule_type type)
+    : QDialog(parent),
+      ui(new Ui::rule_edit_dialog)
+{
+    ui->setupUi(this);
+    select_rule_tab(type);
+    m_edit_target = rule::make(type);
+    *out = m_edit_target;
+}
+
 rule_edit_dialog::rule_edit_dialog(QWidget *parent, rule* edit_target) :
     QDialog(parent),
     ui(new Ui::rule_edit_dialog)
@@ -172,10 +182,98 @@ void rule_edit_dialog::on_cb_month_span_toggled(bool checked)
 
 void rule_edit_dialog::on_buttonBox_accepted()
 {
+    copy_values();
     close();
 }
 
 void rule_edit_dialog::on_buttonBox_rejected()
 {
     close();
+}
+
+inline month_t qmonth_to_month(int m) {
+    return static_cast<month_t>(m + 1);
+}
+
+inline void qdate_to_date(const QDate& q, date_t& out)
+{
+    out.day = q.day();
+    out.month =  qmonth_to_month(q.month());
+}
+
+inline void qtime_to_moment(const QTime& q, moment_t& out)
+{
+    out.hour = q.hour();
+    out.minute = q.minute();
+}
+
+void rule_edit_dialog::copy_values()
+{
+    if (m_edit_target->type() == RULE_DATE) {
+        auto* date = dynamic_cast<rule_date_span*>(m_edit_target);
+        if (date) {
+            date_t tmp;
+            qdate_to_date(ui->date_begin->date(), tmp);
+            date->set_is_span(ui->cb_date_span->isChecked());
+            date->set_begin(tmp);
+            qdate_to_date(ui->date_end->date(), tmp);
+            date->set_end(tmp);
+        }
+    } else if (m_edit_target->type() == RULE_TIME) {
+        auto* time = dynamic_cast<rule_time_span*>(m_edit_target);
+        if (time) {
+            moment_t tmp;
+            qtime_to_moment(ui->time_begin->time(), tmp);
+            time->set_begin(tmp);
+            qtime_to_moment(ui->time_begin->time(), tmp);
+            time->set_end(tmp);
+        }
+    } else if (m_edit_target->type() == RULE_MONTH) {
+        auto* month = dynamic_cast<rule_month_span*>(m_edit_target);
+        if (month) {
+            date_t tmp;
+            qdate_to_date(ui->date_month_begin->date(), tmp);
+            month->set_is_span(ui->cb_month_span->isChecked());
+            month->set_begin(tmp);
+            qdate_to_date(ui->date_month_end->date(), tmp);
+            month->set_end(tmp);
+        }
+    } else if (m_edit_target->type() == RULE_IO_FILE) {
+        auto* file = dynamic_cast<rule_io_file*>(m_edit_target);
+        if (file) {
+            file->set_file_path(qPrintable(ui->txt_path->text()));
+            if (ui->rb_check_number->isChecked()) {
+                file->set_target(IO_INT);
+                file->set_int_target(ui->sb_int_value->value());
+                file->set_comp_type(static_cast<compare_type>
+                                    (ui->cb_compare_type->currentIndex()));
+            } else {
+                file->set_target(IO_STRING);
+                file->set_str_target(qPrintable(ui->txt_string_value->text()));
+            }
+        }
+    } else if (m_edit_target->type() == RULE_IO_STDIN) {
+        auto* in = dynamic_cast<rule_io_stdin*>(m_edit_target);
+        if (in) {
+            if (ui->rb_check_number_stdin->isChecked()) {
+                in->set_target(IO_INT);
+                in->set_comp_type(static_cast<compare_type>
+                                    (ui->cb_compare_type_stdin->currentIndex()));
+                in->set_int_target(ui->sb_int_value_stdin->value());
+            } else {
+                in->set_target(IO_STRING);
+                in->set_str_target(qPrintable(ui->txt_string_value_stdin->text()));
+            }
+        }
+    } else if (m_edit_target->type() == RULE_WEEKDAY) {
+        auto* wd = dynamic_cast<rule_weekday*>(m_edit_target);
+        if (wd) {
+            wd->set_is_span(ui->cb_day_span->isChecked());
+            weekday tmp;
+            date_to_wd(tmp, ui->date_day_begin->date());
+            wd->set_begin(tmp);
+            date_to_wd(tmp, ui->date_day_end->date());
+            wd->set_end(tmp);
+        }
+    }
 }

@@ -13,6 +13,7 @@ class rule_edit_dialog : public QDialog
 
 public:
     explicit rule_edit_dialog(QWidget *parent = nullptr);
+    rule_edit_dialog(QWidget* parent, rule** out, rule_type type);
     rule_edit_dialog(QWidget *parent, rule* edit_target);
     ~rule_edit_dialog();
 
@@ -36,6 +37,9 @@ private slots:
 
 private:
     rule* m_edit_target = nullptr;
+
+    /* Copies ui values into rule */
+    void copy_values();
     Ui::rule_edit_dialog *ui;
 };
 

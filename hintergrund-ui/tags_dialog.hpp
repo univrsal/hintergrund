@@ -27,6 +27,8 @@ private slots:
     void on_buttonBox_accepted();
 
 private:
+    /* Contains all removed custom tags */
+    QList<QString> m_removed_tags;
     Ui::tags_dialog *ui;
 };
 

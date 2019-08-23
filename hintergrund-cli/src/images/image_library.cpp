@@ -128,6 +128,11 @@ const folder_list& image_library::base_folders() const
     return m_base_folders;
 }
 
+folder_list& image_library::base_folders()
+{
+    return m_base_folders;
+}
+
 namespace library {
     bool read_library(int* return_value) {
         *return_value = config::SUCCESS;

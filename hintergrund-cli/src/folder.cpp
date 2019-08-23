@@ -177,7 +177,7 @@ void folder::iterate_contents(std::deque<const tag *>& current_tags, DIR* d, int
             if (temp) {
                 folder* sf = new folder(entry->d_name, this);
                 /* Extract tags from folder name and adds it to the stack */
-                int new_tags = config::values.tag_manager->tag_string(entry->d_name, current_tags);
+                int new_tags = config::values.tag_manager->tag_string(entry->d_name, current_tags, tag_folder);
                 chdir(entry->d_name); /* Go into folder */
                 sf->iterate_contents(current_tags, temp, ++depth);
                 closedir(temp);
@@ -192,7 +192,7 @@ void folder::iterate_contents(std::deque<const tag *>& current_tags, DIR* d, int
             if (config::values.tag_image_names) {
                 int new_tags;
                 std::deque<const tag*> file_name_tags;
-                new_tags = config::values.tag_manager->tag_string(entry->d_name, current_tags);
+                new_tags = config::values.tag_manager->tag_string(entry->d_name, current_tags, tag_file_name);
 
                 m_image_files.emplace_back(new image(this, entry->d_name, current_tags, file_name_tags));
                 /* Remove any previously added tags from the file name */

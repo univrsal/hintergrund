@@ -97,7 +97,7 @@ void settings_dialog::on_btn_add_type_clicked()
 
 void settings_dialog::on_btn_remove_selected_clicked()
 {
-    if (ui->list_file_types->count())
+    if (ui->list_file_types->count() < 1)
         return;
     auto* first = ui->list_file_types->selectedItems().first();
     if (first) {
