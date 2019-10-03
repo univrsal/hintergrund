@@ -75,7 +75,7 @@
             <x>0</x>
             <y>0</y>
             <width>482</width>
-            <height>443</height>
+            <height>445</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -160,20 +160,6 @@
              <property name="bottomMargin">
               <number>2</number>
              </property>
-             <item>
-              <widget class="QPushButton" name="btn_prev">
-               <property name="text">
-                <string>Previous</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="btn_next">
-               <property name="text">
-                <string>Next</string>
-               </property>
-              </widget>
-             </item>
              <item>
               <widget class="QCheckBox" name="cb_fit">
                <property name="text">
@@ -303,6 +289,7 @@
     <addaction name="actionView_Tags"/>
     <addaction name="actionSettings"/>
     <addaction name="actionRules"/>
+    <addaction name="actionShow_preview"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -371,6 +358,20 @@
    </property>
    <property name="text">
     <string>Rules</string>
+   </property>
+  </action>
+  <action name="actionShow_preview">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Show preview</string>
    </property>
   </action>
  </widget>

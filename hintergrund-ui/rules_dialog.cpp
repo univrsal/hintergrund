@@ -19,6 +19,7 @@ rules_dialog::rules_dialog(QWidget *parent) :
         rule->to_string(str);
         ui->list_rules->addItem(str);
         m_rule_map[i] = rule.get();
+        i++;
     }
 }
 
@@ -65,5 +66,25 @@ void rules_dialog::on_btn_edit_clicked()
         dialog->show();
     } else {
         QMessageBox::warning(this, "Error", "No rule selected");
+    }
+}
+
+
+void rules_dialog::add_rule(rule *r)
+{
+    int index = ui->list_rules->count();
+    QString str;
+    r->to_string(str);
+    ui->list_rules->addItem(str);
+    m_rule_map[index] = r;
+}
+
+void rules_dialog::refresh_list()
+{
+    QString str;
+    ui->list_rules->clear();
+    for (const auto& r : m_rule_map) {
+        r->to_string(str);
+        ui->list_rules->addItem(str);
     }
 }

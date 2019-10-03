@@ -17,6 +17,10 @@ public:
     explicit rules_dialog(QWidget *parent = nullptr);
     ~rules_dialog();
 
+    void refresh_list();
+
+    void add_rule(rule* r);
+
 private slots:
     void on_btn_remove_clicked();
 

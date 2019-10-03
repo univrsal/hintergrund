@@ -27,7 +27,7 @@
       <enum>Qt::LeftToRight</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>4</number>
      </property>
      <property name="movable">
       <bool>false</bool>
@@ -154,7 +154,7 @@
        <item>
         <widget class="QDateEdit" name="date_begin">
          <property name="displayFormat">
-          <string>ddd dd.MM.yy</string>
+          <string>ddd dd.MM</string>
          </property>
          <property name="calendarPopup">
           <bool>true</bool>
@@ -184,7 +184,7 @@
           <bool>false</bool>
          </property>
          <property name="displayFormat">
-          <string>ddd dd.MM.yy</string>
+          <string>ddd dd.MM</string>
          </property>
          <property name="calendarPopup">
           <bool>true</bool>
@@ -403,12 +403,17 @@
             </property>
             <item>
              <property name="text">
-              <string>==</string>
+              <string>&lt;</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>&lt;</string>
+              <string>&gt;</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>=</string>
              </property>
             </item>
             <item>
@@ -419,11 +424,6 @@
             <item>
              <property name="text">
               <string>&gt;=</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>&gt;</string>
              </property>
             </item>
            </widget>
@@ -452,7 +452,7 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_8">
        <item>
-        <widget class="QRadioButton" name="rb_check_string_2">
+        <widget class="QRadioButton" name="rb_check_string_stdin">
          <property name="text">
           <string>Check for string</string>
          </property>
@@ -462,7 +462,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="txt_string_value_2">
+        <widget class="QLineEdit" name="txt_string_value_stdin">
          <property name="acceptDrops">
           <bool>false</bool>
          </property>
@@ -472,7 +472,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QRadioButton" name="rb_check_number_2">
+        <widget class="QRadioButton" name="rb_check_number_stdin">
          <property name="text">
           <string>Check for number</string>
          </property>
@@ -500,7 +500,7 @@
            <number>2</number>
           </property>
           <item>
-           <widget class="QSpinBox" name="sb_int_value_2">
+           <widget class="QSpinBox" name="sb_int_value_stdin">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -513,7 +513,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QComboBox" name="cb_compare_type_2">
+           <widget class="QComboBox" name="cb_compare_type_stdin">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -525,12 +525,17 @@
             </property>
             <item>
              <property name="text">
-              <string>==</string>
+              <string>&lt;</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>&lt;</string>
+              <string>&gt;</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>==</string>
              </property>
             </item>
             <item>
@@ -541,11 +546,6 @@
             <item>
              <property name="text">
               <string>&gt;=</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>&gt;</string>
              </property>
             </item>
            </widget>

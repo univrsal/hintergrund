@@ -13,8 +13,8 @@ class rule_edit_dialog : public QDialog
 
 public:
     explicit rule_edit_dialog(QWidget *parent = nullptr);
-    rule_edit_dialog(QWidget* parent, rule** out, rule_type type);
     rule_edit_dialog(QWidget *parent, rule* edit_target);
+    rule_edit_dialog(QWidget *parent, rule_type new_type);
     ~rule_edit_dialog();
 
     void select_rule_tab(rule_type type);
@@ -35,9 +35,11 @@ private slots:
 
     void on_buttonBox_rejected();
 
+    void on_rule_edit_dialog_accepted();
+
 private:
     rule* m_edit_target = nullptr;
-
+    bool m_new_rule = false;
     /* Copies ui values into rule */
     void copy_values();
     Ui::rule_edit_dialog *ui;

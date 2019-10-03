@@ -21,14 +21,11 @@ rule_edit_dialog::rule_edit_dialog(QWidget *parent) :
     }
 }
 
-rule_edit_dialog::rule_edit_dialog(QWidget *parent, rule** out,rule_type type)
-    : QDialog(parent),
-      ui(new Ui::rule_edit_dialog)
+rule_edit_dialog::rule_edit_dialog(QWidget *parent, rule_type new_type) :
+    QDialog(parent),
+    ui(new Ui::rule_edit_dialog)
 {
     ui->setupUi(this);
-    select_rule_tab(type);
-    m_edit_target = rule::make(type);
-    *out = m_edit_target;
 }
 
 rule_edit_dialog::rule_edit_dialog(QWidget *parent, rule* edit_target) :
@@ -158,7 +155,7 @@ void rule_edit_dialog::on_rb_check_string_toggled(bool checked)
 
 void rule_edit_dialog::on_rb_check_string_2_toggled(bool checked)
 {
-    ui->txt_string_value_2->setEnabled(checked);
+    ui->txt_string_value_stdin->setEnabled(checked);
     ui->frame_check_number2->setEnabled(!checked);
 }
 
@@ -276,4 +273,9 @@ void rule_edit_dialog::copy_values()
             wd->set_end(tmp);
         }
     }
+}
+
+void rule_edit_dialog::on_rule_edit_dialog_accepted()
+{
+
 }

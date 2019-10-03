@@ -61,6 +61,7 @@ bool rule_set::write_rules(json_t *json, json_error_t *error)
         auto* rule_entry = json_object();
         if (!rule->write_to_config(rule_entry, error)) {
             result = false;
+            json_decref(rule_entry);
             break;
         } else {
             if (json_array_append_new(rule_array, rule_entry) < 0) {
@@ -76,6 +77,9 @@ bool rule_set::write_rules(json_t *json, json_error_t *error)
         debug("Error while setting rule array\n");
     }
 
+    if (!result) {
+        json_decref(rule_array);
+    }
     return result;
 }
 
