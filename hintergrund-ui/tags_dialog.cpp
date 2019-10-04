@@ -34,6 +34,8 @@ tags_dialog::~tags_dialog()
 void tags_dialog::on_btn_remove_selected_clicked()
 {
     ui->tags_table->removeRow(ui->tags_table->currentRow());
+    auto t = ui->tags_table->item(ui->tags_table->currentRow(), 2)->text();
+    m_removed_tags.append(t);
 }
 
 void tags_dialog::on_tags_table_cellClicked(int row, int column)
@@ -109,16 +111,17 @@ void tags_dialog::on_buttonBox_accepted()
     for (auto name : m_removed_tags) {
         auto* tag = config::values.tag_manager->get_tag_for_str(qPrintable(name));
         if (!tag || tag->type() != tag_custom) continue; /* Invalid custom tag? */
-
-
+        config::values.tag_manager->remove_custom_tag(tag);
     }
 
     for (int row = 0; row < ui->tags_table->rowCount(); row++) {
         auto weight = ui->tags_table->item(row, 0)->text().toFloat();
         auto custom = ui->tags_table->item(row, 1)->text() == "1";
         auto name_qstr = ui->tags_table->item(row, 2)->text();
-        auto* name = qPrintable(name_qstr);
-        tag_mgr->add_new_tag(name, weight, tag_custom);
+        auto* name = name_qstr.toStdString().c_str();
+
+        if (custom)
+            tag_mgr->add_new_tag(name, weight, tag_custom);
     }
     close();
 }

@@ -22,6 +22,7 @@ tag::tag()
     m_tag_name = nullptr;
     m_weight = 1.f;
     m_tag_id = 0;
+    m_type = tag_invalid;
 }
 
 tag::tag(const char* name, float weight, uint32_t tag_id, tag_type t)
