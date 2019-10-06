@@ -69,7 +69,6 @@ void rules_dialog::on_btn_edit_clicked()
     }
 }
 
-
 void rules_dialog::add_rule(rule *r)
 {
     int index = ui->list_rules->count();

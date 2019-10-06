@@ -34,11 +34,16 @@ tags_dialog::~tags_dialog()
 void tags_dialog::on_btn_remove_selected_clicked()
 {
     ui->tags_table->removeRow(ui->tags_table->currentRow());
+<<<<<<< HEAD
     auto* c_item = ui->tags_table->item(ui->tags_table->currentRow(), 1);
     auto custom = false;
     if (c_item)
         auto custom = c_item->text() == "1";
     ui->btn_remove_selected->setEnabled(custom);
+=======
+    auto t = ui->tags_table->item(ui->tags_table->currentRow(), 2)->text();
+    m_removed_tags.append(t);
+>>>>>>> d7ba9a68e43129068183123fd2444f04424deb61
 }
 
 void tags_dialog::on_tags_table_cellClicked(int row, int column)
@@ -123,11 +128,16 @@ void tags_dialog::on_buttonBox_accepted()
         auto name_qstr = ui->tags_table->item(row, 2)->text();
         auto* name = name_qstr.toStdString().c_str();
 
+<<<<<<< HEAD
         if (custom && !tag_mgr->tag_exists(name)) {
             tag_mgr->add_new_tag(name, weight, tag_custom);
         } else {
             tag_mgr->update_tag(name, weight);
         }
+=======
+        if (custom)
+            tag_mgr->add_new_tag(name, weight, tag_custom);
+>>>>>>> d7ba9a68e43129068183123fd2444f04424deb61
     }
     close();
 }

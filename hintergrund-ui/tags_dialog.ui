@@ -109,7 +109,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab_edit">
       <attribute name="title">
@@ -154,6 +154,9 @@
        </item>
        <item>
         <widget class="QPushButton" name="btn_save">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
          <property name="text">
           <string>Save</string>
          </property>

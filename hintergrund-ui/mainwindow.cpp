@@ -87,7 +87,7 @@ void MainWindow::on_actionOpen_triggered()
     if (strlen(config::values.config_path) > 0)
         free((void*) config::values.config_path);
 
-    config::values.config_path = strdup(qPrintable(cfg_path));
+    config::values.config_path = strdup(cfg_path.toStdString().c_str());
     int ret = 0;
     config::read_config(&ret);
     switch (ret) {

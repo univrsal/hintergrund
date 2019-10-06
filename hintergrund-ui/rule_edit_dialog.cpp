@@ -8,6 +8,7 @@
 #include "rules/rule_io_stdin.hpp"
 #include "rules/rule_time_span.hpp"
 #include "rules/rule_weekday.hpp"
+#include "rules_dialog.hpp"
 #include <vector>
 
 rule_edit_dialog::rule_edit_dialog(QWidget *parent) :
@@ -23,9 +24,12 @@ rule_edit_dialog::rule_edit_dialog(QWidget *parent) :
 
 rule_edit_dialog::rule_edit_dialog(QWidget *parent, rule_type new_type) :
     QDialog(parent),
-    ui(new Ui::rule_edit_dialog)
+    ui(new Ui::rule_edit_dialog),
+    m_new_rule(true)
 {
     ui->setupUi(this);
+    select_rule_tab(new_type);
+    m_edit_target = rule::make(new_type);
 }
 
 rule_edit_dialog::rule_edit_dialog(QWidget *parent, rule* edit_target) :
@@ -277,5 +281,10 @@ void rule_edit_dialog::copy_values()
 
 void rule_edit_dialog::on_rule_edit_dialog_accepted()
 {
-
+    rules_dialog* p = dynamic_cast<rules_dialog*>(parent());
+    if (p) {
+        if (m_new_rule)
+            p->add_rule(m_edit_target);
+        p->refresh_list();
+    }
 }
