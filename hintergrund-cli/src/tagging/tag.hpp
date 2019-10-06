@@ -48,4 +48,6 @@ public:
     float weight() const;
     uint32_t id() const;
     tag_type type() const;
+
+    void set_weight(float f);
 };

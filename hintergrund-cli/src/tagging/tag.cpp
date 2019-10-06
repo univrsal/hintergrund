@@ -89,3 +89,8 @@ tag_type tag::type() const
 {
     return m_type;
 }
+
+void tag::set_weight(float f)
+{
+    m_weight = f;
+}

@@ -36,11 +36,18 @@ const tag* tagger::add_new_tag(const char *name, float weight, tag_type type)
         debug("Duplicate tag name \"%s\". Ignoring...\n", name);
     } else {
         tag* new_tag = new tag(name, weight, m_tag_counter++, type);
-        m_tags.emplace_back(new_tag);
+        m_tags[m_tag_counter] = std::unique_ptr<tag>(new_tag);
         result = new_tag;
         debug("Added new tag %s\n", name); /* Qt's debug call modifies the name string so it's called last */
     }
     return result;
+}
+
+const tag* tagger::tag_exists(json_int_t id)
+{
+    if (m_tags[id])
+        return m_tags[id].get();
+    return nullptr;
 }
 
 const tag* tagger::tag_exists(const char *name) const
@@ -48,9 +55,9 @@ const tag* tagger::tag_exists(const char *name) const
     const tag* result = nullptr;
     for (const auto& tag : m_tags)
     {
-        if (strcmp(tag->name(), name) == 0) {
+        if (strcmp(tag.second->name(), name) == 0) {
             /* It's not a new tag, but files under this folder should still get this tag */
-            result = tag.get();
+            result = tag.second.get();
             break;
         }
     }
@@ -126,23 +133,23 @@ bool tagger::auto_tag(const char *root_folder)
     return result;
 }
 
-const tag* tagger::get_tag_for_str(const char *string) {
-    if (!string)
-        return nullptr;
+void tagger::update_tag(json_int_t id, float weight)
+{
+    m_tags[id]->set_weight(weight);
+}
 
-    for (const auto& tag : m_tags) {
-        if (strcmp(tag->name(), string) == 0) {
-           return tag.get();
-        }
-    }
-    return nullptr;
+const tag* tagger::get_tag_for_id(json_int_t id)
+{
+	if (m_tags[id])
+		return m_tags[id].get();
+	return nullptr;
 }
 
 bool tagger::write_to_config(json_t *config, json_error_t *error)
 {
     bool result = true;
     for (auto& tag : m_tags) {
-        if (!tag->write_to_config(config, error)) {
+        if (!tag.second->write_to_config(config, error)) {
             debug("Error while writing tag\n");
             result = false;
             break;
@@ -170,7 +177,7 @@ bool tagger::read_from_config(json_t *config, json_error_t *error)
         } else {
             if (new_tag->id() > m_tag_counter)
                 m_tag_counter = new_tag->id();
-            m_tags.emplace_back(new_tag);
+            m_tags[new_tag->id()] = std::unique_ptr<tag>(new_tag);
         }
     }
     m_tag_counter++; /* contains the highest id loaded, so now it contains the next available one */
@@ -189,7 +196,7 @@ bool tagger::loaded() const
     return m_loaded;
 }
 
-const std::vector<std::unique_ptr<tag>>& tagger::tags() const
+const std::map<json_int_t, std::unique_ptr<tag>>& tagger::tags() const
 {
     return m_tags;
 }

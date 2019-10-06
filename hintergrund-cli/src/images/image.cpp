@@ -76,7 +76,7 @@ bool image::read_from_config(json_t *config, json_error_t *error)
             const tag* tmp_tag;
             json_array_foreach(tag_array, index, value) {
                 tmp_tag = config::values.tag_manager->
-                      get_tag_for_str(json_string_value(value));
+                      tag_exists(json_string_value(value));
 
                 if (tmp_tag)
                     m_additional_tags.emplace_back(tmp_tag);

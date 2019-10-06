@@ -15,14 +15,14 @@
  */
 #pragma once
 #include "tag.hpp"
-#include <vector>
+#include <map>
 #include <memory>
 #include <dirent.h>
 #include <deque>
 
 class tagger
 {
-    std::vector<std::unique_ptr<tag>> m_tags;
+    std::map<json_int_t, std::unique_ptr<tag>> m_tags;
     uint32_t m_tag_counter; /* Used to assign tag ids */
     bool m_loaded;
     int m_img_counter, m_new_tag_counter; /* Count new images and tags in auto_tag */
@@ -56,10 +56,12 @@ public:
     bool loaded() const;
     bool auto_tag(const char* root_folder);
 
+    void update_tag(json_int_t id, float weight);
     const tag* add_new_tag(const char* name, float weight, tag_type type);
+    const tag* tag_exists(json_int_t id);
     const tag* tag_exists(const char* name) const;
-    const tag* get_tag_for_str(const char* string);
-    const std::vector<std::unique_ptr<tag>>& tags() const;
+    const tag* get_tag_for_id(json_int_t id);
+    const std::map<json_int_t, std::unique_ptr<tag>>& tags() const;
 
     /* This will only delete the tag list,
      * it will not remove the tags from any loaded images

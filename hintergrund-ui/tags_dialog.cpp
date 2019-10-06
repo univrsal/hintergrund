@@ -16,9 +16,9 @@ tags_dialog::tags_dialog(QWidget *parent) :
     ui->tags_table->setColumnCount(3);
     int row = 0;
     for (const auto& tag : config::values.tag_manager->tags()) {
-        auto* name_item = new QTableWidgetItem(tag->name());
-        auto* weight_item = new QTableWidgetItem(QString::number(tag->weight()));
-        auto* custom_item = new QTableWidgetItem(QString::number(tag->type() == tag_custom));
+        auto* name_item = new QTableWidgetItem(tag.second->name());
+        auto* weight_item = new QTableWidgetItem(QString::number(tag.second->weight()));
+        auto* custom_item = new QTableWidgetItem(QString::number(tag.second->type() == tag_custom));
         ui->tags_table->setItem(row, 0, weight_item);
         ui->tags_table->setItem(row, 1, custom_item);
         ui->tags_table->setItem(row++, 2, name_item);
@@ -34,6 +34,11 @@ tags_dialog::~tags_dialog()
 void tags_dialog::on_btn_remove_selected_clicked()
 {
     ui->tags_table->removeRow(ui->tags_table->currentRow());
+    auto* c_item = ui->tags_table->item(ui->tags_table->currentRow(), 1);
+    auto custom = false;
+    if (c_item)
+        auto custom = c_item->text() == "1";
+    ui->btn_remove_selected->setEnabled(custom);
 }
 
 void tags_dialog::on_tags_table_cellClicked(int row, int column)
@@ -107,18 +112,22 @@ void tags_dialog::on_buttonBox_accepted()
     auto* tag_mgr = config::values.tag_manager;
 
     for (auto name : m_removed_tags) {
-        auto* tag = config::values.tag_manager->get_tag_for_str(qPrintable(name));
+        auto* tag = config::values.tag_manager->tag_exists(name.toStdString().c_str());
         if (!tag || tag->type() != tag_custom) continue; /* Invalid custom tag? */
-
-
+        config::values.tag_manager->remove_custom_tag(tag);
     }
 
     for (int row = 0; row < ui->tags_table->rowCount(); row++) {
         auto weight = ui->tags_table->item(row, 0)->text().toFloat();
         auto custom = ui->tags_table->item(row, 1)->text() == "1";
         auto name_qstr = ui->tags_table->item(row, 2)->text();
-        auto* name = qPrintable(name_qstr);
-        tag_mgr->add_new_tag(name, weight, tag_custom);
+        auto* name = name_qstr.toStdString().c_str();
+
+        if (custom && !tag_mgr->tag_exists(name)) {
+            tag_mgr->add_new_tag(name, weight, tag_custom);
+        } else {
+            tag_mgr->update_tag(name, weight);
+        }
     }
     close();
 }
