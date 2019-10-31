@@ -71,7 +71,8 @@ bool folder::write_to_config(json_t *cfg, json_error_t *error) const
     }
 
     if (result) {
-        folder_obj = json_pack_ex(error, 0, "{ss:so:so}", KEY_FOLDER_PATH, m_path,
+        folder_obj = json_pack_ex(error, 0, "{ss:si:so:so}", KEY_FOLDER_PATH, m_path,
+                                  KEY_TAG_ID, m_tag_id,
                                   KEY_FOLDER_SUB_FOLDER_ARRAY, folder_array,
                                   KEY_FOLDER_IMAGE_FILE_ARRAY, image_array);
         if (!folder_obj) {
@@ -92,8 +93,9 @@ bool folder::read_from_config(json_t *cfg, json_error_t *error,
     char* tmp_path;
     json_t* folder_array, *image_array;
 
-    if (json_unpack_ex(cfg, error, 0, "{ss:so:so}",
+    if (json_unpack_ex(cfg, error, 0, "{ss:si:so:so}",
                        KEY_FOLDER_PATH, &tmp_path,
+                       KEY_TAG_ID, &m_tag_id,
                        KEY_FOLDER_SUB_FOLDER_ARRAY, &folder_array,
                        KEY_FOLDER_IMAGE_FILE_ARRAY, &image_array) < 0) {
         debug("Unpacking folder object failed\n");
@@ -103,7 +105,7 @@ bool folder::read_from_config(json_t *cfg, json_error_t *error,
         bool added = false;
         if (tmp_path && strlen(tmp_path) > 0) {
             if (tmp_path[0] != '/') { /* base folders are a full path and aren't included in tags */
-                auto* tag = config::values.tag_manager->get_tag_for_str(tmp_path);
+                auto* tag = config::values.tag_manager->get_tag_for_id(m_tag_id);
                 if (tag) {
                     tags.emplace_back(tag);
                     added = true;

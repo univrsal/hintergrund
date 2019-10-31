@@ -24,6 +24,7 @@
 #define KEY_FOLDER_IMAGE_FILE_ARRAY	"image_files"
 #define KEY_FOLDER_SUB_FOLDER_ARRAY	"sub_folders"
 #define KEY_FOLDER_PATH				"path"
+#define KEY_TAG_ID					"tag_id"
 
 class tag;
 class folder;
@@ -35,6 +36,7 @@ class folder
 {
     folder_list m_sub_folders;
     image_list m_image_files;
+    json_int_t m_tag_id;
     char* m_path;
     const folder* m_parent;
 public:
