@@ -23,7 +23,7 @@
 class tagger
 {
     std::map<json_int_t, std::unique_ptr<tag>> m_tags;
-    uint32_t m_tag_counter; /* Used to assign tag ids */
+    json_int_t m_tag_counter; /* Used to assign tag ids */
     bool m_loaded;
     int m_img_counter, m_new_tag_counter; /* Count new images and tags in auto_tag */
 

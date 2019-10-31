@@ -35,8 +35,8 @@ const tag* tagger::add_new_tag(const char *name, float weight, tag_type type)
     if (result) {
         debug("Duplicate tag name \"%s\". Ignoring...\n", name);
     } else {
-        tag* new_tag = new tag(name, weight, m_tag_counter++, type);
-        m_tags[m_tag_counter] = std::unique_ptr<tag>(new_tag);
+        tag* new_tag = new tag(name, weight, m_tag_counter, type);
+        m_tags[m_tag_counter++] = std::unique_ptr<tag>(new_tag);
         result = new_tag;
         debug("Added new tag %s\n", name); /* Qt's debug call modifies the name string so it's called last */
     }

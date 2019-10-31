@@ -30,15 +30,16 @@ class tag;
 class folder;
 
 typedef std::vector<std::unique_ptr<folder>>	folder_list;
-typedef std::vector<std::unique_ptr<image>>	image_list;
+typedef std::vector<std::unique_ptr<image>>		image_list;
 
 class folder
 {
     folder_list m_sub_folders;
     image_list m_image_files;
-    json_int_t m_tag_id;
+    std::vector<json_int_t> m_tag_ids;
     char* m_path;
     const folder* m_parent;
+
 public:
     folder();
     folder(const char* path, const folder* parent);

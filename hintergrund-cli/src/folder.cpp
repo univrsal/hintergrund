@@ -177,14 +177,18 @@ void folder::iterate_contents(std::deque<const tag *>& current_tags, DIR* d, int
         if (entry->d_type == DT_DIR) {
             DIR* temp = opendir(entry->d_name);
             if (temp) {
-                folder* sf = new folder(entry->d_name, this);
                 /* Extract tags from folder name and adds it to the stack */
                 int new_tags = config::values.tag_manager->tag_string(entry->d_name, current_tags, tag_folder);
+                folder* sf = new folder(entry->d_name, this);
+                auto t = current_tags.begin();
+
                 chdir(entry->d_name); /* Go into folder */
                 sf->iterate_contents(current_tags, temp, ++depth);
                 closedir(temp);
                 chdir(".."); /* Go back out of folder */
+
                 m_sub_folders.emplace_back(sf);
+
                 for (int i = 0; i < new_tags; i++) /* Remove previously added tags */
                     current_tags.pop_front();
             } else {
