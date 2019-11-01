@@ -24,13 +24,14 @@
 #define KEY_FOLDER_IMAGE_FILE_ARRAY	"image_files"
 #define KEY_FOLDER_SUB_FOLDER_ARRAY	"sub_folders"
 #define KEY_FOLDER_PATH				"path"
-#define KEY_TAG_ID					"tag_id"
+#define KEY_FOLDER_TAG_IDS			"tag_id"
 
 class tag;
 class folder;
 
 typedef std::vector<std::unique_ptr<folder>>	folder_list;
 typedef std::vector<std::unique_ptr<image>>		image_list;
+typedef std::deque<const tag*>					tag_list;
 
 class folder
 {
@@ -40,6 +41,10 @@ class folder
     char* m_path;
     const folder* m_parent;
 
+    /* Loading utility */
+    void load_tags(json_t *tag_id_arr, tag_list &tags);
+    bool load_sub_folders(json_t *folders, tag_list &tags, json_error_t *error);
+    bool load_images(json_t *images, tag_list &tags, json_error_t *error);
 public:
     folder();
     folder(const char* path, const folder* parent);
@@ -47,10 +52,10 @@ public:
 
     bool write_to_config(json_t* cfg, json_error_t* error) const;
     bool read_from_config(json_t* cfg, json_error_t* error,
-                          std::deque<const tag*>& tags,
+                          tag_list& tags,
                           const folder* parent);
 
-    void iterate_contents(std::deque<const tag*>& current_tags, DIR* d, int depth);
+    void iterate_contents(tag_list& current_tags, DIR* d, int depth);
 
     image_list& images();
     folder_list& folders();

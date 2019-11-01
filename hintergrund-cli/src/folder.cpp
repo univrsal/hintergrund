@@ -70,9 +70,21 @@ bool folder::write_to_config(json_t *cfg, json_error_t *error) const
         }
     }
 
+    json_t *tags = nullptr;
     if (result) {
-        folder_obj = json_pack_ex(error, 0, "{ss:si:so:so}", KEY_FOLDER_PATH, m_path,
-                                  KEY_TAG_ID, m_tag_id,
+        tags = json_array();
+        for (const auto& tag_id : m_tag_ids) {
+            if (json_array_append_new(tags, json_integer(tag_id)) < 0) {
+                result = false;
+                json_decref(tags);
+                tags = nullptr;
+            }
+        }
+    }
+
+    if (result) {
+        folder_obj = json_pack_ex(error, 0, "{ss:s[i]:so:so}", KEY_FOLDER_PATH, m_path,
+                                  KEY_FOLDER_TAG_IDS, tags,
                                   KEY_FOLDER_SUB_FOLDER_ARRAY, folder_array,
                                   KEY_FOLDER_IMAGE_FILE_ARRAY, image_array);
         if (!folder_obj) {
@@ -86,77 +98,125 @@ bool folder::write_to_config(json_t *cfg, json_error_t *error) const
     return result;
 }
 
+void folder::load_tags(json_t *tag_id_arr, tag_list& tags)
+{
+	json_t *value = nullptr;
+	size_t index;
+
+	json_array_foreach(tag_id_arr, index, value) {
+		auto* tag = config::values.tag_manager->
+		            get_tag_for_id(json_integer_value(value));
+		if (tag) {
+			tags.emplace_back(tag);
+			m_tag_ids.emplace_back(json_integer_value(value));
+		} else {
+			debug("Error: invalid tag id(%i) for folder \"%s\"\n", m_path);
+		}
+	}
+}
+
+bool folder::load_sub_folders(json_t *folders, tag_list& tags,
+                              json_error_t *error)
+{
+    json_t *value;
+    size_t index;
+    bool result = true;
+
+    json_array_foreach(folders, index, value) {
+        folder* new_folder = new folder();
+        if (new_folder->read_from_config(value, error, tags, this)) {
+            m_sub_folders.emplace_back(new_folder);
+        } else {
+            delete new_folder;
+            result = false;
+            break;
+        }
+    }
+    return result;
+}
+
+bool folder::load_images(json_t *images, tag_list &tags, json_error_t *error)
+{
+    json_t *value;
+    size_t index;
+    bool result = true;
+
+	json_array_foreach(images, index, value) {
+		image* new_image = new image();
+		if (new_image->read_from_config(value, error)) {
+			new_image->set_path_tags(tags);
+			new_image->set_place(this);
+			m_image_files.emplace_back(new_image);
+		} else {
+			util::print_json_error(error);
+			delete new_image;
+			result = false;
+			break;
+		}
+	}
+	return result;
+}
+
 bool folder::read_from_config(json_t *cfg, json_error_t *error,
-                              std::deque<const tag*>& tags, const folder* parent)
+                              tag_list& tags, const folder* parent)
 {
     bool result = true;
-    char* tmp_path;
-    json_t* folder_array, *image_array;
+    char *tmp_path;
+    json_t *folder_array = nullptr,
+           *tag_array = nullptr,
+           *image_array = nullptr;
 
     if (json_unpack_ex(cfg, error, 0, "{ss:si:so:so}",
                        KEY_FOLDER_PATH, &tmp_path,
-                       KEY_TAG_ID, &m_tag_id,
+                       KEY_FOLDER_TAG_IDS, &tag_array,
                        KEY_FOLDER_SUB_FOLDER_ARRAY, &folder_array,
                        KEY_FOLDER_IMAGE_FILE_ARRAY, &image_array) < 0) {
         debug("Unpacking folder object failed\n");
         util::print_json_error(error);
         result = false;
     } else {
-        bool added = false;
         if (tmp_path && strlen(tmp_path) > 0) {
-            if (tmp_path[0] != '/') { /* base folders are a full path and aren't included in tags */
-                auto* tag = config::values.tag_manager->get_tag_for_id(m_tag_id);
-                if (tag) {
-                    tags.emplace_back(tag);
-                    added = true;
-                } else {
-                    debug("Error: no tag for folder \"%s\"\n", tmp_path);
-                }
-            }
+            free(m_path); /* Free any previously copied path */
+            m_path = strdup(tmp_path);
+            m_parent = parent;
+        } else {
+            result = false;
+            goto cleanup;
         }
-        /* Copy the folders name loaded from json.(jansson returns a borrowed reference) */
-        m_path = strdup(tmp_path);
-        m_parent = parent;
-        size_t index;
-        json_t* value;
-        json_array_foreach(folder_array, index, value) {
-            folder* new_folder = new folder();
-            if (new_folder->read_from_config(value, error, tags, this)) {
-                m_sub_folders.emplace_back(new_folder);
-            } else {
-                delete new_folder;
+
+        /* base folders are a full path and aren't included in tags */
+        if (tmp_path[0] != '/') {
+            load_tags(tag_array, tags);
+            if (m_tag_ids.empty()) {
+                debug("Error: no tags for folder \"%s\"\n", tmp_path);
                 result = false;
-                break;
+                goto cleanup;
             }
         }
 
-        if (result) {
-            json_array_foreach(image_array, index, value) {
-                image* new_image = new image();
-                if (new_image->read_from_config(value, error)) {
-                    new_image->set_path_tags(tags);
-                    new_image->set_place(this);
-                    m_image_files.emplace_back(new_image);
-                } else {
-                    util::print_json_error(error);
-                    delete new_image;
-                    result = false;
-                    break;
-                }
-            }
+        if (!load_sub_folders(folder_array, tags, error) ||
+            !load_images(image_array, tags, error)) {
+            result = false;
+            m_sub_folders.clear();
+            m_image_files.clear();
         }
+
         /* All files and subfolders are loaded ->
          * go up one directory and remove this
-         * folders tag from the stack.
+         * folders tags from the stack.
          */
-        if (added)
+        for (size_t i = 0; i < m_tag_ids.size(); i++)
             tags.pop_back();
     }
 
+    cleanup:
+    json_decref(tag_array);
+    json_decref(folder_array);
+    json_decref(image_array);
     return result;
 }
 
-void folder::iterate_contents(std::deque<const tag *>& current_tags, DIR* d, int depth)
+void folder::iterate_contents(tag_list& current_tags, DIR* d, int depth)
 {
     if (!d) {
         debug("Invalid directory pointer\n");
