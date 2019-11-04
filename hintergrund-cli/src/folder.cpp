@@ -240,7 +240,13 @@ void folder::iterate_contents(tag_list& current_tags, DIR* d, int depth)
                 /* Extract tags from folder name and adds it to the stack */
                 int new_tags = config::values.tag_manager->tag_string(entry->d_name, current_tags, tag_folder);
                 folder* sf = new folder(entry->d_name, this);
-                auto t = current_tags.begin();
+
+                /* Add to tag_ids */
+                auto t = current_tags.end() - new_tags;
+                while (*t) {
+                    m_tag_ids.emplace_back((*t)->id());
+                    t++;
+                }
 
                 chdir(entry->d_name); /* Go into folder */
                 sf->iterate_contents(current_tags, temp, ++depth);

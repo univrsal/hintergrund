@@ -24,7 +24,7 @@
 #define KEY_FOLDER_IMAGE_FILE_ARRAY	"image_files"
 #define KEY_FOLDER_SUB_FOLDER_ARRAY	"sub_folders"
 #define KEY_FOLDER_PATH				"path"
-#define KEY_FOLDER_TAG_IDS			"tag_id"
+#define KEY_FOLDER_TAG_IDS			"tag_ids"
 
 class tag;
 class folder;
