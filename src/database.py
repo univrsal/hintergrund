@@ -2,8 +2,10 @@
 Database management for wallpaper images.
 """
 
+import os
 import sqlite3
 from typing import List, Dict, Optional, Any
+import os
 
 
 class DatabaseManager:
@@ -46,6 +48,14 @@ class DatabaseManager:
                     PRIMARY KEY (image_id, tag_id),
                     FOREIGN KEY (image_id) REFERENCES image (id) ON DELETE CASCADE,
                     FOREIGN KEY (tag_id) REFERENCES tag (id) ON DELETE CASCADE
+                )
+            ''')
+            
+            # Add config table to store base path
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS config (
+                    key TEXT PRIMARY KEY,
+                    value TEXT NOT NULL
                 )
             ''')
             
@@ -266,3 +276,40 @@ class DatabaseManager:
             conn.commit()
             
             return rows_affected > 0
+
+    def set_base_path(self, base_path: str) -> None:
+        """Set the base path for relative image paths."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT OR REPLACE INTO config (key, value)
+                VALUES ('base_path', ?)
+            ''', (base_path,))
+            conn.commit()
+    
+    def get_base_path(self) -> Optional[str]:
+        """Get the stored base path."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT value FROM config WHERE key = ?', ('base_path',))
+            result = cursor.fetchone()
+            return result[0] if result else None
+    
+    def resolve_image_path(self, stored_path: str) -> str:
+        """Resolve a stored relative path to an absolute path."""
+        from pathlib import Path
+        
+        # If it's already an absolute path, return as-is
+        if Path(stored_path).is_absolute():
+            return stored_path
+        
+        # Get base path and resolve relative path
+        base_path = self.get_base_path()
+        if base_path:
+            # Convert Unix separators back to system separators
+            normalized_path = stored_path.replace('/', os.sep)
+            resolved_path = Path(base_path) / normalized_path
+            return str(resolved_path.absolute())
+        
+        # Fallback to stored path if no base path is set
+        return stored_path

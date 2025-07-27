@@ -230,7 +230,11 @@ class WallpaperGUI:
     
     def display_image(self, image_data: Dict[str, Any]):
         try:
-            file_path = Path(image_data['file_path'])
+            # Resolve the stored path to an absolute path
+            stored_path = image_data['file_path']
+            resolved_path = self.db_manager.resolve_image_path(stored_path)
+            file_path = Path(resolved_path)
+            
             if not file_path.exists():
                 self.image_label.configure(image='', text="Image file not found")
                 return
@@ -389,7 +393,9 @@ class WallpaperGUI:
             return
         
         current_image = self.current_images[self.current_image_index]
-        file_path = Path(current_image['file_path'])
+        stored_path = current_image['file_path']
+        resolved_path = self.db_manager.resolve_image_path(stored_path)
+        file_path = Path(resolved_path)
         image_id = current_image['id']
         
         # Show confirmation dialog

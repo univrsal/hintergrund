@@ -18,8 +18,14 @@ class ImageScanner:
     
     def __init__(self, db_manager: DatabaseManager):
         self.db_manager = db_manager
+        self.base_path: Optional[Path] = None
     
     def scan_directory(self, base_path: Path) -> Dict[str, int]:
+        self.base_path = base_path.absolute()  # Store the base path for relative calculations
+        
+        # Store base path in database for future path resolution
+        self.db_manager.set_base_path(str(self.base_path))
+        
         results = {
             'processed': 0,
             'added': 0,
@@ -76,7 +82,17 @@ class ImageScanner:
         return tags
     
     def _process_image(self, file_path: Path, tags: List[str]) -> bool:
-        file_path_str = str(file_path.absolute())
+        # Convert to relative path with Unix separators
+        if self.base_path:
+            try:
+                relative_path = file_path.relative_to(self.base_path)
+                # Convert to Unix separators
+                file_path_str = str(relative_path).replace('\\', '/')
+            except ValueError:
+                # Fallback to absolute path if relative calculation fails
+                file_path_str = str(file_path.absolute())
+        else:
+            file_path_str = str(file_path.absolute())
         
         if self.db_manager.image_exists(file_path_str):
             return False
