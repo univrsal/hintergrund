@@ -12,6 +12,18 @@ A Python application for scanning directories of wallpaper images and storing th
 
 ## Installation
 
+### Option 1: Download Executable (Recommended)
+
+Download the latest executable for your platform from the [Releases page](../../releases).
+
+- **Windows**: Download `hintergrund.exe`
+- **Linux**: Download `hintergrund` (Linux)
+- **macOS**: Download `hintergrund` (macOS)
+
+No Python installation required!
+
+### Option 2: Run from Source
+
 1. Make sure you have Python 3.7+ installed
 2. Install dependencies:
    ```bash
@@ -22,8 +34,16 @@ A Python application for scanning directories of wallpaper images and storing th
 
 ### Scanning a Directory
 
-To scan a directory for images and add them to the database:
+**Using the executable:**
+```bash
+# Windows
+hintergrund.exe scan "C:\path\to\wallpapers"
 
+# Linux/macOS
+./hintergrund scan "/path/to/wallpapers"
+```
+
+**Using Python:**
 ```bash
 python main.py scan "/path/to/wallpapers"
 ```
@@ -45,23 +65,55 @@ The base scan directory is not included in tags.
 
 ### Listing Images
 
-To list all images in the database:
+**Using the executable:**
+```bash
+# Windows
+hintergrund.exe list
 
+# Linux/macOS  
+./hintergrund list
+```
+
+**Using Python:**
 ```bash
 python main.py list
 ```
 
 To filter by specific tags:
 
+**Using the executable:**
+```bash
+# Windows
+hintergrund.exe list --tags nature forest
+
+# Linux/macOS
+./hintergrund list --tags nature forest
+```
+
+**Using Python:**
 ```bash
 python main.py list --tags nature forest
 ```
 
 ### Custom Database Location
 
-You can specify a custom database file:
+**Using the executable:**
+```bash
+# Windows
+hintergrund.exe scan "C:\path\to\wallpapers" --db "my_wallpapers.db"
+hintergrund.exe list --db "my_wallpapers.db"
 
+# Linux/macOS
+./hintergrund scan "/path/to/wallpapers" --db "my_wallpapers.db"
+./hintergrund list --db "my_wallpapers.db"
+```
+
+**Using Python:**
 ```bash
 python main.py scan "/path/to/wallpapers" --db "my_wallpapers.db"
 python main.py list --db "my_wallpapers.db"
 ```
+
+## Building from Source
+
+See [BUILD.md](BUILD.md) for instructions on building your own executable or contributing to development.
