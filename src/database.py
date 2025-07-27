@@ -167,3 +167,81 @@ class DatabaseManager:
                 'images': image_count,
                 'tags': tag_count
             }
+
+    def add_tag_to_image(self, image_id: int, tag_name: str) -> bool:
+        """Add a tag to an image. Returns True if tag was added, False if it already existed."""
+        tag_name = tag_name.strip().lower()
+        if not tag_name:
+            return False
+            
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            
+            # Check if the image exists
+            cursor.execute('SELECT 1 FROM image WHERE id = ?', (image_id,))
+            if not cursor.fetchone():
+                raise ValueError(f"Image with ID {image_id} not found")
+            
+            # Get or create the tag
+            tag_id = self._get_or_create_tag(cursor, tag_name)
+            
+            # Try to add the image-tag relationship
+            try:
+                cursor.execute('''
+                    INSERT INTO image_tag (image_id, tag_id)
+                    VALUES (?, ?)
+                ''', (image_id, tag_id))
+                conn.commit()
+                return True
+            except sqlite3.IntegrityError:
+                # Tag already exists for this image
+                return False
+    
+    def remove_tag_from_image(self, image_id: int, tag_name: str) -> bool:
+        """Remove a tag from an image. Returns True if tag was removed, False if it didn't exist."""
+        tag_name = tag_name.strip().lower()
+        if not tag_name:
+            return False
+            
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            
+            # Check if the image exists
+            cursor.execute('SELECT 1 FROM image WHERE id = ?', (image_id,))
+            if not cursor.fetchone():
+                raise ValueError(f"Image with ID {image_id} not found")
+            
+            # Find the tag
+            cursor.execute('SELECT id FROM tag WHERE name = ?', (tag_name,))
+            tag_result = cursor.fetchone()
+            if not tag_result:
+                return False
+            
+            tag_id = tag_result[0]
+            
+            # Remove the image-tag relationship
+            cursor.execute('''
+                DELETE FROM image_tag 
+                WHERE image_id = ? AND tag_id = ?
+            ''', (image_id, tag_id))
+            
+            rows_affected = cursor.rowcount
+            conn.commit()
+            
+            return rows_affected > 0
+    
+    def get_image_by_id(self, image_id: int) -> Optional[Dict[str, Any]]:
+        """Get a single image by its ID."""
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            
+            cursor.execute('SELECT * FROM image WHERE id = ?', (image_id,))
+            row = cursor.fetchone()
+            
+            if not row:
+                return None
+            
+            image_dict = dict(row)
+            image_dict['tags'] = self._get_image_tags(cursor, image_dict['id'])
+            return image_dict
