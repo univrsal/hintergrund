@@ -10,6 +10,7 @@ import argparse
 import sys
 
 from src.cli import scan_directory, list_images
+from src.gui import start_gui
 
 def main():
     parser = argparse.ArgumentParser(
@@ -48,8 +49,9 @@ def main():
     args = parser.parse_args()
     
     if not args.command:
-        parser.print_help()
-        return 1
+        # No command provided, start GUI
+        start_gui()
+        return 0
     
     try:
         if args.command == 'scan':

@@ -1,10 +1,8 @@
 from pathlib import Path
-
 from typing import Optional, List
 
 from src.database import DatabaseManager
 from src.scanner import ImageScanner
-from src.database import DatabaseManager
 
 def list_images(db_path: str, tags: Optional[List[str]] = None):
     db_manager = DatabaseManager(db_path)
