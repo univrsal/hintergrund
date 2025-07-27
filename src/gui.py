@@ -35,6 +35,7 @@ class WallpaperGUI:
 
         self.root.bind('<Left>', self.previous_image)
         self.root.bind('<Right>', self.next_image)
+        self.root.bind('<Delete>', self.delete_current_image)
         self.root.focus_set()  # Ensure the root window can receive key events
     
     def _configure_hidpi(self):
@@ -105,6 +106,8 @@ class WallpaperGUI:
         file_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="File", menu=file_menu)
         file_menu.add_command(label="Scan Directory...", command=self.scan_directory)
+        file_menu.add_separator()
+        file_menu.add_command(label="Delete Selected Image...", command=self.delete_current_image, accelerator="Delete")
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.root.quit)
         
@@ -374,6 +377,80 @@ class WallpaperGUI:
         
         self.current_image_index = new_index
         self.display_image(self.current_images[new_index])
+    
+    def delete_current_image(self, event=None):
+        """Delete the currently selected image from disk and database with confirmation."""
+        # Don't delete if user is typing in the tag entry field
+        if self.root.focus_get() == self.tag_entry:
+            return
+            
+        if self.current_image_index < 0 or self.current_image_index >= len(self.current_images):
+            messagebox.showwarning("No Image Selected", "Please select an image to delete.")
+            return
+        
+        current_image = self.current_images[self.current_image_index]
+        file_path = Path(current_image['file_path'])
+        image_id = current_image['id']
+        
+        # Show confirmation dialog
+        result = messagebox.askyesno(
+            "Confirm Delete",
+            f"Are you sure you want to delete this image?\n\n"
+            f"File: {file_path.name}\n"
+            f"Path: {file_path}\n\n"
+            f"This action cannot be undone!",
+            icon='warning'
+        )
+        
+        if not result:
+            return
+        
+        try:
+            # Delete from database first
+            if self.db_manager.delete_image(image_id):
+                # Delete from disk if it exists
+                if file_path.exists():
+                    try:
+                        file_path.unlink()
+                        self.status_var.set(f"Deleted image: {file_path.name}")
+                    except OSError as e:
+                        messagebox.showerror("File Delete Error", 
+                                           f"Image was removed from database but could not delete file:\n{e}")
+                        self.status_var.set(f"Database updated, but file delete failed: {file_path.name}")
+                else:
+                    self.status_var.set(f"Removed missing image from database: {file_path.name}")
+                
+                # Remove from current images list
+                del self.current_images[self.current_image_index]
+                
+                # Update the image list display
+                self.update_image_list()
+                
+                # Clear the image display and select next image if available
+                if self.current_images:
+                    # Adjust index if we deleted the last image
+                    if self.current_image_index >= len(self.current_images):
+                        self.current_image_index = len(self.current_images) - 1
+                    
+                    # Select and display the new current image
+                    self.image_listbox.selection_clear(0, tk.END)
+                    self.image_listbox.selection_set(self.current_image_index)
+                    self.image_listbox.see(self.current_image_index)
+                    self.display_image(self.current_images[self.current_image_index])
+                else:
+                    # No images left
+                    self.current_image_index = -1
+                    self.image_label.configure(image='', text="No images available")
+                    self.image_info_var.set("")
+                    self.update_tags_list([])
+                
+            else:
+                messagebox.showerror("Delete Error", "Failed to delete image from database.")
+                self.status_var.set("Error deleting image")
+                
+        except Exception as e:
+            messagebox.showerror("Delete Error", f"An error occurred while deleting the image:\n{e}")
+            self.status_var.set("Error deleting image")
     
     def scan_directory(self):
         directory = filedialog.askdirectory(title="Select directory to scan")

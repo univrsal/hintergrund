@@ -245,3 +245,24 @@ class DatabaseManager:
             image_dict = dict(row)
             image_dict['tags'] = self._get_image_tags(cursor, image_dict['id'])
             return image_dict
+
+    def delete_image(self, image_id: int) -> bool:
+        """Delete an image and all its tag associations from the database."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            
+            # Check if the image exists
+            cursor.execute('SELECT 1 FROM image WHERE id = ?', (image_id,))
+            if not cursor.fetchone():
+                return False
+            
+            # Delete image-tag relationships (will be handled by CASCADE, but explicit is better)
+            cursor.execute('DELETE FROM image_tag WHERE image_id = ?', (image_id,))
+            
+            # Delete the image record
+            cursor.execute('DELETE FROM image WHERE id = ?', (image_id,))
+            
+            rows_affected = cursor.rowcount
+            conn.commit()
+            
+            return rows_affected > 0
