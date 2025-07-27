@@ -308,8 +308,8 @@ class DatabaseManager:
         if base_path:
             # Convert Unix separators back to system separators
             normalized_path = stored_path.replace('/', os.sep)
-            resolved_path = Path(base_path) / normalized_path
-            return str(resolved_path.absolute())
+            resolved_path = Path(base_path + "/" + normalized_path)
+            return str(resolved_path)
         
         # Fallback to stored path if no base path is set
         return stored_path
