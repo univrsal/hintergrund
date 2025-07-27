@@ -1,3 +1,5 @@
+![screenshot](./img.png)
+
 # Hintergrund - Wallpaper tool
 
 A Python application for scanning directories of wallpaper images and storing them in a database with automatic tagging based on folder structure.
@@ -63,30 +65,3 @@ You can specify a custom database file:
 python main.py scan "/path/to/wallpapers" --db "my_wallpapers.db"
 python main.py list --db "my_wallpapers.db"
 ```
-
-## Database Schema
-
-The application uses SQLite with the following tables:
-
-- `images`: Stores image metadata (path, dimensions, file size, etc.)
-- `tags`: Stores unique tag names
-- `image_tags`: Junction table linking images to tags
-
-## Development
-
-### Project Structure
-
-```
-hintergrund/
-├── main.py              # Main CLI entry point
-├── src/
-│   ├── __init__.py
-│   ├── database.py      # Database management
-│   └── scanner.py       # Image scanning logic
-├── requirements.txt     # Python dependencies
-└── README.md           # This file
-```
-
-### Running with VS Code
-
-The project includes a VS Code launch configuration for debugging. Press F5 to run the scanner with the configured arguments.
