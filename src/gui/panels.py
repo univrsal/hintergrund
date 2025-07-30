@@ -3,7 +3,7 @@ GUI panels for the wallpaper management interface.
 """
 
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, font
 from pathlib import Path
 from typing import List, Dict, Any
 from PIL import Image, ImageTk
@@ -74,8 +74,15 @@ class ImageListPanel:
         """Create the tree view widget."""
         tree_frame = ttk.Frame(container)
 
+        # Calculate appropriate row height for high DPI displays
+        row_height = self._calculate_tree_row_height()
+
         self.image_tree = ttk.Treeview(tree_frame, selectmode="browse")
         self.image_tree.heading("#0", text="Folder Structure", anchor="w")
+
+        # Configure row height for better visibility on high DPI
+        style = ttk.Style()
+        style.configure("Treeview", rowheight=row_height)
 
         tree_scrollbar = ttk.Scrollbar(
             tree_frame, orient=tk.VERTICAL, command=self.image_tree.yview
@@ -88,6 +95,41 @@ class ImageListPanel:
         self.image_tree.bind("<<TreeviewSelect>>", self._on_tree_select)
 
         self.tree_frame = tree_frame
+
+    def _calculate_tree_row_height(self):
+        """Calculate appropriate row height based on DPI and font size."""
+        try:
+            # Get the default font size
+            root = self.gui_app.root
+            default_font = font.nametofont("TkDefaultFont")
+            font_size = abs(default_font["size"])  # abs() because size can be negative
+
+            # Base row height calculation
+            if font_size <= 9:
+                row_height = 20
+            elif font_size <= 11:
+                row_height = 24
+            elif font_size <= 13:
+                row_height = 28
+            elif font_size <= 15:
+                row_height = 32
+            else:
+                row_height = max(32, int(font_size * 2.2))
+
+            # Additional scaling for high DPI systems
+            try:
+                if hasattr(root, "tk"):
+                    scaling = root.tk.call("tk", "scaling")
+                    if scaling > 1.0:
+                        row_height = int(row_height * scaling)
+            except tk.TclError:
+                pass
+
+            return max(20, row_height)  # Ensure minimum height
+
+        except Exception:
+            # Fallback to a reasonable default
+            return 24
 
     def _create_flat_list(self, container):
         """Create the flat list widget."""
@@ -289,6 +331,14 @@ class ImageListPanel:
             self.image_listbox.selection_clear(0, tk.END)
             self.image_listbox.selection_set(index)
             self.image_listbox.see(index)
+
+    def set_tree_row_height(self, height: int):
+        """Manually set the tree view row height."""
+        try:
+            style = ttk.Style()
+            style.configure("Treeview", rowheight=max(16, min(50, height)))
+        except Exception:
+            pass  # Ignore errors if styling fails
 
 
 class ImageDisplayPanel:
