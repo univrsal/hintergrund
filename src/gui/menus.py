@@ -58,6 +58,9 @@ class MenuManager:
             label="Show Base Folder", command=self.gui_app.show_base_folder
         )
         view_menu.add_separator()
+        view_menu.add_command(
+            label="Reset Panel Sizes", command=self.gui_app.reset_panel_sizes
+        )
         view_menu.add_command(label="Refresh", command=self.gui_app.load_images)
         view_menu.add_command(
             label="Show Statistics", command=self.gui_app.show_statistics

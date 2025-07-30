@@ -20,8 +20,7 @@ class ImageListPanel:
 
     def _create_panel(self, parent):
         list_frame = ttk.LabelFrame(parent, text="Images")
-        list_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=False, padx=(0, 5))
-        list_frame.configure(width=300)
+        list_frame.pack(fill=tk.BOTH, expand=True)
 
         controls_frame = ttk.Frame(list_frame)
         controls_frame.pack(fill=tk.X, padx=5, pady=5)
@@ -343,7 +342,7 @@ class ImageDisplayPanel:
 
     def _create_panel(self, parent):
         display_frame = ttk.LabelFrame(parent, text="Preview")
-        display_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5)
+        display_frame.pack(fill=tk.BOTH, expand=True)
 
         image_container = ttk.Frame(display_frame)
         image_container.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
@@ -460,8 +459,7 @@ class TagsPanel:
 
     def _create_panel(self, parent):
         tags_frame = ttk.LabelFrame(parent, text="Tags")
-        tags_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=False, padx=(5, 0))
-        tags_frame.configure(width=200)
+        tags_frame.pack(fill=tk.BOTH, expand=True)
 
         tags_container = ttk.Frame(tags_frame)
         tags_container.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)

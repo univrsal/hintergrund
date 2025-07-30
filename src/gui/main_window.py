@@ -93,13 +93,24 @@ class WallpaperGUI:
         main_frame = ttk.Frame(self.root)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        # Create menu system
         self.menu_manager = MenuManager(self.root, self)
 
-        # Create panels
-        self.image_list_panel = ImageListPanel(main_frame, self)
-        self.image_display_panel = ImageDisplayPanel(main_frame, self)
-        self.tags_panel = TagsPanel(main_frame, self)
+        self.main_paned = ttk.PanedWindow(main_frame, orient=tk.HORIZONTAL)
+        self.main_paned.pack(fill=tk.BOTH, expand=True)
+
+        self.left_frame = ttk.Frame(self.main_paned)
+        self.center_frame = ttk.Frame(self.main_paned)
+        self.right_frame = ttk.Frame(self.main_paned)
+
+        self.main_paned.add(self.left_frame, weight=1)
+        self.main_paned.add(self.center_frame, weight=3)
+        self.main_paned.add(self.right_frame, weight=1)
+
+        self.image_list_panel = ImageListPanel(self.left_frame, self)
+        self.image_display_panel = ImageDisplayPanel(self.center_frame, self)
+        self.tags_panel = TagsPanel(self.right_frame, self)
+
+        self.root.after(100, self._set_initial_panel_sizes)
 
         # Status bar
         self.status_var = tk.StringVar()
@@ -108,6 +119,29 @@ class WallpaperGUI:
             self.root, textvariable=self.status_var, relief=tk.SUNKEN
         )
         status_bar.pack(side=tk.BOTTOM, fill=tk.X)
+
+    def _set_initial_panel_sizes(self):
+        """Set initial panel sizes with reasonable defaults."""
+        try:
+            # Wait for the window to be properly sized
+            self.root.update_idletasks()
+            total_width = self.main_paned.winfo_width()
+
+            if total_width > 100:  # Only if window is properly sized
+                # Set initial sizes: ~300px left, remaining for center, ~200px right
+                left_size = min(300, max(250, int(total_width * 0.25)))
+                right_size = min(200, max(180, int(total_width * 0.15)))
+                center_size = total_width - left_size - right_size
+
+                # Ensure center panel gets reasonable space
+                if center_size < 400 and total_width > 800:
+                    left_size = max(250, int(total_width * 0.2))
+                    right_size = max(180, int(total_width * 0.15))
+
+                self.main_paned.sashpos(0, left_size)
+                self.main_paned.sashpos(1, left_size + center_size)
+        except tk.TclError:
+            pass
 
     def load_images(self, tag_filter: Optional[List[str]] = None):
         try:
@@ -363,6 +397,21 @@ class WallpaperGUI:
 
         except Exception as e:
             messagebox.showerror("Error", f"Failed to get base folder information: {e}")
+
+    def reset_panel_sizes(self):
+        """Reset panel sizes to default proportions."""
+        try:
+            # Get total width
+            total_width = self.main_paned.winfo_width()
+            if total_width > 10:  # Only if window is properly sized
+                # Set proportional sizes: 20% left, 60% center, 20% right
+                left_size = int(total_width * 0.2)
+                center_size = int(total_width * 0.6)
+
+                self.main_paned.sashpos(0, left_size)
+                self.main_paned.sashpos(1, left_size + center_size)
+        except tk.TclError:
+            pass  # Ignore if panels aren't ready yet
 
     def run(self):
         try:
