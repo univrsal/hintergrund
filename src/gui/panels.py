@@ -23,11 +23,9 @@ class ImageListPanel:
         list_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=False, padx=(0, 5))
         list_frame.configure(width=300)
 
-        # Controls frame
         controls_frame = ttk.Frame(list_frame)
         controls_frame.pack(fill=tk.X, padx=5, pady=5)
 
-        # Search controls
         search_frame = ttk.Frame(controls_frame)
         search_frame.pack(fill=tk.X, pady=(0, 5))
 
@@ -37,7 +35,6 @@ class ImageListPanel:
         search_entry = ttk.Entry(search_frame, textvariable=self.search_var)
         search_entry.pack(fill=tk.X, pady=(2, 0))
 
-        # View mode toggle
         view_frame = ttk.Frame(controls_frame)
         view_frame.pack(fill=tk.X, pady=(5, 0))
 
@@ -59,28 +56,23 @@ class ImageListPanel:
         tree_radio.pack(side=tk.LEFT)
         flat_radio.pack(side=tk.LEFT, padx=(10, 0))
 
-        # Container for the list/tree
         list_container = ttk.Frame(list_frame)
         list_container.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
-        # Create both widgets but only show one at a time
         self._create_tree_view(list_container)
         self._create_flat_list(list_container)
 
-        # Start with tree view
         self._show_tree_view()
 
     def _create_tree_view(self, container):
         """Create the tree view widget."""
         tree_frame = ttk.Frame(container)
 
-        # Calculate appropriate row height for high DPI displays
         row_height = self._calculate_tree_row_height()
 
         self.image_tree = ttk.Treeview(tree_frame, selectmode="browse")
         self.image_tree.heading("#0", text="Folder Structure", anchor="w")
 
-        # Configure row height for better visibility on high DPI
         style = ttk.Style()
         style.configure("Treeview", rowheight=row_height)
 
@@ -99,12 +91,10 @@ class ImageListPanel:
     def _calculate_tree_row_height(self):
         """Calculate appropriate row height based on DPI and font size."""
         try:
-            # Get the default font size
             root = self.gui_app.root
             default_font = font.nametofont("TkDefaultFont")
             font_size = abs(default_font["size"])  # abs() because size can be negative
 
-            # Base row height calculation
             if font_size <= 9:
                 row_height = 20
             elif font_size <= 11:
@@ -116,7 +106,6 @@ class ImageListPanel:
             else:
                 row_height = max(32, int(font_size * 2.2))
 
-            # Additional scaling for high DPI systems
             try:
                 if hasattr(root, "tk"):
                     scaling = root.tk.call("tk", "scaling")
@@ -125,10 +114,9 @@ class ImageListPanel:
             except tk.TclError:
                 pass
 
-            return max(20, row_height)  # Ensure minimum height
+            return max(20, row_height)
 
         except Exception:
-            # Fallback to a reasonable default
             return 24
 
     def _create_flat_list(self, container):
@@ -167,7 +155,6 @@ class ImageListPanel:
         else:
             self._show_flat_list()
 
-        # Refresh the display with current images
         if hasattr(self.gui_app, "current_images"):
             self.update_image_list(self.gui_app.current_images)
 
@@ -180,32 +167,39 @@ class ImageListPanel:
 
             # Get the relative path components
             if file_path.is_absolute():
-                # Try to get relative path from base folder if set
                 base_path = self.gui_app.db_manager.get_base_path()
                 if base_path:
                     try:
                         rel_path = file_path.relative_to(base_path)
                         path_parts = rel_path.parts
                     except ValueError:
-                        # Not relative to base path, use the full path
                         path_parts = file_path.parts
                 else:
                     path_parts = file_path.parts
             else:
                 path_parts = file_path.parts
 
-            # Navigate through the folder structure
+            # Skip if we only have a filename (no folder structure)
+            if len(path_parts) <= 1:
+                # Create a "Root" folder for files without folder structure
+                if "Root" not in structure:
+                    structure["Root"] = {"folders": {}, "files": []}
+                structure["Root"]["files"].append((i, image))
+                continue
+
+            # Navigate through the folder structure, excluding the filename
             current_level = structure
-            for part in path_parts[:-1]:  # All except the filename
+            folder_parts = path_parts[:-1]  # All except the filename
+
+            for part in folder_parts:
                 if part not in current_level:
                     current_level[part] = {"folders": {}, "files": []}
-                current_level = current_level[part]["folders"]
-
-            # Add the file to the final folder
-            folder_name = path_parts[-2] if len(path_parts) > 1 else "Root"
-            if folder_name not in current_level:
-                current_level[folder_name] = {"folders": {}, "files": []}
-            current_level[folder_name]["files"].append((i, image))
+                # If this is the last folder part, add the file here
+                if part == folder_parts[-1]:
+                    current_level[part]["files"].append((i, image))
+                else:
+                    # Navigate deeper into the folder structure
+                    current_level = current_level[part]["folders"]
 
         return structure
 
@@ -227,7 +221,6 @@ class ImageListPanel:
             current_path = f"{path_prefix}/{name}" if path_prefix else name
 
             if content.get("folders") or content.get("files"):
-                # This is a folder
                 folder_id = self.image_tree.insert(parent, "end", text=name, open=True)
 
                 # Add subfolders
@@ -239,7 +232,6 @@ class ImageListPanel:
                 # Add files
                 for image_index, image in content.get("files", []):
                     file_name = Path(image["file_path"]).name
-                    # Store the image index in the values to retrieve it later
                     self.image_tree.insert(
                         folder_id, "end", text=file_name, values=(image_index,)
                     )
