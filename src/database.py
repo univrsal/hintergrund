@@ -197,8 +197,16 @@ class DatabaseManager:
         )
 
         return [row[0] for row in cursor.fetchall()]
+    
+    def get_size_all_images(self) -> int:
+        """Get the total size of all images in the database."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT SUM(file_size) FROM image")
+            result = cursor.fetchone()
+            return result[0] if result and result[0] is not None else 0
 
-    def get_stats(self) -> Dict[str, int]:
+    def get_stats(self) -> Dict[str, Any]:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
 
@@ -208,7 +216,18 @@ class DatabaseManager:
             cursor.execute("SELECT COUNT(*) FROM tag")
             tag_count = cursor.fetchone()[0]
 
-            return {"images": image_count, "tags": tag_count}
+            total_size = self.get_size_all_images()
+
+            if total_size < 1024:
+                size_str = f"{total_size} B"
+            elif total_size < 1024 * 1024:
+                size_str = f"{total_size / 1024:.2f} KB"
+            elif total_size < 1024 * 1024 * 1024:
+                size_str = f"{total_size / (1024 * 1024):.2f} MB"
+            else:
+                size_str = f"{total_size / (1024 * 1024 * 1024):.2f} GB"
+
+            return {"images": image_count, "tags": tag_count, "size": size_str}
 
     def add_tag_to_image(self, image_id: int, tag_name: str) -> bool:
         """Add a tag to an image. Returns True if tag was added, False if it already existed."""

@@ -325,7 +325,7 @@ class WallpaperGUI:
     def show_statistics(self):
         try:
             stats = self.db_manager.get_stats()
-            message = f"Database Statistics:\n\nImages: {stats['images']}\nTags: {stats['tags']}"
+            message = f"Database Statistics:\n\nImages: {stats['images']}\nTags: {stats['tags']}\nTotal size of database: {stats['size']}"
             messagebox.showinfo("Statistics", message)
         except Exception as e:
             messagebox.showerror("Error", f"Failed to get statistics: {e}")
