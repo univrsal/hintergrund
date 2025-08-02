@@ -38,7 +38,6 @@ def main():
     )
     list_parser.add_argument("--tags", type=str, nargs="*", help="Filter by tags")
 
-    # Add GUI command
     gui_parser = subparsers.add_parser("gui", help="Start the GUI application")
     gui_parser.add_argument(
         "--db",
@@ -47,9 +46,8 @@ def main():
         help="Database file path (default: wallpapers.db)",
     )
 
-    # Add run command
     run_parser = subparsers.add_parser(
-        "run", help="Run the rule engine to select a wallpaper"
+        "pick", help="Run the rule engine to select a wallpaper and print its path"
     )
     run_parser.add_argument(
         "--db",
@@ -61,7 +59,6 @@ def main():
     args = parser.parse_args()
 
     if not args.command:
-        # No command provided, start GUI
         start_gui()
         return 0
 

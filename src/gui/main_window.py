@@ -12,7 +12,9 @@ import sys
 
 from ..database import DatabaseManager
 from ..scanner import ImageScanner
-from .panels import ImageListPanel, ImageDisplayPanel, TagsPanel
+from .panels.image_display_panel import ImageDisplayPanel
+from .panels.image_list_panel import ImageListPanel
+from .panels.tags_panel import TagsPanel
 from .menus import MenuManager
 from .dialogs import ProgressDialog
 
@@ -250,10 +252,8 @@ class WallpaperGUI:
                         f"Removed missing image from database: {file_path.name}"
                     )
 
-                # Remove from current images list
                 del self.current_images[self.current_image_index]
 
-                # Update the image list display
                 self.image_list_panel.update_image_list(self.current_images)
 
                 # Clear the image display and select next image if available
@@ -332,10 +332,8 @@ class WallpaperGUI:
 
     def set_base_folder(self):
         """Allow user to set the base folder path for relative image paths."""
-        # Get current base path if it exists
         current_base_path = self.db_manager.get_base_path()
 
-        # Show dialog with current path as initial directory
         initial_dir = current_base_path if current_base_path else str(Path.home())
 
         new_base_path = filedialog.askdirectory(
@@ -345,7 +343,6 @@ class WallpaperGUI:
         if not new_base_path:
             return
 
-        # Confirm the change
         message = f"Set base folder to:\n{new_base_path}\n\n"
         if current_base_path:
             message += f"Current base folder:\n{current_base_path}\n\n"
@@ -359,11 +356,9 @@ class WallpaperGUI:
             return
 
         try:
-            # Set the new base path
             self.db_manager.set_base_path(new_base_path)
             self.status_var.set(f"Base folder set to: {new_base_path}")
 
-            # Show success message with additional info
             success_msg = (
                 f"Base folder successfully changed to:\n{new_base_path}\n\n"
                 "Note: This affects how relative image paths are resolved. "
@@ -371,7 +366,6 @@ class WallpaperGUI:
             )
             messagebox.showinfo("Base Folder Updated", success_msg)
 
-            # Reload images to reflect any path changes
             self.load_images()
 
         except Exception as e:
@@ -385,7 +379,6 @@ class WallpaperGUI:
 
             if base_path:
                 message = f"Current base folder:\n\n{base_path}"
-                # Check if the path exists
                 if Path(base_path).exists():
                     message += "\n\n✓ Path exists and is accessible"
                 else:
@@ -401,17 +394,15 @@ class WallpaperGUI:
     def reset_panel_sizes(self):
         """Reset panel sizes to default proportions."""
         try:
-            # Get total width
             total_width = self.main_paned.winfo_width()
             if total_width > 10:  # Only if window is properly sized
-                # Set proportional sizes: 20% left, 60% center, 20% right
                 left_size = int(total_width * 0.2)
                 center_size = int(total_width * 0.6)
 
                 self.main_paned.sashpos(0, left_size)
                 self.main_paned.sashpos(1, left_size + center_size)
         except tk.TclError:
-            pass  # Ignore if panels aren't ready yet
+            pass
 
     def run(self):
         try:
