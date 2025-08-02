@@ -2,12 +2,10 @@ from itertools import combinations
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 
-from .manager import rule_manager
+from .manager import RuleManager
 from ..database import DatabaseManager
 
-def run(db: DatabaseManager) -> Optional[List[Dict[str, Any]]]:
-    # get list of all rules that apply
-    rule_manager.load_default_rules()
+def run(db: DatabaseManager, rule_manager: RuleManager) -> Optional[List[Dict[str, Any]]]:
     active_rules = rule_manager.get_active_rules()
 
     A = len(active_rules)
