@@ -66,7 +66,7 @@ class MenuManager:
             label="Show Statistics", command=self.gui_app.show_statistics
         )
         view_menu.add_command(label="About", command=self._show_about)
-
+    
     def _show_about(self):
         """Show the about dialog."""
         about_window = tk.Toplevel(self.root)

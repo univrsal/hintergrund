@@ -30,7 +30,8 @@ class DatabaseManager:
                     height INTEGER NOT NULL,
                     format TEXT NOT NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    last_used TIMESTAMP DEFAULT '1970-01-01 00:00:00'
                 )
             """
             )
@@ -89,6 +90,22 @@ class DatabaseManager:
             )
 
             conn.commit()
+            
+            # Check if last_used column exists, add it if not (migration)
+            self._migrate_add_last_used_column()
+
+    def _migrate_add_last_used_column(self):
+        """Add last_used column to existing image table if it doesn't exist."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            
+            # Check if column exists
+            cursor.execute("PRAGMA table_info(image)")
+            columns = [row[1] for row in cursor.fetchall()]
+            
+            if 'last_used' not in columns:
+                cursor.execute("ALTER TABLE image ADD COLUMN last_used TIMESTAMP DEFAULT '1970-01-01 00:00:00'")
+                conn.commit()
 
     def add_image(
         self,
@@ -136,25 +153,54 @@ class DatabaseManager:
             cursor = conn.cursor()
             cursor.execute("SELECT 1 FROM image WHERE file_path = ?", (file_path,))
             return cursor.fetchone() is not None
+        
+    def pick_random_image(self) -> Optional[Dict[str, Any]]:
+        """Pick a random image from the database."""
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
 
-    def get_images(self, tags: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+            cursor.execute("SELECT * FROM image ORDER BY RANDOM() LIMIT 1")
+            row = cursor.fetchone()
+
+            if not row:
+                return None
+
+            image_dict = dict(row)
+            image_dict["tags"] = self._get_image_tags(cursor, image_dict["id"])
+            return image_dict
+
+    def get_images(self, tags: Optional[List[str]] = None, require_all_tags: bool = False) -> List[Dict[str, Any]]:
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
 
             if tags:
                 placeholders = ",".join(["?" for _ in tags])
-                query = f"""
-                    SELECT DISTINCT i.*
-                    FROM image i
-                    JOIN image_tag it ON i.id = it.image_id
-                    JOIN tag t ON it.tag_id = t.id
-                    WHERE t.name IN ({placeholders})
-                    GROUP BY i.id
-                    HAVING COUNT(DISTINCT t.name) = ?
-                    ORDER BY i.created_at DESC
-                """
-                cursor.execute(query, tags + [len(tags)])
+                if require_all_tags:
+                    # Require ALL tags (original behavior)
+                    query = f"""
+                        SELECT DISTINCT i.*
+                        FROM image i
+                        JOIN image_tag it ON i.id = it.image_id
+                        JOIN tag t ON it.tag_id = t.id
+                        WHERE t.name IN ({placeholders})
+                        GROUP BY i.id
+                        HAVING COUNT(DISTINCT t.name) = ?
+                        ORDER BY i.created_at DESC
+                    """
+                    cursor.execute(query, tags + [len(tags)])
+                else:
+                    # Require ANY tag (union of all images with any of the tags)
+                    query = f"""
+                        SELECT DISTINCT i.*
+                        FROM image i
+                        JOIN image_tag it ON i.id = it.image_id
+                        JOIN tag t ON it.tag_id = t.id
+                        WHERE t.name IN ({placeholders})
+                        ORDER BY i.created_at DESC
+                    """
+                    cursor.execute(query, tags)
             else:
                 cursor.execute(
                     """
@@ -373,3 +419,22 @@ class DatabaseManager:
 
         # Fallback to stored path if no base path is set
         return stored_path
+
+    def update_last_used(self, image_id: int) -> bool:
+        """Update the last_used timestamp for an image."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            
+            cursor.execute(
+                """
+                UPDATE image 
+                SET last_used = CURRENT_TIMESTAMP 
+                WHERE id = ?
+                """,
+                (image_id,)
+            )
+            
+            rows_affected = cursor.rowcount
+            conn.commit()
+            
+            return rows_affected > 0
