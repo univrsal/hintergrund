@@ -15,7 +15,7 @@ A Python application for scanning directories of wallpaper images and storing th
 
 ## Installation
 
-### Option 1: Download Executable (Recommended)
+### Option 1: Download Executable
 
 Download the latest executable for your platform from the [Releases page](../../releases).
 
@@ -88,3 +88,10 @@ Hintergrund now supports weather-based wallpaper selection! You can automaticall
 - **thunderstorm** - Thunderstorms
 - **fog** - Foggy weather
 - **sleet** - Sleet/freezing rain
+
+## (made up) FAQ
+
+- The GUI is ugly, did you know that? - Yes.
+- Python is garbage, you know Rust is way better? - I don't care.
+- This code is bad, did an LLM write it? - Yes.
+- This code is genius, did you write it? - Yes.
