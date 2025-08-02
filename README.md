@@ -9,6 +9,9 @@ A Python application for scanning directories of wallpaper images and storing th
 - Recursively scans directories for wallpaper images
 - Automatically tags images based on their folder path
 - Stores image metadata (dimensions, file size, format) in SQLite database
+- **Weather-based wallpaper rules**: Automatically select wallpapers based on current weather conditions
+- Time-based and date-based wallpaper rules
+- Flexible rule system for custom wallpaper selection logic
 
 ## Installation
 
@@ -66,54 +69,22 @@ The base scan directory is not included in tags.
 ### Listing Images
 
 **Using the executable:**
-```bash
-# Windows
-hintergrund.exe list
-
-# Linux/macOS  
-./hintergrund list
-```
-
-**Using Python:**
-```bash
-python main.py list
-```
-
-To filter by specific tags:
-
 **Using the executable:**
 ```bash
-# Windows
-hintergrund.exe list --tags nature forest
-
-# Linux/macOS
 ./hintergrund list --tags nature forest
-```
-
-**Using Python:**
-```bash
 python main.py list --tags nature forest
 ```
 
-### Custom Database Location
+## Weather-Based Wallpaper Rules
 
-**Using the executable:**
-```bash
-# Windows
-hintergrund.exe scan "C:\path\to\wallpapers" --db "my_wallpapers.db"
-hintergrund.exe list --db "my_wallpapers.db"
+Hintergrund now supports weather-based wallpaper selection! You can automatically change wallpapers based on current weather conditions using data from yr.no.
 
-# Linux/macOS
-./hintergrund scan "/path/to/wallpapers" --db "my_wallpapers.db"
-./hintergrund list --db "my_wallpapers.db"
-```
+### Supported Weather Conditions
 
-**Using Python:**
-```bash
-python main.py scan "/path/to/wallpapers" --db "my_wallpapers.db"
-python main.py list --db "my_wallpapers.db"
-```
-
-## Building from Source
-
-See [BUILD.md](BUILD.md) for instructions on building your own executable or contributing to development.
+- **clear** - Sunny/clear skies
+- **cloudy** - Cloudy/overcast
+- **rain** - Any type of rain
+- **snow** - Snowy conditions
+- **thunderstorm** - Thunderstorms
+- **fog** - Foggy weather
+- **sleet** - Sleet/freezing rain
