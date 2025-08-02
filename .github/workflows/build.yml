@@ -44,7 +44,7 @@ jobs:
       with:
         files: dist/hintergrund.exe
         name: Release ${{ github.ref_name }}
-        draft: false
+        draft: true
         prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -90,7 +90,7 @@ jobs:
       with:
         files: dist/hintergrund
         name: Release ${{ github.ref_name }}
-        draft: false
+        draft: true
         prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -131,7 +131,7 @@ jobs:
       with:
         files: dist/hintergrund
         name: Release ${{ github.ref_name }}
-        draft: false
+        draft: true
         prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
