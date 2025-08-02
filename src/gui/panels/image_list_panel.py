@@ -6,6 +6,7 @@ import tkinter as tk
 from tkinter import ttk, font
 from pathlib import Path
 from typing import List, Dict, Any
+import sys
 
 class ImageListPanel:
     """Panel for displaying and managing the list of images."""
@@ -102,6 +103,8 @@ class ImageListPanel:
                 row_height = 32
             else:
                 row_height = max(32, int(font_size * 2.2))
+            if sys.platform == "win32":
+                row_height *= 0.7
 
             try:
                 if hasattr(root, "tk"):
