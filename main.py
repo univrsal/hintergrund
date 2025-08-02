@@ -47,6 +47,17 @@ def main():
         help="Database file path (default: wallpapers.db)",
     )
 
+    # Add run command
+    run_parser = subparsers.add_parser(
+        "run", help="Run the rule engine to select a wallpaper"
+    )
+    run_parser.add_argument(
+        "--db",
+        type=str,
+        default="wallpapers.db",
+        help="Database file path (default: wallpapers.db)",
+    )
+
     args = parser.parse_args()
 
     if not args.command:
@@ -61,6 +72,18 @@ def main():
             list_images(args.db, args.tags)
         elif args.command == "gui":
             start_gui(args.db)
+        elif args.command == "run":
+            from src.rules.engine import run
+            from src.database import DatabaseManager
+            db_manager = DatabaseManager(args.db)
+            from src.rules.manager import RuleManager
+            rule_manager = RuleManager(db_manager)
+            rule_manager.load_rules_from_database()
+            images = run(db_manager, rule_manager)
+            if images:
+                from random import choice
+                selected_image = choice(images)
+                print(db_manager.resolve_image_path(selected_image["file_path"]))
         else:
             print(f"Unknown command: {args.command}")
             return 1
