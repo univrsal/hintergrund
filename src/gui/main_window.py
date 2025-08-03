@@ -416,3 +416,87 @@ class WallpaperGUI:
             self.root.mainloop()
         except Exception as e:
             messagebox.showerror("Error", f"Failed to start application: {e}")
+
+    def rescan_base_folder(self):
+        """Re-scan the base folder for new images and add them to the database."""
+        try:
+            base_path = self.db_manager.get_base_path()
+            
+            if not base_path:
+                messagebox.showwarning(
+                    "No Base Folder", 
+                    "No base folder is set. Please set a base folder first using 'File > Set Base Folder'."
+                )
+                return
+            
+            base_path_obj = Path(base_path)
+            if not base_path_obj.exists():
+                messagebox.showerror(
+                    "Base Folder Not Found", 
+                    f"The base folder does not exist:\n{base_path}\n\n"
+                    "Please check the path or set a new base folder."
+                )
+                return
+            
+            # Confirm the operation
+            result = messagebox.askyesno(
+                "Re-scan Base Folder",
+                f"This will scan the base folder for new images:\n{base_path}\n\n"
+                "Only new images (not already in the database) will be added.\n"
+                "This may take some time depending on the folder size.\n\n"
+                "Continue?",
+                icon="question"
+            )
+            
+            if not result:
+                return
+            
+            progress_dialog = ProgressDialog(self.root, f"Re-scanning base folder: {base_path}")
+            
+            def rescan_thread():
+                try:
+                    self.db_manager.initialize()
+                    scanner = ImageScanner(self.db_manager)
+                    results = scanner.scan_directory(base_path_obj)
+                    
+                    self.root.after(
+                        0, lambda: self.rescan_completed(progress_dialog, results, base_path)
+                    )
+                except Exception as e:
+                    self.root.after(0, lambda: self.rescan_error(progress_dialog, str(e)))
+            
+            threading.Thread(target=rescan_thread, daemon=True).start()
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to start base folder re-scan: {e}")
+    
+    def rescan_completed(self, progress_dialog, results, base_path):
+        """Handle completion of base folder re-scan."""
+        progress_dialog.close()
+        
+        message = (
+            f"Base folder re-scan completed!\n\n"
+            f"Folder: {base_path}\n\n"
+            f"Images processed: {results['processed']}\n"
+            f"New images added: {results['added']}\n"
+            f"Images skipped (already in database): {results['skipped']}\n"
+            f"Errors: {results['errors']}"
+        )
+        
+        if results['added'] > 0:
+            message += f"\n\n{results['added']} new images were found and added to your collection!"
+        elif results['processed'] > 0:
+            message += "\n\nNo new images were found. Your database is up to date!"
+        else:
+            message += "\n\nNo images were found in the base folder."
+        
+        messagebox.showinfo("Re-scan Complete", message)
+        
+        # Reload images to show any new additions
+        if results['added'] > 0:
+            self.load_images()
+    
+    def rescan_error(self, progress_dialog, error_msg):
+        """Handle error during base folder re-scan."""
+        progress_dialog.close()
+        messagebox.showerror("Re-scan Error", f"Error during base folder re-scan: {error_msg}")

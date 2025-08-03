@@ -27,6 +27,9 @@ class MenuManager:
         file_menu.add_command(
             label="Scan Directory...", command=self.gui_app.scan_directory
         )
+        file_menu.add_command(
+            label="Re-scan Base Folder", command=self.gui_app.rescan_base_folder
+        )
         file_menu.add_separator()
         file_menu.add_command(
             label="Set Base Folder...", command=self.gui_app.set_base_folder

@@ -94,6 +94,8 @@ class ImageScanner:
         else:
             file_path_str = str(file_path.absolute())
         
+        file_path_str = "/" + file_path_str
+
         if self.db_manager.image_exists(file_path_str):
             return False
         
