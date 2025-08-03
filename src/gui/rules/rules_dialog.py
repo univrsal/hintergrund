@@ -20,6 +20,8 @@ class RulesDialog:
         self.parent = parent
         self.rule_manager = rule_manager
         self.rules = []
+        self.has_changes = False  # Track if any changes have been made
+        self.original_rules_hash = None  # Hash of original rules for comparison
         
         self._create_dialog()
         self._load_rules()
@@ -238,9 +240,44 @@ class RulesDialog:
         try:
             self.rule_manager.load_rules_from_database()
             self.rules = list(self.rule_manager.get_all_rules())  # Create a copy
+            self.has_changes = False
+            self.original_rules_hash = self._get_rules_hash()
             self._refresh_rules_list()
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load rules: {str(e)}")
+    
+    def _get_rules_hash(self):
+        """Generate a hash of the current rules state for change detection."""
+        import hashlib
+        
+        # Create a string representation of all rules
+        rules_data = []
+        for rule in self.rules:
+            try:
+                # Get rule data as dict and convert to sorted string for consistent hashing
+                rule_dict = rule.model_dump()
+                rules_data.append(json.dumps(rule_dict, sort_keys=True, default=str))
+            except Exception:
+                # Fallback for rules that can't be serialized
+                rules_data.append(str(rule))
+        
+        # Create hash of all rules data
+        rules_string = "|".join(sorted(rules_data))
+        return hashlib.md5(rules_string.encode()).hexdigest()
+    
+    def _mark_as_changed(self):
+        """Mark the dialog as having unsaved changes."""
+        if not self.has_changes:
+            self.has_changes = True
+            # Update window title to indicate unsaved changes
+            current_title = self.window.title()
+            if not current_title.endswith(" *"):
+                self.window.title(current_title + " *")
+    
+    def _check_for_changes(self):
+        """Check if any changes have been made to the rules."""
+        current_hash = self._get_rules_hash()
+        return current_hash != self.original_rules_hash
     
     def _refresh_rules_list(self):
         """Refresh the rules treeview."""
@@ -333,6 +370,7 @@ class RulesDialog:
             dialog = NewRuleDialog(self.window, self.rule_manager.registry)
             if dialog.result:
                 self.rules.append(dialog.result)
+                self._mark_as_changed()
                 self._refresh_rules_list()
                 
                 # Select the new rule
@@ -360,6 +398,7 @@ class RulesDialog:
             if dialog.result:
                 # Update the rule in our list
                 self.rules[selected_index] = dialog.result
+                self._mark_as_changed()
                 self._refresh_rules_list()
                 
                 # Restore selection
@@ -385,6 +424,7 @@ class RulesDialog:
                               f"This action cannot be undone."):
             try:
                 del self.rules[selected_index]
+                self._mark_as_changed()
                 self._refresh_rules_list()
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to remove rule: {str(e)}")
@@ -407,6 +447,7 @@ class RulesDialog:
             new_rule = self.rule_manager.registry.create_rule(rule_type, **rule_dict)
             
             self.rules.append(new_rule)
+            self._mark_as_changed()
             self._refresh_rules_list()
             
             # Select the new rule
@@ -448,6 +489,7 @@ class RulesDialog:
             return
         
         self.rules[selected_index].enabled = True
+        self._mark_as_changed()
         self._refresh_rules_list()
         
         # Restore selection
@@ -462,6 +504,7 @@ class RulesDialog:
             return
         
         self.rules[selected_index].enabled = False
+        self._mark_as_changed()
         self._refresh_rules_list()
         
         # Restore selection
@@ -477,6 +520,7 @@ class RulesDialog:
         for rule in self.rules:
             rule.enabled = True
         
+        self._mark_as_changed()
         self._refresh_rules_list()
         messagebox.showinfo("Success", f"Enabled all {len(self.rules)} rules.")
     
@@ -489,6 +533,7 @@ class RulesDialog:
             for rule in self.rules:
                 rule.enabled = False
             
+            self._mark_as_changed()
             self._refresh_rules_list()
             messagebox.showinfo("Success", f"Disabled all {len(self.rules)} rules.")
     
@@ -502,6 +547,15 @@ class RulesDialog:
             
             # Save to database
             self.rule_manager.save_rules_to_database()
+            
+            # Reset change tracking
+            self.has_changes = False
+            self.original_rules_hash = self._get_rules_hash()
+            # Remove asterisk from title
+            title = self.window.title()
+            if title.endswith(" *"):
+                self.window.title(title[:-2])
+            
             messagebox.showinfo("Success", "All rules saved successfully!")
             
         except Exception as e:
@@ -509,11 +563,26 @@ class RulesDialog:
     
     def _on_close(self):
         """Handle window close."""
-        if messagebox.askyesno("Confirm Close", 
-                              "Do you want to save your changes before closing?\n\n"
-                              "Click 'Yes' to save and close, 'No' to close without saving."):
-            self._save_rules()
+        # Check if there are any unsaved changes
+        has_changes = self._check_for_changes()
         
-        self.window.destroy()
+        if has_changes:
+            response = messagebox.askyesnocancel(
+                "Unsaved Changes", 
+                "You have unsaved changes. Do you want to save them before closing?\n\n"
+                "• Yes: Save changes and close\n"
+                "• No: Close without saving\n"
+                "• Cancel: Return to dialog"
+            )
+            
+            if response is True:  # Yes - save and close
+                self._save_rules()
+                self.window.destroy()
+            elif response is False:  # No - close without saving
+                self.window.destroy()
+            # Cancel - do nothing, stay in dialog
+        else:
+            # No changes, close directly
+            self.window.destroy()
 
 
