@@ -265,8 +265,8 @@ class RuleEditorDialog:
             # Center the test window
             test_window.geometry(
                 "+%d+%d" % (
-                    self.window.winfo_rootx() + 100,
-                    self.window.winfo_rooty() + 100
+                    self.window.winfo_rootx() + self.window.winfo_width() // 2 - 175,
+                    self.window.winfo_rooty() + self.window.winfo_height() // 2 - 125
                 )
             )
             
