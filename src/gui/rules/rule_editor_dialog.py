@@ -30,7 +30,7 @@ class RuleEditorDialog:
         """Create the dialog window."""
         self.window = tk.Toplevel(self.parent)
         self.window.title(title)
-        self.window.geometry("500x700")
+        self.window.geometry("500x900")
         self.window.transient(self.parent)
         self.window.grab_set()
         
@@ -47,7 +47,7 @@ class RuleEditorDialog:
         
         # Create main frame
         main_frame = ttk.Frame(self.window)
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
+        main_frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=(15, 0))
         
         # Rule type display
         type_frame = ttk.Frame(main_frame)
@@ -66,8 +66,8 @@ class RuleEditorDialog:
         # Create the appropriate rule editor
         self._create_rule_editor()
         
-        # Create bottom buttons
-        self._create_bottom_buttons(main_frame)
+        # Create bottom buttons in a separate frame at window level
+        self._create_bottom_buttons(self.window)
         
         # Set focus to first entry
         self.window.after(100, self._set_initial_focus)
@@ -149,7 +149,7 @@ class RuleEditorDialog:
     def _create_bottom_buttons(self, parent):
         """Create the bottom button panel."""
         button_frame = ttk.Frame(parent)
-        button_frame.pack(fill=tk.X, pady=(15, 0))
+        button_frame.pack(side=tk.BOTTOM, fill=tk.X, padx=15, pady=15)
         
         # Add some spacing
         ttk.Separator(button_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=(0, 10))

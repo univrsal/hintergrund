@@ -82,7 +82,7 @@ class MenuManager:
         about_window.resizable(False, False)
 
         about_window.geometry(
-            "+%d+%d" % (self.root.winfo_rootx() + 100, self.root.winfo_rooty() + 100)
+            "+%d+%d" % (self.root.winfo_rootx() + self.root.winfo_width() // 2 - 350, self.root.winfo_rooty() + self.root.winfo_height() // 2 - 350)
         )
 
         main_frame = tk.Frame(about_window)
