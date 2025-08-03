@@ -92,6 +92,6 @@ Hintergrund now supports weather-based wallpaper selection! You can automaticall
 ## (made up) FAQ
 
 - The GUI is ugly, did you know that? - Yes.
-- Python is garbage, you know Rust is way better? - I don't care.
+- Python is garbage, you know Rust is way better? - Yes.
 - This code is bad, did an LLM write it? - Yes.
 - This code is genius, did you write it? - Yes.
