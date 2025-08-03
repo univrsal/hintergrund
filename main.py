@@ -46,8 +46,18 @@ def main():
         help="Database file path (default: wallpapers.db)",
     )
 
-    run_parser = subparsers.add_parser(
+    pick_parser = subparsers.add_parser(
         "pick", help="Run the rule engine to select a wallpaper and print its path"
+    )
+    pick_parser.add_argument(
+        "--db",
+        type=str,
+        default="wallpapers.db",
+        help="Database file path (default: wallpapers.db)",
+    )
+
+    run_parser = subparsers.add_parser(
+        "run", help="Run the rule engine to select a wallpaper and set it as wallpaper"
     )
     run_parser.add_argument(
         "--db",
@@ -69,18 +79,26 @@ def main():
             list_images(args.db, args.tags)
         elif args.command == "gui":
             start_gui(args.db)
-        elif args.command == "pick":
-            from src.rules.engine import run
+        elif args.command == "pick" or args.command == "run":
+            from src.rules import engine
             from src.database import DatabaseManager
             db_manager = DatabaseManager(args.db)
             from src.rules.manager import RuleManager
             rule_manager = RuleManager(db_manager)
             rule_manager.load_rules_from_database()
-            images = run(db_manager, rule_manager)
+            images = engine.run(db_manager, rule_manager)
             if images:
                 from random import choice
                 selected_image = choice(images)
-                print(db_manager.resolve_image_path(selected_image["file_path"]))
+                # update last_used timestamp
+                db_manager.update_image_last_used(selected_image["id"])
+
+                if args.command == "run":
+                    # set the image as the current wallpaper
+                    from src.wallpaper import set_wallpaper
+                    set_wallpaper(db_manager.resolve_image_path(selected_image["file_path"]))
+                else:
+                    print(db_manager.resolve_image_path(selected_image["file_path"]))
         else:
             print(f"Unknown command: {args.command}")
             return 1

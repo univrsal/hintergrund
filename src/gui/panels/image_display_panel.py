@@ -149,6 +149,9 @@ class ImageDisplayPanel:
         context_menu.add_command(
             label="Open with Default Application", command=self._open_with_default_app
         )
+        context_menu.add_command(
+            label="Set as wallpaper", command=self._set_wallpaper
+        )
         context_menu.add_separator()
         context_menu.add_command(label="Copy File Path", command=self._copy_file_path)
 
@@ -157,6 +160,20 @@ class ImageDisplayPanel:
             context_menu.tk_popup(event.x_root, event.y_root)
         finally:
             context_menu.grab_release()
+
+    def _set_wallpaper(self):
+        """Set the current image as the desktop wallpaper."""
+        if not self.current_image_path or not self.current_image_path.exists():
+            return
+
+        try:
+            from src.wallpaper import set_wallpaper
+            set_wallpaper(str(self.current_image_path))
+            self.gui_app.status_var.set(
+                f"Wallpaper set to: {self.current_image_path.name}"
+            )
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to set wallpaper: {e}")
 
     def _open_in_file_manager(self):
         """Open the image file's location in the system file manager."""

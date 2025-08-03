@@ -169,6 +169,25 @@ class DatabaseManager:
             image_dict = dict(row)
             image_dict["tags"] = self._get_image_tags(cursor, image_dict["id"])
             return image_dict
+        
+    def update_image_last_used(self, image_id: int) -> bool:
+        """Update the last_used timestamp for an image."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            
+            cursor.execute(
+                """
+                UPDATE image 
+                SET last_used = CURRENT_TIMESTAMP 
+                WHERE id = ?
+                """,
+                (image_id,)
+            )
+            
+            rows_affected = cursor.rowcount
+            conn.commit()
+            
+            return rows_affected > 0
 
     def get_images(self, tags: Optional[List[str]] = None, require_all_tags: bool = False) -> List[Dict[str, Any]]:
         with sqlite3.connect(self.db_path) as conn:
