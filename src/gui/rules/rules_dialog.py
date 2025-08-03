@@ -35,8 +35,8 @@ class RulesDialog:
         # Center the dialog
         self.window.geometry(
             "+%d+%d" % (
-                self.parent.winfo_rootx() + 50,
-                self.parent.winfo_rooty() + 50
+                self.parent.winfo_rootx() + self.parent.winfo_width() // 2 - 600,
+                self.parent.winfo_rooty() + self.parent.winfo_height() // 2 - 325
             )
         )
         
