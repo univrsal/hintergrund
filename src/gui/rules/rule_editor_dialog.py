@@ -30,15 +30,15 @@ class RuleEditorDialog:
         """Create the dialog window."""
         self.window = tk.Toplevel(self.parent)
         self.window.title(title)
-        self.window.geometry("500x900")
+        self.window.geometry("600x900")
         self.window.transient(self.parent)
         self.window.grab_set()
         
         # Center the dialog
         self.window.geometry(
             "+%d+%d" % (
-                self.parent.winfo_rootx() + 100,
-                self.parent.winfo_rooty() + 50
+                self.parent.winfo_rootx() + self.parent.winfo_width() // 2 - 300,
+                self.parent.winfo_rooty() + self.parent.winfo_height() // 2 - 450
             )
         )
         
@@ -86,31 +86,86 @@ class RuleEditorDialog:
         self.scrollable_frame = ttk.Frame(canvas)
         
         # Configure scrolling
-        self.scrollable_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-        )
+        def update_scroll_region():
+            canvas.update_idletasks()
+            canvas.configure(scrollregion=canvas.bbox("all"))
+            
+            # Show/hide scrollbar based on whether scrolling is needed
+            scroll_region = canvas.cget("scrollregion")
+            if scroll_region:
+                try:
+                    x1, y1, x2, y2 = map(float, scroll_region.split())
+                    content_height = y2 - y1
+                    canvas_height = canvas.winfo_height()
+                    
+                    if content_height > canvas_height:
+                        # Content is larger than canvas - show scrollbar
+                        # Unpack canvas first, then pack scrollbar, then repack canvas
+                        canvas.pack_forget()
+                        scrollbar.pack(side="right", fill="y")
+                        canvas.pack(side="left", fill="both", expand=True)
+                    else:
+                        # Content fits - hide scrollbar
+                        scrollbar.pack_forget()
+                except (ValueError, AttributeError):
+                    # If there's an error, show scrollbar as fallback
+                    canvas.pack_forget()
+                    scrollbar.pack(side="right", fill="y")
+                    canvas.pack(side="left", fill="both", expand=True)
+        
+        self.scrollable_frame.bind("<Configure>", lambda e: update_scroll_region())
         
         canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
         
         # Pack canvas and scrollbar
+        # Pack scrollbar first to ensure it's always visible
+        # Don't pack scrollbar initially - let update_scroll_region handle it
         canvas.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
         
         # Bind mousewheel to canvas
         def _on_mousewheel(event):
-            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+            # Check if scrolling is actually needed
+            canvas.update_idletasks()
+            
+            # Get the scroll region and canvas size
+            scroll_region = canvas.cget("scrollregion")
+            if not scroll_region:
+                return "break"
+            
+            # Parse scroll region: "x1 y1 x2 y2"
+            try:
+                x1, y1, x2, y2 = map(float, scroll_region.split())
+                content_height = y2 - y1
+                canvas_height = canvas.winfo_height()
+                
+                # Only scroll if content is larger than canvas
+                if content_height > canvas_height:
+                    canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+            except (ValueError, AttributeError):
+                # Fallback - let canvas handle it
+                canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+            
+            return "break"
         
         canvas.bind("<MouseWheel>", _on_mousewheel)
         
-        # Also bind to the frame and all child widgets
+        # Also bind to the scrollable frame and all child widgets
         def bind_mousewheel(widget):
             widget.bind("<MouseWheel>", _on_mousewheel)
             for child in widget.winfo_children():
                 bind_mousewheel(child)
         
-        self.scrollable_frame.bind("<Configure>", lambda e: bind_mousewheel(self.scrollable_frame))
+        # Initial binding and rebind when content changes
+        self.scrollable_frame.after(10, lambda: bind_mousewheel(self.scrollable_frame))
+        
+        # Also update bindings when frame content changes
+        original_configure = self.scrollable_frame.bind("<Configure>")
+        def on_frame_configure(event):
+            update_scroll_region()
+            bind_mousewheel(self.scrollable_frame)
+        
+        self.scrollable_frame.bind("<Configure>", on_frame_configure)
         
         self.canvas = canvas
     
