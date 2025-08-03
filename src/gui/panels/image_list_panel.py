@@ -103,16 +103,9 @@ class ImageListPanel:
                 row_height = 32
             else:
                 row_height = max(32, int(font_size * 2.2))
-            if sys.platform == "win32":
-                row_height *= 0.7
 
-            try:
-                if hasattr(root, "tk"):
-                    scaling = root.tk.call("tk", "scaling")
-                    if scaling > 1.0:
-                        row_height = int(row_height * scaling)
-            except tk.TclError:
-                pass
+            if self.gui_app.scale_factor > 1.0:
+                    row_height = int(row_height * self.gui_app.scale_factor)
 
             return max(20, row_height)
 

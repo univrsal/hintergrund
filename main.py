@@ -69,7 +69,7 @@ def main():
             list_images(args.db, args.tags)
         elif args.command == "gui":
             start_gui(args.db)
-        elif args.command == "run":
+        elif args.command == "pick":
             from src.rules.engine import run
             from src.database import DatabaseManager
             db_manager = DatabaseManager(args.db)

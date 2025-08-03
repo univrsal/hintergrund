@@ -66,6 +66,10 @@ class RuleManager:
     def set_database_manager(self, db_manager):
         """Set the database manager for persistence."""
         self.db_manager = db_manager
+
+    def get_all_rules(self) -> List[Rule]:
+        """Get a list of all rules."""
+        return self.rules
     
     def _serialize_rule_to_dict(self, rule: Rule) -> Dict[str, Any]:
         """Serialize a rule to a dictionary for JSON storage."""

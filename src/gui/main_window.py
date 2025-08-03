@@ -6,12 +6,12 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog, font
 from pathlib import Path
 from typing import List, Dict, Any, Optional
-from PIL import Image, ImageTk
 import threading
 import sys
 
 from ..database import DatabaseManager
 from ..scanner import ImageScanner
+from ..rules.manager import RuleManager
 from .panels.image_display_panel import ImageDisplayPanel
 from .panels.image_list_panel import ImageListPanel
 from .panels.tags_panel import TagsPanel
@@ -25,9 +25,10 @@ class WallpaperGUI:
     def __init__(self, db_path: str = "wallpapers.db"):
         self.db_path = db_path
         self.db_manager = DatabaseManager(db_path)
+        self.rule_manager = RuleManager(self.db_manager)
         self.current_images: List[Dict[str, Any]] = []
         self.current_image_index = -1
-
+        self.scale_factor = 1.0
         self._configure_hidpi()
 
         self.root = tk.Tk()
@@ -65,23 +66,18 @@ class WallpaperGUI:
 
                 user32 = ctypes.windll.user32
                 dpi = user32.GetDpiForSystem()
-                scale_factor = dpi / 96.0
+                self.scale_factor = dpi / 96.0
             else:
-                scale_factor = 1.0
+                self.scale_factor = 1.0
 
             base_width = 1200
             base_height = 800
 
-            scaled_width = int(base_width * scale_factor)
-            scaled_height = int(base_height * scale_factor)
+            scaled_width = int(base_width * self.scale_factor)
+            scaled_height = int(base_height * self.scale_factor)
 
             self.root.geometry(f"{scaled_width}x{scaled_height}")
 
-            default_font = font.nametofont("TkDefaultFont")
-            current_size = default_font["size"]
-            if current_size > 0:  # Positive size means points
-                new_size = max(8, int(current_size * scale_factor))
-                default_font.configure(size=new_size)
 
         except Exception:
             self.root.geometry("1200x800")
@@ -169,6 +165,15 @@ class WallpaperGUI:
             self.load_images(tags)
         else:
             self.load_images()
+
+    def open_rule_editor(self, event=None):
+        """Open the rule editor dialog."""
+        from .rules.rules_dialog import RulesDialog
+
+        try:
+            dialog = RulesDialog(self.root, self.rule_manager)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to open rule editor: {e}")
 
     def previous_image(self, event=None):
         """Navigate to the previous image in the list."""

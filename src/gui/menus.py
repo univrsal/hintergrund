@@ -53,6 +53,11 @@ class MenuManager:
             command=self.gui_app.next_image,
             accelerator="Right Arrow",
         )
+        view_menu.add_command(
+            label="Open Rule Editor",
+            command=self.gui_app.open_rule_editor,
+            accelerator="F3",
+        )
         view_menu.add_separator()
         view_menu.add_command(
             label="Show Base Folder", command=self.gui_app.show_base_folder
