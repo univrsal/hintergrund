@@ -258,7 +258,7 @@ class RuleEditorDialog:
             # Create a simple test result dialog
             test_window = tk.Toplevel(self.window)
             test_window.title("Rule Test Result")
-            test_window.geometry("300x150")
+            test_window.geometry("350x250")
             test_window.transient(self.window)
             test_window.grab_set()
             
@@ -345,15 +345,15 @@ class NewRuleDialog:
         """Create the new rule dialog."""
         self.window = tk.Toplevel(self.parent)
         self.window.title("Create New Rule")
-        self.window.geometry("450x400")
+        self.window.geometry("450x500")
         self.window.transient(self.parent)
         self.window.grab_set()
         
         # Center the dialog
         self.window.geometry(
             "+%d+%d" % (
-                self.parent.winfo_rootx() + 100,
-                self.parent.winfo_rooty() + 100
+                self.parent.winfo_rootx() + self.parent.winfo_width() // 2 - 225,
+                self.parent.winfo_rooty() + self.parent.winfo_height() // 2 - 200
             )
         )
         
