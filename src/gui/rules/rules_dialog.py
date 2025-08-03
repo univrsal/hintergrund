@@ -28,7 +28,7 @@ class RulesDialog:
         """Create the dialog window and widgets."""
         self.window = tk.Toplevel(self.parent)
         self.window.title("Manage Rules")
-        self.window.geometry("900x650")
+        self.window.geometry("1200x650")
         self.window.transient(self.parent)
         self.window.grab_set()
         
