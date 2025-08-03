@@ -23,15 +23,18 @@ class WeatherRule(Rule):
     
     def __init__(self, **data):
         super().__init__(**data)
-        self._cache_key = f"{self.latitude},{self.longitude}"
+        
+    def _get_cache_key(self) -> str:
+        """Return a unique cache key for this rule based on latitude and longitude."""
+        return f"{self.latitude},{self.longitude}"
     
     def _get_weather_data(self) -> Optional[Dict[str, Any]]:
         """Fetch weather data from yr.no API with caching."""
         now = datetime.now()
         
         # Check if we have cached data that's still valid
-        if self._cache_key in self._weather_cache:
-            cached_data = self._weather_cache[self._cache_key]
+        if self._get_cache_key() in self._weather_cache:
+            cached_data = self._weather_cache[self._get_cache_key()]
             cache_time = cached_data.get('timestamp', datetime.min)
             if now - cache_time < timedelta(seconds=self.cache_duration):
                 return cached_data.get('data')
@@ -53,7 +56,7 @@ class WeatherRule(Rule):
             data = response.json()
             
             # Cache the response
-            self._weather_cache[self._cache_key] = {
+            self._weather_cache[self._get_cache_key()] = {
                 'timestamp': now,
                 'data': data
             }
