@@ -34,6 +34,14 @@ class MenuManager:
         file_menu.add_command(
             label="Set Base Folder...", command=self.gui_app.set_base_folder
         )
+
+        import platform
+        if platform.system() == "Windows":
+            file_menu.add_command(
+                label="Register Task for running Hintergrund periodically",
+                command=self._register_task
+            )
+
         file_menu.add_separator()
         file_menu.add_command(
             label="Delete Selected Image...",
@@ -74,6 +82,58 @@ class MenuManager:
             label="Show Statistics", command=self.gui_app.show_statistics
         )
         view_menu.add_command(label="About", command=self._show_about)
+
+    def _register_task(self):
+        import subprocess
+        import sys
+
+        task_name = "Hintergrund Wallpaper Manager"
+        exe_path = sys.executable if getattr(sys, "frozen", False) else __file__
+        argument = "run"
+
+        # prompt user for interval in minutes tkinter dialog
+        interval_minutes = 15  # Default value if user cancels
+        try:
+            import tkinter.simpledialog as simpledialog
+            interval_minutes = simpledialog.askinteger(
+                "Task Interval",
+                "Enter the interval in minutes for the task to run (default is 15):",
+                initialvalue=15,
+                minvalue=1
+            )
+            return
+        except ImportError:
+            # Fallback if tkinter is not available
+            print("tkinter is not available, using default interval of 15 minutes.")
+
+        # Important: combine exe and argument into one string, then quote that string
+        task_command = f'"{exe_path}" {argument}'
+
+        command = [
+            "schtasks",
+            "/Create",
+            "/SC", "MINUTE",
+            "/MO", str(interval_minutes),
+            "/TN", task_name,
+            "/TR", task_command,
+            "/RL", "HIGHEST",
+            "/F"
+        ]
+        import ctypes
+        try:
+            if ctypes.windll.shell32.IsUserAnAdmin() == 0:
+                exe = command[0]
+                params = " ".join(command[1:])
+                ret = ctypes.windll.shell32.ShellExecuteW(None, "runas", exe, params, None, 1)
+                if int(ret) <= 32:
+                    raise OSError(f"Failed to register task: {task_name}    ")
+            else:
+                # If already running as admin, just run the command
+                subprocess.run(command, check=True)
+                print(f"Task '{task_name}' created successfully.")
+        except subprocess.CalledProcessError as e:
+            print(f"Failed to create task: {e}")
+
     
     def _show_about(self):
         """Show the about dialog."""
