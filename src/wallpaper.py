@@ -62,7 +62,7 @@ def set_wallpaper(image_path):
         raise OSError(f"Unsupported operating system: {system}")
 
 
-def set_lockscreen_wallpaper(image_path):
+def set_lockscreen_wallpaper(image_path, ask_for_admin=True):
     """
     Set the lock screen wallpaper to the specified image path.
 
@@ -71,14 +71,31 @@ def set_lockscreen_wallpaper(image_path):
     """
     import os
     import platform
+    import ctypes
+
 
     system = platform.system()
 
     if system == "Windows":
-        # Use Windows API to set lock screen wallpaper
-        ctypes.windll.user32.SystemParametersInfoW(  # type: ignore
-            20, 0, image_path, 3
-        )  # 20 is SPI_SETDESKWALLPAPER
+        # Elevate and set lock screen wallpaper via registry (UAC prompt)
+        import ctypes, os
+      
+        windows_path = os.path.abspath(image_path).replace('/', '\\')
+        
+        # check if we're running as admin
+        reg_command = f'REG ADD "HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\Personalization" /V "LockScreenImage" /T REG_SZ /D "{windows_path}" /F'
+        if ctypes.windll.shell32.IsUserAnAdmin() == 0:
+            if ask_for_admin:
+                exe, params = reg_command.split(' ', 1)
+                ret = ctypes.windll.shell32.ShellExecuteW(None, "runas", exe, params, None, 1)
+                if int(ret) <= 32:
+                    raise OSError(f"Failed to run elevated command: {reg_command}")
+            # otherwise just do nothing
+        else:
+            # If already running as admin, just run the command
+            os.system(reg_command)
+        return
+
     elif system == "Darwin":  # macOS
         script = f'tell application "System Events" to set picture of current desktop to POSIX file "{image_path}"'
         os.system(f"osascript -e '{script}'")

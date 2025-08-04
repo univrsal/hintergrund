@@ -152,6 +152,10 @@ class ImageDisplayPanel:
         context_menu.add_command(
             label="Set as wallpaper", command=self._set_wallpaper
         )
+        context_menu.add_command(
+            label="Set as lock screen wallpaper",
+            command=self._set_lockscreen_wallpaper,
+        )
         context_menu.add_separator()
         context_menu.add_command(label="Copy File Path", command=self._copy_file_path)
 
@@ -160,6 +164,20 @@ class ImageDisplayPanel:
             context_menu.tk_popup(event.x_root, event.y_root)
         finally:
             context_menu.grab_release()
+
+    def _set_lockscreen_wallpaper(self):
+        """Set the current image as the lock screen wallpaper."""
+        if not self.current_image_path or not self.current_image_path.exists():
+            return
+
+        try:
+            from src.wallpaper import set_lockscreen_wallpaper
+            set_lockscreen_wallpaper(str(self.current_image_path))
+            self.gui_app.status_var.set(
+                f"Lock screen wallpaper set to: {self.current_image_path.name}"
+            )
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to set lock screen wallpaper: {e}")
 
     def _set_wallpaper(self):
         """Set the current image as the desktop wallpaper."""

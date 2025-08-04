@@ -112,8 +112,9 @@ def main():
                     set_wallpaper(
                         db_manager.resolve_image_path(selected_image["file_path"])
                     )
+
                     set_lockscreen_wallpaper(
-                        db_manager.resolve_image_path(selected_image["file_path"])
+                        db_manager.resolve_image_path(selected_image["file_path"]), ask_for_admin=False
                     )
                 else:
                     print(db_manager.resolve_image_path(selected_image["file_path"]))
