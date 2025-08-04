@@ -60,3 +60,41 @@ def set_wallpaper(image_path):
             os.system(f"feh --bg-scale {image_path}")
     else:
         raise OSError(f"Unsupported operating system: {system}")
+
+
+def set_lockscreen_wallpaper(image_path):
+    """
+    Set the lock screen wallpaper to the specified image path.
+
+    Args:
+        image_path (str): The path to the image file to set as lock screen wallpaper.
+    """
+    import os
+    import platform
+
+    system = platform.system()
+
+    if system == "Windows":
+        # Use Windows API to set lock screen wallpaper
+        ctypes.windll.user32.SystemParametersInfoW(  # type: ignore
+            20, 0, image_path, 3
+        )  # 20 is SPI_SETDESKWALLPAPER
+    elif system == "Darwin":  # macOS
+        script = f'tell application "System Events" to set picture of current desktop to POSIX file "{image_path}"'
+        os.system(f"osascript -e '{script}'")
+    elif system == "Linux":
+        de = _get_desktop_environment()
+        if de == "GNOME":
+            os.system(
+                f"gsettings set org.gnome.desktop.screensaver picture-uri file://{image_path}"
+            )
+        elif de == "KDE":
+            os.system(
+                f"kwriteconfig6 --file kscreenlockerrc --group Greeter --group Wallpaper --group org.kde.image --group General --key Image {image_path}"
+            )
+        elif de == "XFCE":
+            os.system(
+                f"xfconf-query -c xfce4-screensaver -p /general/screen0/monitor0/workspace0/last-image -s {image_path}"
+            )
+    else:
+        raise OSError(f"Unsupported operating system: {system}")

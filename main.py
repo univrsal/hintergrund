@@ -99,9 +99,12 @@ def main():
 
                 if args.command == "run":
                     # set the image as the current wallpaper
-                    from src.wallpaper import set_wallpaper
+                    from src.wallpaper import set_wallpaper, set_lockscreen_wallpaper
 
                     set_wallpaper(
+                        db_manager.resolve_image_path(selected_image["file_path"])
+                    )
+                    set_lockscreen_wallpaper(
                         db_manager.resolve_image_path(selected_image["file_path"])
                     )
                 else:
