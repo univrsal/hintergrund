@@ -86,14 +86,22 @@ def main():
 
             db_manager = DatabaseManager(args.db)
             from src.rules.manager import RuleManager
+            from datetime import datetime
 
             rule_manager = RuleManager(db_manager)
             rule_manager.load_rules_from_database()
             images = engine.run(db_manager, rule_manager)
             if images:
-                from random import choice
-
-                selected_image = choice(images)
+                # sort images by last_used timestamp
+                # last_used format is '1970-01-01 00:00:00', parse to datetime first so we can sort correctly
+                for image in images:
+                    image["last_used"] = datetime.strptime(
+                        image["last_used"], "%Y-%m-%d %H:%M:%S"
+                    )
+                images.sort(key=lambda x: x["last_used"])
+                selected_image = images[
+                    0
+                ]  # pick the first image after sorting, i.e., the most recently used
                 # update last_used timestamp
                 db_manager.update_image_last_used(selected_image["id"])
 
