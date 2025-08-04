@@ -11,6 +11,7 @@ import sys
 
 from src.cli import scan_directory, list_images
 from src.gui import start_gui
+from src.config import get_default_database_path
 
 
 def main():
@@ -25,16 +26,16 @@ def main():
     scan_parser.add_argument(
         "--db",
         type=str,
-        default="wallpapers.db",
-        help="Database file path (default: wallpapers.db)",
+        default=get_default_database_path(),
+        help=f"Database file path (default: {get_default_database_path()})",
     )
 
     list_parser = subparsers.add_parser("list", help="List images in database")
     list_parser.add_argument(
         "--db",
         type=str,
-        default="wallpapers.db",
-        help="Database file path (default: wallpapers.db)",
+        default=get_default_database_path(),
+        help=f"Database file path (default: {get_default_database_path()})",
     )
     list_parser.add_argument("--tags", type=str, nargs="*", help="Filter by tags")
 
@@ -42,8 +43,8 @@ def main():
     gui_parser.add_argument(
         "--db",
         type=str,
-        default="wallpapers.db",
-        help="Database file path (default: wallpapers.db)",
+        default=get_default_database_path(),
+        help=f"Database file path (default: {get_default_database_path()})",
     )
 
     pick_parser = subparsers.add_parser(
@@ -52,8 +53,8 @@ def main():
     pick_parser.add_argument(
         "--db",
         type=str,
-        default="wallpapers.db",
-        help="Database file path (default: wallpapers.db)",
+        default=get_default_database_path(),
+        help=f"Database file path (default: {get_default_database_path()})",
     )
 
     run_parser = subparsers.add_parser(
@@ -62,14 +63,14 @@ def main():
     run_parser.add_argument(
         "--db",
         type=str,
-        default="wallpapers.db",
-        help="Database file path (default: wallpapers.db)",
+        default=get_default_database_path(),
+        help=f"Database file path (default: {get_default_database_path()})",
     )
 
     args = parser.parse_args()
 
     if not args.command:
-        start_gui()
+        start_gui(get_default_database_path())
         return 0
 
     try:
@@ -82,13 +83,16 @@ def main():
         elif args.command == "pick" or args.command == "run":
             from src.rules import engine
             from src.database import DatabaseManager
+
             db_manager = DatabaseManager(args.db)
             from src.rules.manager import RuleManager
+
             rule_manager = RuleManager(db_manager)
             rule_manager.load_rules_from_database()
             images = engine.run(db_manager, rule_manager)
             if images:
                 from random import choice
+
                 selected_image = choice(images)
                 # update last_used timestamp
                 db_manager.update_image_last_used(selected_image["id"])
@@ -96,7 +100,10 @@ def main():
                 if args.command == "run":
                     # set the image as the current wallpaper
                     from src.wallpaper import set_wallpaper
-                    set_wallpaper(db_manager.resolve_image_path(selected_image["file_path"]))
+
+                    set_wallpaper(
+                        db_manager.resolve_image_path(selected_image["file_path"])
+                    )
                 else:
                     print(db_manager.resolve_image_path(selected_image["file_path"]))
         else:

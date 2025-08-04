@@ -4,6 +4,7 @@ Dialog components for the wallpaper management GUI.
 
 import tkinter as tk
 from tkinter import ttk
+from typing import Optional
 
 
 class ProgressDialog:
@@ -32,9 +33,13 @@ class ProgressDialog:
         self.window.destroy()
 
 
-def start_gui(db_path: str = "wallpapers.db"):
+def start_gui(db_path: Optional[str] = None):
     """Start the GUI application."""
     from .main_window import WallpaperGUI
+    from ..config import get_default_database_path
+
+    if db_path is None:
+        db_path = get_default_database_path()
 
     app = WallpaperGUI(db_path)
     app.run()
