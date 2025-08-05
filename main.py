@@ -81,13 +81,13 @@ def main():
         elif args.command == "gui":
             start_gui(args.db)
         elif args.command == "pick" or args.command == "run":
+            import random
             from src.rules import engine
-            from src.database import DatabaseManager
-
-            db_manager = DatabaseManager(args.db)
+            from src.database import DatabaseManager    
             from src.rules.manager import RuleManager
             from datetime import datetime
 
+            db_manager = DatabaseManager(args.db)
             rule_manager = RuleManager(db_manager)
             rule_manager.load_rules_from_database()
             images = engine.run(db_manager, rule_manager)
@@ -99,9 +99,17 @@ def main():
                         image["last_used"], "%Y-%m-%d %H:%M:%S"
                     )
                 images.sort(key=lambda x: x["last_used"])
-                selected_image = images[
-                    0
-                ]  # pick the first image after sorting, i.e., the most recently used
+
+                least_used_images = []
+                # find all images that have the same last_used timestamp as the first image
+                for image in images:
+                    if image["last_used"] == images[0]["last_used"]:
+                        least_used_images.append(image)
+                    else:
+                        break
+                # pick a random image from the least used images
+                selected_image = random.choice(least_used_images)
+
                 # update last_used timestamp
                 db_manager.update_image_last_used(selected_image["id"])
 
