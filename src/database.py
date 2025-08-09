@@ -457,3 +457,55 @@ class DatabaseManager:
             conn.commit()
             
             return rows_affected > 0
+
+    def find_image_by_name_and_size(self, file_name: str, file_size: int) -> Optional[Dict[str, Any]]:
+        """Find an image by file name and size.
+        Returns the image dict or None.
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT * FROM image
+                WHERE file_name = ? AND file_size = ?
+                LIMIT 1
+                """,
+                (file_name, file_size)
+            )
+            row = cursor.fetchone()
+            if not row:
+                return None
+            image_dict = dict(row)
+            image_dict["tags"] = self._get_image_tags(cursor, image_dict["id"])
+            return image_dict
+    
+    def update_image_path_and_tags(self, image_id: int, new_file_path: str, new_tags: Optional[List[str]] = None) -> bool:
+        """Update an image's file_path and replace its tags.
+        Returns True if the record was updated.
+        """
+        if new_tags is None:
+            new_tags = []
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                UPDATE image
+                SET file_path = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+                """,
+                (new_file_path, image_id)
+            )
+            if cursor.rowcount == 0:
+                return False
+            # Remove existing tag links
+            cursor.execute("DELETE FROM image_tag WHERE image_id = ?", (image_id,))
+            # Re-add tags
+            for tag in new_tags:
+                tag_id = self._get_or_create_tag(cursor, tag)
+                cursor.execute(
+                    "INSERT OR IGNORE INTO image_tag (image_id, tag_id) VALUES (?, ?)",
+                    (image_id, tag_id)
+                )
+            conn.commit()
+            return True

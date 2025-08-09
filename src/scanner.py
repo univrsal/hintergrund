@@ -86,26 +86,44 @@ class ImageScanner:
         if self.base_path:
             try:
                 relative_path = file_path.relative_to(self.base_path)
-                # Convert to Unix separators
                 file_path_str = str(relative_path).replace('\\', '/')
             except ValueError:
-                # Fallback to absolute path if relative calculation fails
                 file_path_str = str(file_path.absolute())
         else:
             file_path_str = str(file_path.absolute())
         
         file_path_str = "/" + file_path_str
 
+        # Stat early to get size for moved-file detection
+        try:
+            file_size = file_path.stat().st_size
+        except OSError:
+            return False
+
+        # If exact path exists already -> skip
         if self.db_manager.image_exists(file_path_str):
             return False
-        
+
+        # Attempt moved-file detection: same name+size elsewhere
+        existing = self.db_manager.find_image_by_name_and_size(file_path.name, file_size) if hasattr(self.db_manager, 'find_image_by_name_and_size') else None
+        if existing:
+            # Resolve existing stored path to real location
+            old_path_resolved = self.db_manager.resolve_image_path(existing['file_path']) if hasattr(self.db_manager, 'resolve_image_path') else existing['file_path']
+            if not os.path.exists(old_path_resolved):
+                # Treat as move: update path & tags (merge old+new)
+                merged_tags = sorted(set(existing.get('tags', [])) | set(tags))
+                try:
+                    updated = self.db_manager.update_image_path_and_tags(existing['id'], file_path_str, merged_tags)
+                    if updated:
+                        print(f"  Moved: {existing['file_path']} -> {file_path_str}")
+                        return False  # Not counted as new added image
+                except Exception as e:
+                    print(f"  Failed to update moved image {file_path.name}: {e}")
+
         try:
             with Image.open(file_path) as img:
                 width, height = img.size
                 format_ = img.format or 'UNKNOWN'
-            
-            file_size = file_path.stat().st_size
-            
             self.db_manager.add_image(
                 file_path=file_path_str,
                 file_name=file_path.name,
@@ -115,11 +133,9 @@ class ImageScanner:
                 format_=format_,
                 tags=tags
             )
-            
             return True
-            
         except UnidentifiedImageError:
-            raise Exception(f"Could not identify image format")
+            raise Exception("Could not identify image format")
         except sqlite3.IntegrityError:
             return False
         except Exception as e:
