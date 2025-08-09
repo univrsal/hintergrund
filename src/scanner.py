@@ -29,6 +29,7 @@ class ImageScanner:
         results = {
             'processed': 0,
             'added': 0,
+            'moved': 0,
             'skipped': 0,
             'errors': 0
         }
@@ -53,13 +54,19 @@ class ImageScanner:
                     results['processed'] += 1
                     
                     try:
-                        success = self._process_image(file_path, tags)
-                        if success:
+                        status = self._process_image(file_path, tags)
+                        if status == 'added':
                             results['added'] += 1
                             print(f"  Added: {file_name}")
-                        else:
+                        elif status == 'moved':
+                            results['moved'] += 1
+                            print(f"  Moved (updated path): {file_name}")
+                        elif status == 'skipped':
                             results['skipped'] += 1
                             print(f"  Skipped (exists): {file_name}")
+                        else:
+                            results['errors'] += 1
+                            print(f"  Unknown status for {file_name}: {status}")
                     except Exception as e:
                         results['errors'] += 1
                         print(f"  Error processing {file_name}: {e}")
@@ -81,7 +88,7 @@ class ImageScanner:
         
         return tags
     
-    def _process_image(self, file_path: Path, tags: List[str]) -> bool:
+    def _process_image(self, file_path: Path, tags: List[str]) -> str:
         # Convert to relative path with Unix separators
         if self.base_path:
             try:
@@ -98,11 +105,11 @@ class ImageScanner:
         try:
             file_size = file_path.stat().st_size
         except OSError:
-            return False
+            return 'error'
 
         # If exact path exists already -> skip
         if self.db_manager.image_exists(file_path_str):
-            return False
+            return 'skipped'
 
         # Attempt moved-file detection: same name+size elsewhere
         existing = self.db_manager.find_image_by_name_and_size(file_path.name, file_size) if hasattr(self.db_manager, 'find_image_by_name_and_size') else None
@@ -115,8 +122,7 @@ class ImageScanner:
                 try:
                     updated = self.db_manager.update_image_path_and_tags(existing['id'], file_path_str, merged_tags)
                     if updated:
-                        print(f"  Moved: {existing['file_path']} -> {file_path_str}")
-                        return False  # Not counted as new added image
+                        return 'moved'
                 except Exception as e:
                     print(f"  Failed to update moved image {file_path.name}: {e}")
 
@@ -133,13 +139,14 @@ class ImageScanner:
                 format_=format_,
                 tags=tags
             )
-            return True
+            return 'added'
         except UnidentifiedImageError:
-            raise Exception("Could not identify image format")
+            return 'error'
         except sqlite3.IntegrityError:
-            return False
+            return 'skipped'
         except Exception as e:
-            raise Exception(f"Failed to process image: {e}")
+            print(f"  Failed to process image {file_path.name}: {e}")
+            return 'error'
     
     def verify_images(self, base_path: Optional[Path] = None) -> Dict[str, List[str]]:
         images = self.db_manager.get_images()

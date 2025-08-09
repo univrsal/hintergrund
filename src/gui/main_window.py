@@ -311,16 +311,16 @@ class WallpaperGUI:
 
     def scan_completed(self, progress_dialog, results):
         progress_dialog.close()
-
+        moved = results.get('moved', 0)
         message = (
             f"Scan completed!\n\n"
             f"Images processed: {results['processed']}\n"
             f"Images added: {results['added']}\n"
+            f"Images moved (path updated): {moved}\n"
             f"Images skipped: {results['skipped']}\n"
             f"Errors: {results['errors']}"
         )
         messagebox.showinfo("Scan Complete", message)
-
         self.load_images()
 
     def scan_error(self, progress_dialog, error_msg):
@@ -473,29 +473,27 @@ class WallpaperGUI:
     def rescan_completed(self, progress_dialog, results, base_path):
         """Handle completion of base folder re-scan."""
         progress_dialog.close()
-        
+        moved = results.get('moved', 0)
         message = (
             f"Base folder re-scan completed!\n\n"
             f"Folder: {base_path}\n\n"
             f"Images processed: {results['processed']}\n"
             f"New images added: {results['added']}\n"
+            f"Images moved (path updated): {moved}\n"
             f"Images skipped (already in database): {results['skipped']}\n"
             f"Errors: {results['errors']}"
         )
-        
-        if results['added'] > 0:
-            message += f"\n\n{results['added']} new images were found and added to your collection!"
+        if results['added'] > 0 or moved > 0:
+            message += ("\n\n" +
+                        (f"{results['added']} new images were added. " if results['added'] > 0 else "") +
+                        (f"{moved} images had their paths updated." if moved > 0 else "")).strip()
         elif results['processed'] > 0:
-            message += "\n\nNo new images were found. Your database is up to date!"
+            message += "\n\nNo new or moved images were found. Your database is up to date!"
         else:
             message += "\n\nNo images were found in the base folder."
-        
         messagebox.showinfo("Re-scan Complete", message)
-        
-        # Reload images to show any new additions
-        if results['added'] > 0:
+        if results['added'] > 0 or moved > 0:
             self.load_images()
-    
     def rescan_error(self, progress_dialog, error_msg):
         """Handle error during base folder re-scan."""
         progress_dialog.close()
