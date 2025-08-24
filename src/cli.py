@@ -56,5 +56,26 @@ def scan_directory(directory_path: str, db_path: str):
     print(f"\nScan completed!")
     print(f"Images processed: {results['processed']}")
     print(f"Images added: {results['added']}")
+    print(f"Images moved (path updated): {results.get('moved', 0)}")
+    print(f"Images removed (missing): {results.get('removed', 0)}")
     print(f"Images skipped (already in DB): {results['skipped']}")
+    print(f"Errors: {results['errors']}")
+
+
+def cleanup_missing_images(db_path: str):
+    """Remove images from database that no longer exist on the filesystem."""
+    if not Path(db_path).exists():
+        print(f"Database not found: {db_path}")
+        return
+
+    print(f"Cleaning up missing images from database: {db_path}")
+
+    db_manager = DatabaseManager(db_path)
+    scanner = ImageScanner(db_manager)
+
+    results = scanner.cleanup_missing_images()
+
+    print(f"\nCleanup completed!")
+    print(f"Images checked: {results['checked']}")
+    print(f"Images removed: {results['removed']}")
     print(f"Errors: {results['errors']}")

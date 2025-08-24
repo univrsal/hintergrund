@@ -78,7 +78,6 @@ class WallpaperGUI:
 
             self.root.geometry(f"{scaled_width}x{scaled_height}")
 
-
         except Exception:
             self.root.geometry("1200x800")
 
@@ -311,7 +310,7 @@ class WallpaperGUI:
 
     def scan_completed(self, progress_dialog, results):
         progress_dialog.close()
-        moved = results.get('moved', 0)
+        moved = results.get("moved", 0)
         message = (
             f"Scan completed!\n\n"
             f"Images processed: {results['processed']}\n"
@@ -421,23 +420,23 @@ class WallpaperGUI:
         """Re-scan the base folder for new images and add them to the database."""
         try:
             base_path = self.db_manager.get_base_path()
-            
+
             if not base_path:
                 messagebox.showwarning(
-                    "No Base Folder", 
-                    "No base folder is set. Please set a base folder first using 'File > Set Base Folder'."
+                    "No Base Folder",
+                    "No base folder is set. Please set a base folder first using 'File > Set Base Folder'.",
                 )
                 return
-            
+
             base_path_obj = Path(base_path)
             if not base_path_obj.exists():
                 messagebox.showerror(
-                    "Base Folder Not Found", 
+                    "Base Folder Not Found",
                     f"The base folder does not exist:\n{base_path}\n\n"
-                    "Please check the path or set a new base folder."
+                    "Please check the path or set a new base folder.",
                 )
                 return
-            
+
             # Confirm the operation
             result = messagebox.askyesno(
                 "Re-scan Base Folder",
@@ -445,56 +444,75 @@ class WallpaperGUI:
                 "Only new images (not already in the database) will be added.\n"
                 "This may take some time depending on the folder size.\n\n"
                 "Continue?",
-                icon="question"
+                icon="question",
             )
-            
+
             if not result:
                 return
-            
-            progress_dialog = ProgressDialog(self.root, f"Re-scanning base folder: {base_path}")
-            
+
+            progress_dialog = ProgressDialog(
+                self.root, f"Re-scanning base folder: {base_path}"
+            )
+
             def rescan_thread():
                 try:
                     self.db_manager.initialize()
                     scanner = ImageScanner(self.db_manager)
                     results = scanner.scan_directory(base_path_obj)
-                    
+
                     self.root.after(
-                        0, lambda: self.rescan_completed(progress_dialog, results, base_path)
+                        0,
+                        lambda: self.rescan_completed(
+                            progress_dialog, results, base_path
+                        ),
                     )
                 except Exception as e:
-                    self.root.after(0, lambda: self.rescan_error(progress_dialog, str(e)))
-            
+                    self.root.after(
+                        0, lambda: self.rescan_error(progress_dialog, str(e))
+                    )
+
             threading.Thread(target=rescan_thread, daemon=True).start()
-            
+
         except Exception as e:
             messagebox.showerror("Error", f"Failed to start base folder re-scan: {e}")
-    
+
     def rescan_completed(self, progress_dialog, results, base_path):
         """Handle completion of base folder re-scan."""
         progress_dialog.close()
-        moved = results.get('moved', 0)
+        moved = results.get("moved", 0)
         message = (
             f"Base folder re-scan completed!\n\n"
             f"Folder: {base_path}\n\n"
             f"Images processed: {results['processed']}\n"
             f"New images added: {results['added']}\n"
+            f"Images removed: {results['removed']}\n"
             f"Images moved (path updated): {moved}\n"
             f"Images skipped (already in database): {results['skipped']}\n"
             f"Errors: {results['errors']}"
         )
-        if results['added'] > 0 or moved > 0:
-            message += ("\n\n" +
-                        (f"{results['added']} new images were added. " if results['added'] > 0 else "") +
-                        (f"{moved} images had their paths updated." if moved > 0 else "")).strip()
-        elif results['processed'] > 0:
-            message += "\n\nNo new or moved images were found. Your database is up to date!"
+        if results["added"] > 0 or moved > 0:
+            message += (
+                "\n\n"
+                + (
+                    f"{results['added']} new images were added. "
+                    if results["added"] > 0
+                    else ""
+                )
+                + (f"{moved} images had their paths updated." if moved > 0 else "")
+            ).strip()
+        elif results["processed"] > 0:
+            message += (
+                "\n\nNo new or moved images were found. Your database is up to date!"
+            )
         else:
             message += "\n\nNo images were found in the base folder."
         messagebox.showinfo("Re-scan Complete", message)
-        if results['added'] > 0 or moved > 0:
+        if results["added"] > 0 or moved > 0:
             self.load_images()
+
     def rescan_error(self, progress_dialog, error_msg):
         """Handle error during base folder re-scan."""
         progress_dialog.close()
-        messagebox.showerror("Re-scan Error", f"Error during base folder re-scan: {error_msg}")
+        messagebox.showerror(
+            "Re-scan Error", f"Error during base folder re-scan: {error_msg}"
+        )

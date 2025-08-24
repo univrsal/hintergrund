@@ -9,7 +9,7 @@ with tags derived from their folder structure.
 import argparse
 import sys
 
-from src.cli import scan_directory, list_images
+from src.cli import scan_directory, list_images, cleanup_missing_images
 from src.gui import start_gui
 from src.config import get_default_database_path
 
@@ -38,6 +38,16 @@ def main():
         help=f"Database file path (default: {get_default_database_path()})",
     )
     list_parser.add_argument("--tags", type=str, nargs="*", help="Filter by tags")
+
+    cleanup_parser = subparsers.add_parser(
+        "cleanup", help="Remove missing images from database"
+    )
+    cleanup_parser.add_argument(
+        "--db",
+        type=str,
+        default=get_default_database_path(),
+        help=f"Database file path (default: {get_default_database_path()})",
+    )
 
     gui_parser = subparsers.add_parser("gui", help="Start the GUI application")
     gui_parser.add_argument(
@@ -78,12 +88,14 @@ def main():
             scan_directory(args.directory, args.db)
         elif args.command == "list":
             list_images(args.db, args.tags)
+        elif args.command == "cleanup":
+            cleanup_missing_images(args.db)
         elif args.command == "gui":
             start_gui(args.db)
         elif args.command == "pick" or args.command == "run":
             import random
             from src.rules import engine
-            from src.database import DatabaseManager    
+            from src.database import DatabaseManager
             from src.rules.manager import RuleManager
             from datetime import datetime
 
@@ -122,7 +134,8 @@ def main():
                     )
 
                     set_lockscreen_wallpaper(
-                        db_manager.resolve_image_path(selected_image["file_path"]), ask_for_admin=False
+                        db_manager.resolve_image_path(selected_image["file_path"]),
+                        ask_for_admin=False,
                     )
                 else:
                     print(db_manager.resolve_image_path(selected_image["file_path"]))
