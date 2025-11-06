@@ -53,7 +53,7 @@ def set_wallpaper(image_path):
             os.system(f'plasma-apply-wallpaperimage "{image_path}"')
         elif desktop_env == "XFCE":
             os.system(
-                f"xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/last-image -s {image_path}"
+                f'xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/workspace0/last-image -s "{image_path}"'
             )
         else:
             # Fallback using feh (if available)
@@ -73,21 +73,22 @@ def set_lockscreen_wallpaper(image_path, ask_for_admin=True):
     import platform
     import ctypes
 
-
     system = platform.system()
 
     if system == "Windows":
         # Elevate and set lock screen wallpaper via registry (UAC prompt)
         import ctypes, os
-      
-        windows_path = os.path.abspath(image_path).replace('/', '\\')
-        
+
+        windows_path = os.path.abspath(image_path).replace("/", "\\")
+
         # check if we're running as admin
         reg_command = f'REG ADD "HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\Personalization" /V "LockScreenImage" /T REG_SZ /D "{windows_path}" /F'
         if ctypes.windll.shell32.IsUserAnAdmin() == 0:
             if ask_for_admin:
-                exe, params = reg_command.split(' ', 1)
-                ret = ctypes.windll.shell32.ShellExecuteW(None, "runas", exe, params, None, 1)
+                exe, params = reg_command.split(" ", 1)
+                ret = ctypes.windll.shell32.ShellExecuteW(
+                    None, "runas", exe, params, None, 1
+                )
                 if int(ret) <= 32:
                     raise OSError(f"Failed to run elevated command: {reg_command}")
             # otherwise just do nothing
@@ -103,15 +104,15 @@ def set_lockscreen_wallpaper(image_path, ask_for_admin=True):
         de = _get_desktop_environment()
         if de == "GNOME":
             os.system(
-                f"gsettings set org.gnome.desktop.screensaver picture-uri file://{image_path}"
+                f'gsettings set org.gnome.desktop.screensaver picture-uri "file://{image_path}"'
             )
         elif de == "KDE":
             os.system(
-                f"kwriteconfig6 --file kscreenlockerrc --group Greeter --group Wallpaper --group org.kde.image --group General --key Image {image_path}"
+                f'kwriteconfig6 --file kscreenlockerrc --group Greeter --group Wallpaper --group org.kde.image --group General --key Image "{image_path}"'
             )
         elif de == "XFCE":
             os.system(
-                f"xfconf-query -c xfce4-screensaver -p /general/screen0/monitor0/workspace0/last-image -s {image_path}"
+                f'xfconf-query -c xfce4-screensaver -p /general/screen0/monitor0/workspace0/last-image -s "{image_path}"'
             )
     else:
         raise OSError(f"Unsupported operating system: {system}")
